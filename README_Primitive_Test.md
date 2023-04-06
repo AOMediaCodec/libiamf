@@ -5,9 +5,9 @@
 2. Test Item: OBU Syntax verification based on LPCM stereo
 
 3. Test Methodology
-  3.1 IAMF Reference Encoder generates test bitstream (test_000000_x.iamf)
-  3.2 IAMF Reference Decoder outputs decoder log file (test_000000_x.log) and decoded wav file (ss0_test_000000_x.wav)
-  3.3 Test script file (test_000000.py) checks decoder log file
+- IAMF Reference Encoder generates test bitstream (test_000000_x.iamf)
+- IAMF Reference Decoder outputs decoder log file (test_000000_x.log) and decoded wav file (ss0_test_000000_x.wav)
+- Test script file (test_000000.py) checks decoder log file
 
 ```mermaid
 graph TD
