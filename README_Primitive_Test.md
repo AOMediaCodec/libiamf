@@ -14,7 +14,7 @@ graph TD
 Source(Input Audio) -->|Audio Sources, Encoding Parameters| Enc(IAMF Reference Encoder)
 Enc --> |Test Bitstream| Dec(IAMF Reference Decoder)
 Dec --> |Decoder Log File & Decoded Wav File| Verifier(Test Scriptor)
-Verifier --> |test report| (Test Result)
+Verifier --> |test report| Result(Test Result)
 ```
 
 4. Test Bitstream
