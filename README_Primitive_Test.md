@@ -22,9 +22,9 @@ Verifier --> |test report| Result(Pass or Fail)
 - test_000000_3.zip: test_000000_3.wav, test_000000_3.iamf, test_000000_3_metadata.txt
 
 5. Executing Examples
-- python test_000000.py --log test_000000_1.log --wav ss0_test_000000_1.wav
+- (base) python test_000000.py --log test_000000_1.log --wav ss0_test_000000_1.wav
 > 259 item(s) of test_000000_1.log is(are) passed.
 
-- python test_000000.py --log test_000000_3.log --wav ss0_test_000000_3.wav
+- (base) python test_000000.py --log test_000000_3.log --wav ss0_test_000000_3.wav
 > failure line is #35.
 
