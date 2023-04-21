@@ -1,0 +1,17 @@
+syntax = "proto2";
+
+package libiamf_proto;
+
+message SubstreamMetadata {
+  repeated uint32 channel_ids = 1 [packed = true];
+}
+
+message AudioFrameObuMetadata {
+  optional string wav_filename = 1;
+  map<uint32, SubstreamMetadata> substream_metadata = 2;
+
+  // Order of substream IDs in one AudioFrameObu.
+  repeated uint32 substream_id_ordering = 3 [packed = true];
+  optional uint32 samples_to_trim_at_end = 4;
+  optional uint32 samples_to_trim_at_start = 5;
+}

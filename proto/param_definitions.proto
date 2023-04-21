@@ -1,0 +1,27 @@
+syntax = "proto2";
+
+package libiamf_proto;
+
+message ParamDefinition {
+  optional uint32 parameter_id = 1;
+  optional uint32 parameter_rate = 2;
+  optional bool param_definition_mode = 3;
+  optional uint32 reserved = 4;
+  optional uint32 duration = 5;
+  optional uint32 num_subblocks = 6;
+  optional uint32 constant_subblock_duration = 7;
+  repeated uint32 subblock_durations = 8 [packed = true];
+}
+
+message MixGainParamDefinition {
+  optional ParamDefinition param_definition = 1;
+  optional int32 default_mix_gain = 2;
+}
+
+message DemixingParamDefinition {
+  optional ParamDefinition param_definition = 1;
+}
+
+message ReconGainParamDefinition {
+  optional ParamDefinition param_definition = 1;
+}

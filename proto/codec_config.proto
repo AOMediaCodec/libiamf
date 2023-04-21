@@ -1,0 +1,47 @@
+syntax = "proto2";
+
+package libiamf_proto;
+
+// Valid proto enums start at index 1, which are different from the
+// corresponding enums in C, e.g. kLpcmBigEndian = 0.
+enum LpcmFormatFlags {
+  LPCM_INVALID = 0;
+  LPCM_BIG_ENDIAN = 1;
+  LPCM_LITTLE_ENDIAN = 2;
+}
+
+message DecoderConfigLpcm {
+  optional LpcmFormatFlags sample_format_flags = 1;
+  optional uint32 sample_size = 2;
+  optional uint32 sample_rate = 3;
+}
+
+message DecoderConfigOpus {
+  optional uint32 version = 1;
+  optional uint32 output_channel_count = 2;
+  optional uint32 pre_skip = 3;
+  optional uint32 input_sample_rate = 4;
+  optional int32 output_gain = 5;
+  optional uint32 mapping_family = 6;
+}
+
+message DecoderConfigAac {}
+
+message DecoderConfigFlac {}
+
+message CodecConfig {
+  optional uint32 codec_id = 1;
+  optional uint32 num_samples_per_frame = 2;
+  optional int32 roll_distance = 3;
+  oneof decoder_config {
+    DecoderConfigLpcm decoder_config_lpcm = 5;
+    DecoderConfigOpus decoder_config_opus = 6;
+    DecoderConfigAac decoder_config_aac = 7;
+    DecoderConfigFlac decoder_config_flac = 8;
+  }
+}
+
+message CodecConfigObuMetadata {
+  optional uint32 codec_config_id = 1;
+  optional CodecConfig codec_config = 2;
+}

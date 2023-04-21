@@ -1,0 +1,102 @@
+syntax = "proto2";
+
+package libiamf_proto;
+
+import "param_definitions.proto";
+
+message MixPresentationAnnotations {
+  optional string mix_presentation_friendly_label = 1;
+}
+
+message MixPresentationElementAnnotations {
+  optional string audio_element_friendly_label = 1;
+}
+
+message ElementMixConfig {
+  optional MixGainParamDefinition mix_gain = 1;
+}
+
+message SubMixAudioElement {
+  optional uint32 audio_element_id = 1;
+  optional MixPresentationElementAnnotations
+      mix_presentation_element_annotations = 2;
+  // RenderingConfig has no payload.
+  optional ElementMixConfig element_mix_config = 3;
+}
+
+message LoudspeakersSPLabelLayout {
+  optional uint32 num_loudspeakers = 1;
+  repeated uint32 sp_label = 2 [packed = true];
+}
+
+message OutputMixConfig {
+  optional MixGainParamDefinition output_mix_gain = 1;
+}
+
+enum SoundSystem {
+  SOUND_SYSTEM_INVALID = 0;
+  SOUND_SYSTEM_A_0_2_0 = 1;
+  SOUND_SYSTEM_B_0_5_0 = 2;
+  SOUND_SYSTEM_C_2_5_0 = 3;
+  SOUND_SYSTEM_D_4_5_0 = 4;
+  SOUND_SYSTEM_E_4_5_1 = 5;
+  SOUND_SYSTEM_F_3_7_0 = 6;
+  SOUND_SYSTEM_G_4_9_0 = 7;
+  SOUND_SYSTEM_H_9_10_3 = 8;
+  SOUND_SYSTEM_I_0_7_0 = 9;
+  SOUND_SYSTEM_J_4_7_0 = 10;
+  SOUND_SYSTEM_10_2_7_0 = 11;
+  SOUND_SYSTEM_11_2_3_0 = 12;
+}
+
+message LoudspeakersSsConventionLayout {
+  optional SoundSystem sound_system = 1;
+  optional uint32 reserved = 2;
+}
+
+message LoudspeakersNotDefOrBinauralLayout {
+  optional uint32 reserved = 1;
+}
+
+enum LayoutType {
+  LAYOUT_TYPE_NOT_DEFINED = 0;
+  LAYOUT_TYPE_LOUDSPEAKERS_SP_LABEL = 1;
+  LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION = 2;
+  LAYOUT_TYPE_BINAURAL = 3;
+}
+
+message Layout {
+  optional LayoutType layout_type = 1;
+  oneof specific_layout {
+    LoudspeakersSPLabelLayout sp_layout = 2;
+    LoudspeakersSsConventionLayout ss_layout = 3;
+    LoudspeakersNotDefOrBinauralLayout not_def_binaural_layout = 4;
+  }
+}
+
+message LoudnessInfo {
+  optional uint32 info_type = 1;
+  optional int32 integrated_loudness = 2;
+  optional int32 digital_peak = 3;
+  optional int32 true_peak = 4;
+}
+
+message MixPresentationLayout {
+  optional Layout loudness_layout = 1;
+  optional LoudnessInfo loudness = 2;
+}
+
+message MixPresentationSubMix {
+  optional uint32 num_audio_elements = 1;
+  repeated SubMixAudioElement audio_elements = 2;
+  optional OutputMixConfig output_mix_config = 3;
+  optional uint32 num_layouts = 4;
+  repeated MixPresentationLayout layouts = 5;
+}
+
+message MixPresentationObuMetadata {
+  optional uint32 mix_presentation_id = 1;
+  optional MixPresentationAnnotations mix_presentation_annotations = 2;
+  optional uint32 num_sub_mixes = 3;
+  repeated MixPresentationSubMix sub_mixes = 4;
+}
