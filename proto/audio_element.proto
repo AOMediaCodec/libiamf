@@ -36,7 +36,32 @@ message ScalableChannelLayoutConfig {
   repeated ChannelAudioLayerConfig channel_audio_layer_configs = 3;
 }
 
-message AmbisonicsConfig {}
+enum AmbisonicsMode {
+  AMBISONICS_MODE_INVALID = 0;
+  AMBISONICS_MODE_MONO = 1;
+  AMBISONICS_MODE_PROJECTION = 2;
+}
+
+message AmbisonicsMonoConfig {
+  optional uint32 output_channel_count = 1;
+  optional uint32 substream_count = 2;
+  repeated uint32 channel_mapping = 3 [packed = true];
+}
+
+message AmbisonicsProjectionConfig {
+  optional uint32 output_channel_count = 1;
+  optional uint32 substream_count = 2;
+  optional uint32 coupled_substream_count = 3;
+  repeated uint32 demixing_matrix = 4 [packed = true];
+}
+
+message AmbisonicsConfig {
+  optional AmbisonicsMode ambisonics_mode = 1;
+  oneof ambisonics_config {
+    AmbisonicsMonoConfig ambisonics_mono_config = 2;
+    AmbisonicsProjectionConfig ambisonics_projection_config = 3;
+  }
+}
 
 message AudioElementObuMetadata {
   optional uint32 audio_element_id = 1;

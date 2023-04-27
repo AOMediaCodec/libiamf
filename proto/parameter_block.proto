@@ -75,4 +75,5 @@ message ParameterBlockObuMetadata {
   optional uint32 num_subblocks = 3;
   optional uint32 constant_subblock_duration = 4;
   repeated ParameterSubblock subblocks = 5;
+  optional int32 start_timestamp = 6;
 }
