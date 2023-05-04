@@ -16,6 +16,10 @@ message DecoderConfigLpcm {
   optional uint32 sample_rate = 3;
 }
 
+message OpusEncoderMetadata {
+  optional int32 target_bitrate = 1;
+}
+
 message DecoderConfigOpus {
   optional uint32 version = 1;
   optional uint32 output_channel_count = 2;
@@ -23,6 +27,7 @@ message DecoderConfigOpus {
   optional uint32 input_sample_rate = 4;
   optional int32 output_gain = 5;
   optional uint32 mapping_family = 6;
+  optional OpusEncoderMetadata opus_encoder_metadata = 7;
 }
 
 message DecoderConfigAac {}

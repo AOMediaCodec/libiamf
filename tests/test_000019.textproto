@@ -1,7 +1,7 @@
 # proto-file: third_party/libiamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
-test_vector_metadata: {
+test_vector_metadata {
   human_readable_description:
     "A variant of `test_000005.textproto` that has two parameter blocks with "
     "the same ID occuring one after another."
@@ -151,10 +151,10 @@ parameter_block_metadata {
   constant_subblock_duration: 3200
   subblocks: [
     {
-      mix_gain_parameter_data: {
+      mix_gain_parameter_data {
         animation_type: ANIMATE_STEP
-        param_data: {
-          step: {
+        param_data {
+          step {
             start_point_value: 0
           }
         }
@@ -171,10 +171,10 @@ parameter_block_metadata {
   constant_subblock_duration: 4800
   subblocks: [
     {
-      mix_gain_parameter_data: {
+      mix_gain_parameter_data {
         animation_type: ANIMATE_STEP
-        param_data: {
-          step: {
+        param_data {
+          step {
             start_point_value: 0
           }
         }
@@ -183,6 +183,6 @@ parameter_block_metadata {
   ]
 }
 
-temporal_delimiter_metadata: {
+temporal_delimiter_metadata {
   enable_temporal_delimiters: false
 }

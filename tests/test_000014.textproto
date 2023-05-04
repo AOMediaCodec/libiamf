@@ -1,9 +1,8 @@
 # proto-file: third_party/libiamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
-test_vector_metadata: {
-  human_readable_description:
-    "A variant of `test_000005.textproto` that is encoded using Opus."
+test_vector_metadata {
+  human_readable_description: "A variant of `test_000005.textproto` that is encoded using Opus."
   file_name_prefix: "test_000014"
   is_valid: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
@@ -29,6 +28,9 @@ codec_config_metadata {
       input_sample_rate: 48000
       output_gain: 0
       mapping_family: 0
+      opus_encoder_metadata {
+        target_bitrate: 48000
+      }
     }
   }
 }
@@ -104,8 +106,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -3485
-        digital_peak: -2639
+        integrated_loudness: -5134
+        digital_peak: -1889
       }
     }
   }
@@ -133,7 +135,7 @@ sync_metadata {
 }
 
 audio_frame_metadata {
-  wav_filename: "sawtooth_10000_stereo_48khz.wav"
+  wav_filename: "sample1_48kHz_stereo.wav"
   substream_metadata {
     key: 0
     value {
@@ -148,15 +150,15 @@ audio_frame_metadata {
 parameter_block_metadata {
   parameter_id: 0
   start_timestamp: 0
-  duration: 24000
+  duration: 96000
   num_subblocks: 1
-  constant_subblock_duration: 24000
+  constant_subblock_duration: 96000
   subblocks: [
     {
-      mix_gain_parameter_data: {
+      mix_gain_parameter_data {
         animation_type: ANIMATE_STEP
-        param_data: {
-          step: {
+        param_data {
+          step {
             start_point_value: 0
           }
         }
@@ -165,6 +167,6 @@ parameter_block_metadata {
   ]
 }
 
-temporal_delimiter_metadata: {
+temporal_delimiter_metadata {
   enable_temporal_delimiters: false
 }
