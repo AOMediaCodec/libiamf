@@ -1,7 +1,7 @@
 # proto-file: third_party/libiamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
-test_vector_metadata: {
+test_vector_metadata {
   human_readable_description:
     "A variant of `test_000005.textproto` that has a parameter block not "
     "aligned with the audio frames, starting 100 samples later. This is "
@@ -153,10 +153,10 @@ parameter_block_metadata {
   constant_subblock_duration: 8000
   subblocks: [
     {
-      mix_gain_parameter_data: {
+      mix_gain_parameter_data {
         animation_type: ANIMATE_STEP
-        param_data: {
-          step: {
+        param_data {
+          step {
             start_point_value: 0
           }
         }
@@ -165,6 +165,6 @@ parameter_block_metadata {
   ]
 }
 
-temporal_delimiter_metadata: {
+temporal_delimiter_metadata {
   enable_temporal_delimiters: false
 }

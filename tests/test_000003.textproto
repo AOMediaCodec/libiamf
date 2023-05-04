@@ -1,8 +1,8 @@
 # proto-file: third_party/libiamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
-test_vector_metadata: {
-  human_readable_description: "A simple example of a stereo IAMF stream with 2 substreams."
+test_vector_metadata {
+  human_readable_description: "A simple example of a stereo IAMF stream with 1 substream."
   file_name_prefix: "test_000003"
   is_valid: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
@@ -34,8 +34,8 @@ audio_element_metadata {
   audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
   reserved: 0
   codec_config_id: 200
-  num_substreams: 2
-  audio_substream_ids: [0, 1]
+  num_substreams: 1
+  audio_substream_ids: [0]
   num_parameters: 0
   scalable_channel_layout_config {
     num_layers: 1
@@ -46,8 +46,8 @@ audio_element_metadata {
         output_gain_is_present_flag: 0
         recon_gain_is_present_flag: 0
         reserved_a: 0
-        substream_count: 2
-        coupled_substream_count: 0
+        substream_count: 1
+        coupled_substream_count: 1
       }
     ]
   }
@@ -100,7 +100,7 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -13513
+        integrated_loudness: -13731
         digital_peak: -12879
       }
     }
@@ -109,17 +109,10 @@ mix_presentation_metadata {
 
 sync_metadata {
   global_offset: 0
-  num_obu_ids: 2
+  num_obu_ids: 1
   sync_array: [
     {
       obu_id: 0
-      obu_data_type: OBU_DATA_TYPE_SUBSTREAM
-      reinitialize_decoder: false
-      reserved_a: 0
-      relative_offset: 0
-    },
-    {
-      obu_id: 1
       obu_data_type: OBU_DATA_TYPE_SUBSTREAM
       reinitialize_decoder: false
       reserved_a: 0
@@ -133,20 +126,14 @@ audio_frame_metadata {
   substream_metadata {
     key: 0
     value {
-      channel_ids: [0]
+      channel_ids: [0, 1]
     }
   }
-  substream_metadata {
-    key: 1
-    value {
-      channel_ids: [1]
-    }
-  }
-  substream_id_ordering: [0, 1]
+  substream_id_ordering: [0]
   samples_to_trim_at_end: 64
   samples_to_trim_at_start: 0
 }
 
-temporal_delimiter_metadata: {
+temporal_delimiter_metadata {
   enable_temporal_delimiters: false
 }
