@@ -2,10 +2,10 @@
 # proto-message: UserMetadata
 
 test_vector_metadata {
-  human_readable_description: "A variant of `test_000005.textproto` that is encoded using Opus."
-  file_name_prefix: "test_000014"
+  human_readable_description: "A variant of `test_000029.textproto` using a 44.1 kHz sample rate wav file."
+  file_name_prefix: "test_000030"
   is_valid: true
-  mp4_fixed_timestamp: "2023-04-19 00:00:00"
+  mp4_fixed_timestamp: "2023-05-05 00:00:00"
   temporal_units_per_ia_sample: 1
 }
 
@@ -16,31 +16,24 @@ magic_code_metadata {
 }
 
 codec_config_metadata {
-  codec_config_id: 0
+  codec_config_id: 200
   codec_config {
-    codec_id: 0x4f707573  # "Opus"
-    num_samples_per_frame: 120
-    roll_distance: -32
-    decoder_config_opus {
-      version: 1
-      output_channel_count: 2
-      pre_skip: 0
-      input_sample_rate: 48000
-      output_gain: 0
-      mapping_family: 0
-      opus_encoder_metadata {
-        target_bitrate: 48000
-        application: APPLICATION_AUDIO
-      }
+    codec_id: 0x6970636d  # "ipcm"
+    num_samples_per_frame: 64
+    roll_distance: 0
+    decoder_config_lpcm {
+      sample_format_flags: LPCM_LITTLE_ENDIAN
+      sample_size: 16
+      sample_rate: 44100
     }
   }
 }
 
 audio_element_metadata {
-  audio_element_id: 0
+  audio_element_id: 300
   audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
   reserved: 0
-  codec_config_id: 0
+  codec_config_id: 200
   num_substreams: 1
   audio_substream_ids: [0]
   num_parameters: 0
@@ -69,15 +62,15 @@ mix_presentation_metadata {
   sub_mixes {
     num_audio_elements: 1
     audio_elements {
-      audio_element_id: 0
+      audio_element_id: 300
       mix_presentation_element_annotations {
         audio_element_friendly_label: "test_sub_mix_0_audio_element_0"
       }
       element_mix_config {
         mix_gain {
           param_definition {
-            parameter_id: 0
-            parameter_rate: 48000
+            parameter_id: 100
+            parameter_rate: 44100
             param_definition_mode: 1
             reserved: 0
           }
@@ -88,8 +81,8 @@ mix_presentation_metadata {
     output_mix_config {
       output_mix_gain {
         param_definition {
-          parameter_id: 0
-          parameter_rate: 48000
+          parameter_id: 100
+          parameter_rate: 44100
           param_definition_mode: 1
           reserved: 0
         }
@@ -107,8 +100,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -5134
-        digital_peak: -1889
+        integrated_loudness: -3450
+        digital_peak: -2147
       }
     }
   }
@@ -126,7 +119,7 @@ sync_metadata {
       relative_offset: 0
     },
     {
-      obu_id: 0
+      obu_id: 100
       obu_data_type: OBU_DATA_TYPE_PARAMETER
       reinitialize_decoder: false
       reserved_a: 0
@@ -136,7 +129,7 @@ sync_metadata {
 }
 
 audio_frame_metadata {
-  wav_filename: "sample1_48kHz_stereo.wav"
+  wav_filename: "sawtooth_10000_stereo_44100hz_s16le.wav"
   substream_metadata {
     key: 0
     value {
@@ -144,16 +137,16 @@ audio_frame_metadata {
     }
   }
   substream_id_ordering: [0]
-  samples_to_trim_at_end: 0
+  samples_to_trim_at_end: 30
   samples_to_trim_at_start: 0
 }
 
 parameter_block_metadata {
-  parameter_id: 0
+  parameter_id: 100
   start_timestamp: 0
-  duration: 96000
+  duration: 22050
   num_subblocks: 1
-  constant_subblock_duration: 96000
+  constant_subblock_duration: 22050
   subblocks: [
     {
       mix_gain_parameter_data {
