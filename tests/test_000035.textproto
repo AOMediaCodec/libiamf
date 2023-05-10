@@ -2,10 +2,12 @@
 # proto-message: UserMetadata
 
 test_vector_metadata {
-  human_readable_description: "A variant of `test_000005.textproto` that is encoded using Opus."
-  file_name_prefix: "test_000014"
+  human_readable_description:
+    "A variant of `test_000020.textproto` that encodes "
+    "with the low-delay mode."
+  file_name_prefix: "test_000035"
   is_valid: true
-  mp4_fixed_timestamp: "2023-04-19 00:00:00"
+  mp4_fixed_timestamp: "2023-05-05 00:00:00"
   temporal_units_per_ia_sample: 1
 }
 
@@ -19,8 +21,8 @@ codec_config_metadata {
   codec_config_id: 0
   codec_config {
     codec_id: 0x4f707573  # "Opus"
-    num_samples_per_frame: 120
-    roll_distance: -32
+    num_samples_per_frame: 960
+    roll_distance: -4
     decoder_config_opus {
       version: 1
       output_channel_count: 2
@@ -30,7 +32,7 @@ codec_config_metadata {
       mapping_family: 0
       opus_encoder_metadata {
         target_bitrate: 48000
-        application: APPLICATION_AUDIO
+        application: APPLICATION_RESTRICTED_LOWDELAY
       }
     }
   }
@@ -107,8 +109,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -5134
-        digital_peak: -1889
+        integrated_loudness: -3497
+        digital_peak: -1722
       }
     }
   }
@@ -136,7 +138,7 @@ sync_metadata {
 }
 
 audio_frame_metadata {
-  wav_filename: "sample1_48kHz_stereo.wav"
+  wav_filename: "sawtooth_10000_stereo_48khz.wav"
   substream_metadata {
     key: 0
     value {
@@ -151,9 +153,9 @@ audio_frame_metadata {
 parameter_block_metadata {
   parameter_id: 0
   start_timestamp: 0
-  duration: 96000
+  duration: 24000
   num_subblocks: 1
-  constant_subblock_duration: 96000
+  constant_subblock_duration: 24000
   subblocks: [
     {
       mix_gain_parameter_data {
