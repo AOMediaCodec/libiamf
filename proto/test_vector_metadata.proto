@@ -7,4 +7,5 @@ message TestVectorMetadata {
   optional string file_name_prefix = 2;
   optional bool is_valid = 3;
   optional string mp4_fixed_timestamp = 4;
+  optional int32 temporal_units_per_ia_sample = 5;
 }
