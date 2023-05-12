@@ -26,7 +26,7 @@ codec_config_metadata {
     decoder_config_opus {
       version: 1
       output_channel_count: 2
-      pre_skip: 0
+      pre_skip: 312
       input_sample_rate: 48000
       output_gain: 0
       mapping_family: 0
@@ -109,7 +109,7 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -3503
+        integrated_loudness: -3495
         digital_peak: -1857
       }
     }
@@ -132,7 +132,7 @@ sync_metadata {
       obu_data_type: OBU_DATA_TYPE_PARAMETER
       reinitialize_decoder: false
       reserved_a: 0
-      relative_offset: 0
+      relative_offset: 312
     }
   ]
 }
@@ -147,15 +147,15 @@ audio_frame_metadata {
   }
   substream_id_ordering: [0]
   samples_to_trim_at_end: 0
-  samples_to_trim_at_start: 0
+  samples_to_trim_at_start: 312
 }
 
 parameter_block_metadata {
   parameter_id: 0
-  start_timestamp: 0
-  duration: 24000
+  start_timestamp: 312
+  duration: 23688
   num_subblocks: 1
-  constant_subblock_duration: 24000
+  constant_subblock_duration: 23688
   subblocks: [
     {
       mix_gain_parameter_data {
