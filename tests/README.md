@@ -5,7 +5,7 @@ Test vectors are grouped with a common prefix. For example test_000012 has five 
 - Standalone IAMF bitstream: `test_000012.iamf`.
 - Fragmented MP4 file: `test_000012_f.mp4`.
 - Standalone MP4 file: `test_000012_s.mp4`.
-- Decoded WAV file (if present): `test_000012.wav`
+- Decoded WAV file (per substream x): `test_000012_decoded_substream_x.wav`
 
 ## .textproto files
 These file describe metadata about the test vector.
