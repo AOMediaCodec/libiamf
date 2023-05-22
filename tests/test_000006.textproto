@@ -3,13 +3,14 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A variant of `test_000005.textproto` with temporal delimiters. Also,"
-    "the profile is changed to base profile because temporal delimiters are not"
-    "allowed in simple profile."
+    "A stereo base profile IAMF stream with temporal "
+    "delimiters."
   file_name_prefix: "test_000006"
   is_valid: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
   temporal_units_per_ia_sample: 1
+  primary_tested_spec_sections: ["3.11", "4.2/temporal_delimiter_obu"]
+  base_test: "test_000005"
 }
 
 magic_code_metadata {

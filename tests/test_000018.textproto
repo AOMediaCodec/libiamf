@@ -3,12 +3,14 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A variant of `test_000005.textproto` that has an audio substream ID "
-    "larger than 21."
+    "A stereo IAMF stream. The substream has an ID larger than 21 which "
+    "requires the ID to be explicitly listed in the OBU."
   file_name_prefix: "test_000018"
   is_valid: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
   temporal_units_per_ia_sample: 1
+  primary_tested_spec_sections: ["3.2/obu_type", "3.10/audio_frame_obu_with_no_id"]
+  base_test: "test_000005"
 }
 
 magic_code_metadata {

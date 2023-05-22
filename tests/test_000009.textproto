@@ -3,14 +3,16 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A variant of `test_000005.textproto` that has a parameter block not "
-    "aligned with the audio frames, starting 100 samples later. This is "
-    "invalid because parameter blocks should cover the whole duration of "
-    "the audio frames that use the paremeter."
+    "A stereo IAMF stream. It has a parameter block not aligned with the audio "
+    "frames, starting 100 samples later. This is invalid because parameter "
+    "blocks should cover the whole duration of the audio frames that use the "
+    "parameter."
   file_name_prefix: "test_000009"
   is_valid: false
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
   temporal_units_per_ia_sample: 1
+  primary_tested_spec_sections: ["5.1.2"]
+  base_test: "test_000005"
 }
 
 magic_code_metadata {

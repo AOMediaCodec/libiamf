@@ -3,13 +3,15 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A simple example of a stereo IAMF stream with 1 substream. This example "
-    "should fail because the wav file is not frame aligned after applying "
-    "padding based on `num_samples_to_trim_at_end`"
+    "A simple profile stereo IAMF stream with 1 substream. The final audio "
+    "frame incorrectly has fewer samples than all other frames because it does "
+    "not have sufficient `num_samples_to_trim_at_end`"
   file_name_prefix: "test_000000_3"
   is_valid: false
   mp4_fixed_timestamp: "2023-04-06 00:00:00"
   temporal_units_per_ia_sample: 1
+  primary_tested_spec_sections: ["3.6/num_samples_per_frame", "6.2.2/ia_sample_duration"]
+  base_test: "None"
 }
 
 magic_code_metadata {

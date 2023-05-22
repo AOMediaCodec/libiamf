@@ -3,12 +3,14 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A variant of `test_000004.textproto` that is frame aligned with 64 samples"
-    "per frame which does not require trimming."
+    "A frame-aligned stereo IAMF stream with no "
+    "trimming."
   file_name_prefix: "test_000005"
   is_valid: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
   temporal_units_per_ia_sample: 1
+  primary_tested_spec_sections: ["3.2/num_samples_to_trim_at_end"]
+  base_test: "test_000002"
 }
 
 magic_code_metadata {

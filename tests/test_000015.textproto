@@ -3,12 +3,14 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A variant of `test_000005.textproto` that includes an extra "
-    "parameter block which is not used by any audio element."
+    "A stereo IAMF stream that includes an extra parameter block which is not "
+    "used by any audio element."
   file_name_prefix: "test_000015"
   is_valid: false
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
   temporal_units_per_ia_sample: 1
+  primary_tested_spec_sections: ["3.9", "3.12"]
+  base_test: "test_000005"
 }
 
 magic_code_metadata {

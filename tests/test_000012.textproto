@@ -3,12 +3,14 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A variant of `test_000005.textproto` that is "
-    "frame aligned, but additional samples are trimmed off the end."
+    "A stereo IAMF stream. Additional samples are trimmed from the end of "
+    "input wav file to make it shorter."
   file_name_prefix: "test_000012"
   is_valid: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
   temporal_units_per_ia_sample: 1
+  primary_tested_spec_sections: ["3.2/num_samples_to_trim_at_end"]
+  base_test: "test_000005"
 }
 
 magic_code_metadata {

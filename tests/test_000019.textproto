@@ -3,12 +3,14 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A variant of `test_000005.textproto` that has two parameter blocks with "
-    "the same ID occuring one after another."
+    "A stereo IAMF stream that has two parameter blocks with the same ID "
+    "occuring one after another."
   file_name_prefix: "test_000019"
   is_valid: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
   temporal_units_per_ia_sample: 1
+  primary_tested_spec_sections: ["3.9"]
+  base_test: "test_000005"
 }
 
 magic_code_metadata {
