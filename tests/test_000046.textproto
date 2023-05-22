@@ -3,12 +3,14 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A variant of `test_000039.textproto` that encodes a third-order "
-    "ambisonic audio stream with Opus."
+    "A third-order ambisonics IAMF stream encoded using Opus and "
+    "`ambisonics_mode` = `PROJECTION` with an (almost) identity demixing matrix."
   file_name_prefix: "test_000046"
   is_valid: true
   mp4_fixed_timestamp: "2023-05-12 00:00:00"
   temporal_units_per_ia_sample: 1
+  primary_tested_spec_sections: ["3.7.3/ambisonics_mono", "3.10", "3.13.1"]
+  base_test: "test_000043"
 }
 
 magic_code_metadata {
@@ -73,7 +75,7 @@ mix_presentation_metadata {
         mix_gain {
           param_definition {
             parameter_id: 100
-            parameter_rate: 16000
+            parameter_rate: 48000
             param_definition_mode: 1
             reserved: 0
           }
@@ -85,7 +87,7 @@ mix_presentation_metadata {
       output_mix_gain {
         param_definition {
           parameter_id: 100
-          parameter_rate: 16000
+          parameter_rate: 48000
           param_definition_mode: 1
           reserved: 0
         }
@@ -103,8 +105,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -32768  # To be ignored
-        digital_peak: -32768  # To be ignored
+        integrated_loudness: -5891
+        digital_peak: -3551
       }
     }
   }
@@ -231,7 +233,7 @@ sync_metadata {
       obu_data_type: OBU_DATA_TYPE_PARAMETER
       reinitialize_decoder: false
       reserved_a: 0
-      relative_offset: 312
+      relative_offset: 0
     }
   ]
 }
@@ -335,16 +337,16 @@ audio_frame_metadata {
     }
   }
   substream_id_ordering: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-  samples_to_trim_at_end: 0
+  samples_to_trim_at_end: 648
   samples_to_trim_at_start: 312
 }
 
 parameter_block_metadata {
   parameter_id: 100
-  start_timestamp: 312
-  duration: 23688
+  start_timestamp: 0
+  duration: 24312
   num_subblocks: 1
-  constant_subblock_duration: 23688
+  constant_subblock_duration: 24312
   subblocks: [
     {
       mix_gain_parameter_data {
