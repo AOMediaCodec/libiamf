@@ -8,4 +8,6 @@ message TestVectorMetadata {
   optional bool is_valid = 3;
   optional string mp4_fixed_timestamp = 4;
   optional int32 temporal_units_per_ia_sample = 5;
+  repeated string primary_tested_spec_sections = 6;
+  optional string base_test = 7;
 }

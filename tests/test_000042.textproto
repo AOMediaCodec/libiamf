@@ -4,12 +4,15 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A variant of `test_000038.textproto` that encodes in a projection mode, "
-    "with an (almost) identity demixing matrix."
+    "A first-order ambisonics IAMF stream encoded using "
+    "`ambisonics_mode` = `PROJECTION` with an (almost) identity demixing "
+    "matrix."
   file_name_prefix: "test_000042"
   is_valid: true
   mp4_fixed_timestamp: "2023-05-12 00:00:00"
   temporal_units_per_ia_sample: 1
+  primary_tested_spec_sections: ["3.7.3/ambisonics_projection_config"]
+  base_test: "test_000038"
 }
 
 magic_code_metadata {
@@ -73,7 +76,7 @@ mix_presentation_metadata {
         mix_gain {
           param_definition {
             parameter_id: 100
-            parameter_rate: 16000
+            parameter_rate: 48000
             param_definition_mode: 1
             reserved: 0
           }
@@ -85,7 +88,7 @@ mix_presentation_metadata {
       output_mix_gain {
         param_definition {
           parameter_id: 100
-          parameter_rate: 16000
+          parameter_rate: 48000
           param_definition_mode: 1
           reserved: 0
         }
@@ -103,8 +106,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -32768  # To be ignored
-        digital_peak: -32768  # To be ignored
+        integrated_loudness: -5209
+        digital_peak: -4110
       }
     }
   }

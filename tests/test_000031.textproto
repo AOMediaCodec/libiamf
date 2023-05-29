@@ -2,11 +2,13 @@
 # proto-message: UserMetadata
 
 test_vector_metadata {
-  human_readable_description: "A variant of `test_000029.textproto` using a 24 bit wav file."
+  human_readable_description: "A stereo IAMF stream with a bit-depth of 24."
   file_name_prefix: "test_000031"
   is_valid: true
   mp4_fixed_timestamp: "2023-05-05 00:00:00"
   temporal_units_per_ia_sample: 1
+  primary_tested_spec_sections: ["3.10", "3.13.4/sample_size"]
+  base_test: "test_000029"
 }
 
 magic_code_metadata {
@@ -100,7 +102,7 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -3485
+        integrated_loudness: -3138
         digital_peak: -2639
       }
     }

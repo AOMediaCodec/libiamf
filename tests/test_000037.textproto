@@ -2,11 +2,15 @@
 # proto-message: UserMetadata
 
 test_vector_metadata {
-  human_readable_description: "A variant of `test_000020.textproto` that uses a longer different input wav file."
+  human_readable_description:
+    "A stereo IAMF stream encoding ~22 seconds of audio using "
+    "Opus."
   file_name_prefix: "test_000037"
   is_valid: true
   mp4_fixed_timestamp: "2023-05-12 00:00:00"
   temporal_units_per_ia_sample: 1
+  primary_tested_spec_sections: ["6"]
+  base_test: "test_000020"
 }
 
 magic_code_metadata {
@@ -107,8 +111,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -8781
-        digital_peak: -3885
+        integrated_loudness: -8334
+        digital_peak: -3905
       }
     }
   }
@@ -130,7 +134,7 @@ sync_metadata {
       obu_data_type: OBU_DATA_TYPE_PARAMETER
       reinitialize_decoder: false
       reserved_a: 0
-      relative_offset: 312
+      relative_offset: 0
     }
   ]
 }
@@ -145,16 +149,16 @@ audio_frame_metadata {
     }
   }
   substream_id_ordering: [0]
-  samples_to_trim_at_end: 278
+  samples_to_trim_at_end: 926
   samples_to_trim_at_start: 312
 }
 
 parameter_block_metadata {
   parameter_id: 100
-  start_timestamp: 312
-  duration: 1093162
+  start_timestamp: 0
+  duration: 1093474
   num_subblocks: 1
-  constant_subblock_duration: 1093162
+  constant_subblock_duration: 1093474
   subblocks: [
     {
       mix_gain_parameter_data {
