@@ -22,7 +22,7 @@ There are 2 parts to build: iamf(iamf_dec&iamf_enc) tools(iamfpackager&iamfplaye
 % make install
 ```
 
-2. build tools in "test/tools/iamfpackager" and "test/tools/iamfplayer" directory separately
+2. build tools in "test/tools/iamfplayer" directory separately
 ```sh
 % cmake ./-DCMAKE_INSTALL_PREFIX=${BUILD_LIBS}
 % make 
@@ -30,47 +30,6 @@ There are 2 parts to build: iamf(iamf_dec&iamf_enc) tools(iamfpackager&iamfplaye
 
 Remark: please ensure that they have same CMAKE_INSTALL_PREFIX.
 
-
-### Tools(iamfpackager)
-This tool aims to encode PCM data to IA bitstream and encapsulate to Mp4/Fmp4
-
-```sh
--profile : <0/1(simpe/base)>
--codec     : <codec name/frame size(opus,aac,flac,pcm/1024)>
--mode      : <audio element type(0:channle-based,1:scene-based(Mono),2:scene-based(Projection))/input channel layout/channel layout combinations>
--i         : <input wav file>
--o         : <0/1/2(bitstream/mp4/fmp4)> <output file>
-Example:
-iamfpackager -profile 0 -codec opus -mode 0/7.1.4/2.0.0+3.1.2+5.1.2 -i input.wav -o 0 simple_profile.iamf
-or
-iamfpackager -profile 1 -codec opus -mode 0/7.1.4/3.1.2+5.1.2 -i input1.wav -mode 1 -i input2.wav -o 0 base_profile.iamf
-
-Before exacuting, please modify mix_config.json to set mix presentation.
-```
-
-1. encode scalable channel layout input format for simple profile.
-```sh
-Example:  
-./iamfpackager -profile 0 -codec opus -mode 0/7.1.4/2.0.0+3.1.2+5.1.2 -i input.wav -o 0 simple_profile.iamf
-```
-Remark: "estimator_model.tflite" and "feature_model.tflite" are required in exacuting directory.
-
-2. encode non-scalable channel layout input format for simple profile.
-```sh
-Example:  ./iamfpackager -profile 0 -codec opus -mode 0/7.1.4 -i input.wav -o 0 simple_profile.iamf
-```
-
-3. encode ambisonics input format for simple profile.
-```sh
-Example:
-./iamfpackager -profile 0 -codec opus -mode 1 -i input.wav -o 0 simple_profile.iamf
-```
-
-4. encode for base profile.
-```sh
-Example:
-./iamfpackager -profile 1 -codec opus -mode 0/7.1.4/3.1.2+5.1.2 -i input1.wav -mode 1 -i input2.wav -o 0 base_profile.iamf
-```
 
 ### Tools(iamfplayer)
 This tool aims to decode IA bitstream and dump to wav file.
@@ -113,15 +72,6 @@ Example:  ./iamfplayer -o2 -s9 simple_profile.iamf
 
 2) Building this project requires opus or aac or flac library, please ensure that there are library in "dep_codecs/lib",
 and there are headers in "dep_codecs/include" already. If not, please build(patch_script.sh) and install in advance.
-
-3) "src/dmpd" part building relys on 3rd part libs("dep_external/lib": libfftw3f,libflatccrt)
-They have been provided already in "dep_external/lib", if meet target link issue, please download the opensource code,
-and build at your side. After building, please replace them.
-[fftw](http://www.fftw.org/).
-[flatcc](https://github.com/dvidelabs/flatcc).
-   (Remark: please add compile options:-fPIC when compiling fftw&flatcc)
-
-
 
 ## License
 
