@@ -10,7 +10,7 @@ as described here:
 Please see the examples in the "test/tools" directory. If you're already building this project.
 
 ### Compiling
-There are 2 parts to build: iamf(iamf_dec&iamf_enc) tools(iamfpackager&iamfplayer).
+There are 2 parts to build: iamf(common&iamf_dec) tools(iamfpackager&iamfplayer).
 
 "build_x86.sh" is an example to build, you can run it directly at your side.
 
