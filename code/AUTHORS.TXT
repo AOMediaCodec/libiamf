@@ -1,7 +1,6 @@
 Hyunkwon Chung<h.k.j@samsung.com>
 Jungkyu Kim<jungkyu.kim@samsung.com>
 Kyungrae Kim<kr728.kim@samsung.com>
-Sangchul Ko<scko@samsung.com>
 Sunghee Hwang<hshee@samsung.com>
 Yongmin Kwon<ymin12.kwon@samsung.com>
 Yoonjae Son<yoonjae.son@samsung.com>
