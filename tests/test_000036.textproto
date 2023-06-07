@@ -13,10 +13,10 @@ test_vector_metadata {
   base_test: "test_000005"
 }
 
-magic_code_metadata {
+ia_sequence_header_metadata {
   ia_code: 0x69616d66  # "iamf"
-  version: 0
-  profile_version: 0
+  profile_name: PROFILE_VERSION_SIMPLE
+  profile_compatible: PROFILE_VERSION_SIMPLE
 }
 
 codec_config_metadata {
@@ -54,7 +54,7 @@ audio_element_metadata {
         coupled_substream_count: 1
       },
       {
-        loudspeaker_layout: 2  # 5.1 C, L/R, Ls/Rs, LFE
+        loudspeaker_layout: 2  # 5.1
         output_gain_is_present_flag: 0
         recon_gain_is_present_flag: 0
         reserved_a: 0
@@ -67,9 +67,13 @@ audio_element_metadata {
 
 mix_presentation_metadata {
   mix_presentation_id: 42
-  mix_presentation_annotations {
-    mix_presentation_friendly_label: "test_mix_pres"
-  }
+  count_label: 1
+  language_labels: ["en-us"]
+  mix_presentation_annotations_array: [
+    {
+      mix_presentation_friendly_label: "test_mix_pres"
+    }
+  ]
   num_sub_mixes: 1
   sub_mixes {
     num_audio_elements: 1
@@ -126,92 +130,28 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -6124
-        digital_peak: -2786
+        integrated_loudness: -5642
+        digital_peak: -2767
       }
     }
   }
 }
 
-sync_metadata {
-  global_offset: 0
-  num_obu_ids: 5
-  sync_array: [
-    {
-      obu_id: 0
-      obu_data_type: OBU_DATA_TYPE_SUBSTREAM
-      reinitialize_decoder: false
-      reserved_a: 0
-      relative_offset: 0
-    },
-    {
-      obu_id: 1
-      obu_data_type: OBU_DATA_TYPE_SUBSTREAM
-      reinitialize_decoder: false
-      reserved_a: 0
-      relative_offset: 0
-    },
-    {
-      obu_id: 2
-      obu_data_type: OBU_DATA_TYPE_SUBSTREAM
-      reinitialize_decoder: false
-      reserved_a: 0
-      relative_offset: 0
-    },
-    {
-      obu_id: 3
-      obu_data_type: OBU_DATA_TYPE_SUBSTREAM
-      reinitialize_decoder: false
-      reserved_a: 0
-      relative_offset: 0
-    },
-    {
-      obu_id: 100
-      obu_data_type: OBU_DATA_TYPE_PARAMETER
-      reinitialize_decoder: false
-      reserved_a: 0
-      relative_offset: 0
-    }
-  ]
-}
-
 audio_frame_metadata {
   wav_filename: "waters1.wav"
-  substream_metadata {
-    key: 0
-    value {
-      channel_ids: [0, 1]  # L/R
-    }
-  }
-  substream_metadata {
-    key: 2
-    value {
-      channel_ids: [2]  # C
-    }
-  }
-  substream_metadata {
-    key: 3
-    value {
-      channel_ids: [3]  # LFE
-    }
-  }
-  substream_metadata {
-    key: 1
-    value {
-      channel_ids: [4, 5]  # Ls/Rs
-    }
-  }
-  substream_id_ordering: [0, 1, 2, 3]  # L/R, Ls/Rs, C, LFE
   samples_to_trim_at_end: 149
   samples_to_trim_at_start: 0
+  audio_element_id: 300
+  channel_ids: [0, 1, 2, 3, 4, 5]
+  channel_labels: ["L5", "R5", "C", "LFE", "Ls5", "Rs5"]
 }
 
 parameter_block_metadata {
   parameter_id: 100
   start_timestamp: 0
-  duration: 644971
+  duration: 645120
   num_subblocks: 1
-  constant_subblock_duration: 644971
+  constant_subblock_duration: 645120
   subblocks: [
     {
       mix_gain_parameter_data {

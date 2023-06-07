@@ -13,7 +13,7 @@ These file describe metadata about the test vector.
 - `is_valid`: True for conformant bitstreams ("should-pass"). False for non-conformant bitstreams ("should-fail").
 - `human_readable_descriptions`: A short description of what is being tested and why.
 - `mp4_fixed_timestamp`: The timestamp within the MP4 file. Can be safely ignored.
-- `primary_tested_spec_sections`: A list of of the main sections being tested. In the form `X.Y.Z/class_or_field_name` to represent the `class_or_field_name` in the IAMF specification Section `X.Y.Z` is being tested.
+- `primary_tested_spec_sections`: A list of the main sections being tested. In the form `X.Y.Z/class_or_field_name` to represent the `class_or_field_name` in the IAMF specification Section `X.Y.Z` is being tested.
 - `base_test`: The recommended textproto to diff against.
 - Other fields refer to the OBUs and data within the test vector.
 

@@ -16,10 +16,10 @@ test_vector_metadata {
   base_test: "test_000043"
 }
 
-magic_code_metadata {
+ia_sequence_header_metadata {
   ia_code: 0x69616d66  # "iamf"
-  version: 0
-  profile_version: 0
+  profile_name: PROFILE_VERSION_SIMPLE
+  profile_compatible: PROFILE_VERSION_SIMPLE
 }
 
 codec_config_metadata {
@@ -62,9 +62,11 @@ audio_element_metadata {
 
 mix_presentation_metadata {
   mix_presentation_id: 42
-  mix_presentation_annotations {
+  count_label: 1
+  language_labels: ["en-us"]
+    mix_presentation_annotations_array: [{
     mix_presentation_friendly_label: "test_mix_pres"
-  }
+  }]
   num_sub_mixes: 1
   sub_mixes {
     num_audio_elements: 1
@@ -114,77 +116,13 @@ mix_presentation_metadata {
   }
 }
 
-sync_metadata {
-  global_offset: 0
-  num_obu_ids: 5
-  sync_array: [
-    {
-      obu_id: 0
-      obu_data_type: OBU_DATA_TYPE_SUBSTREAM
-      reinitialize_decoder: false
-      reserved_a: 0
-      relative_offset: 0
-    },
-    {
-      obu_id: 1
-      obu_data_type: OBU_DATA_TYPE_SUBSTREAM
-      reinitialize_decoder: false
-      reserved_a: 0
-      relative_offset: 0
-    },
-    {
-      obu_id: 2
-      obu_data_type: OBU_DATA_TYPE_SUBSTREAM
-      reinitialize_decoder: false
-      reserved_a: 0
-      relative_offset: 0
-    },
-    {
-      obu_id: 3
-      obu_data_type: OBU_DATA_TYPE_SUBSTREAM
-      reinitialize_decoder: false
-      reserved_a: 0
-      relative_offset: 0
-    },
-    {
-      obu_id: 100
-      obu_data_type: OBU_DATA_TYPE_PARAMETER
-      reinitialize_decoder: false
-      reserved_a: 0
-      relative_offset: 0
-    }
-  ]
-}
-
 audio_frame_metadata {
   wav_filename: "sawtooth_10000_foa_48khz.wav"
-  substream_metadata {
-    key: 0
-    value {
-      channel_ids: [0]
-    }
-  }
-  substream_metadata {
-    key: 1
-    value {
-      channel_ids: [1]
-    }
-  }
-  substream_metadata {
-    key: 2
-    value {
-      channel_ids: [2]
-    }
-  }
-  substream_metadata {
-    key: 3
-    value {
-      channel_ids: [3]
-    }
-  }
-  substream_id_ordering: [0, 1, 2, 3]
   samples_to_trim_at_end: 0
   samples_to_trim_at_start: 0
+  audio_element_id: 300
+  channel_ids: [0, 1, 2, 3]
+  channel_labels: ["A0", "A1", "A2", "A3"]
 }
 
 parameter_block_metadata {

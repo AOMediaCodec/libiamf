@@ -10,4 +10,5 @@ message TestVectorMetadata {
   optional int32 temporal_units_per_ia_sample = 5;
   repeated string primary_tested_spec_sections = 6;
   optional string base_test = 7;
+  optional int32 ms_per_fragment = 8 [default = 10000];
 }

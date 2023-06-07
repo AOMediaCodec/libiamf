@@ -2,6 +2,8 @@ syntax = "proto2";
 
 package libiamf_proto;
 
+import "parameter_data.proto";
+
 message ParamDefinition {
   optional uint32 parameter_id = 1;
   optional uint32 parameter_rate = 2;
@@ -20,6 +22,9 @@ message MixGainParamDefinition {
 
 message DemixingParamDefinition {
   optional ParamDefinition param_definition = 1;
+  optional DemixingInfoParameterData default_demixing_info_parameter_data = 2;
+  optional uint32 default_w = 3;
+  optional uint32 reserved = 4;
 }
 
 message ReconGainParamDefinition {

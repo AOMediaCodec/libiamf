@@ -96,7 +96,10 @@ message MixPresentationSubMix {
 
 message MixPresentationObuMetadata {
   optional uint32 mix_presentation_id = 1;
-  optional MixPresentationAnnotations mix_presentation_annotations = 2;
+  optional uint32 count_label = 5;
+  repeated string language_labels = 6;
+  reserved 2;
+  repeated MixPresentationAnnotations mix_presentation_annotations_array = 7;
   optional uint32 num_sub_mixes = 3;
   repeated MixPresentationSubMix sub_mixes = 4;
 }
