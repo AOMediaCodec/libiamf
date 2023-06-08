@@ -9,7 +9,7 @@ message ParameterSubblock {
   oneof parameter_data {
     MixGainParameterData mix_gain_parameter_data = 2;
     DemixingInfoParameterData demixing_info_parameter_data = 3;
-    ReconGainParameterData recon_gain_parameter_data = 4;
+    ReconGainInfoParameterData recon_gain_info_parameter_data = 4;
   }
 }
 
