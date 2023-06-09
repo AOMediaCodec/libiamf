@@ -47,7 +47,25 @@ audio_element_metadata {
   codec_config_id: 200
   num_substreams: 4
   audio_substream_ids: [0, 1, 2, 3]
-  num_parameters: 1
+  num_parameters: 2
+  audio_element_params {
+    param_definition_type: 1  #PARAMETER_DEFINITION_DEMIXING
+    demixing_param: {
+      param_definition {
+        parameter_id: 998  # Non-existent; default will be used
+        parameter_rate: 48000
+        param_definition_mode: 0
+        reserved: 0
+        duration: 2880
+        num_subblocks: 1
+        constant_subblock_duration: 2880
+      }
+      default_demixing_info_parameter_data: {
+        dmixp_mode: DMIXP_MODE_2
+      }
+      default_w: 0
+    }
+  }
   audio_element_params {
     param_definition_type: 2  # PARAMETER_DEFINITION_RECON_GAIN
     recon_gain_param {
