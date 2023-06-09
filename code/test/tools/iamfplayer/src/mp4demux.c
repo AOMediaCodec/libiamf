@@ -1239,7 +1239,7 @@ int mov_read_moov(mp4r_t *mp4r, int sizemax) {
     // fprintf(stderr, "UNSUPP\n");
   }
 
-  // mp4r->atom = old_atom;
+  mp4r->atom = old_atom;
   return ret;
 }
 

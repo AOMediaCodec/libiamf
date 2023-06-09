@@ -93,9 +93,7 @@ uint32_t IAMF_OBU_split(const uint8_t *data, uint32_t size, IAMF_OBU *obu) {
 
   ret = bs_getAleb128(&b);
 
-  if (ret + bs_tell(&b) > size) {
-    return 0;
-  }
+  if (ret == UINT64_MAX || ret + bs_tell(&b) > size) return 0;
 
   ia_logt("===============================================");
   ia_logt(
