@@ -1512,7 +1512,7 @@ static int iamf_frame_trim(Frame *f, int start, int end, int start_extension) {
 
   if (ret > 0 && ret != f->samples) {
     for (int c = 0; c < f->channels; ++c) {
-      memcpy(&f->data[c * ret], &f->data[c * f->samples + s],
+      memmove(&f->data[c * ret], &f->data[c * f->samples + s],
              ret * sizeof(float));
     }
   }

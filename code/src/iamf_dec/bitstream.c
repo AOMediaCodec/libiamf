@@ -47,11 +47,18 @@ int32_t bs(BitStream *b, const uint8_t *data, int size) {
 
 static uint32_t bs_getLastA32b(BitStream *b) {
   uint32_t ret = 0;
+  int n = 4;
 
-  for (int i = 0; i < 4; ++i) {
+  if (b->b8sp >= b->size) return 0;
+  if (b->b8sp + 4 > b->size) n = b->size - b->b8sp;
+
+  for (int i = 0; i < n; ++i) {
     ret <<= INT8_BITS;
     ret |= b->data[b->b8sp + i];
   }
+
+  n = 4 - n;
+  if (n > 0) ret <<= (INT8_BITS * n);
 
   return ret;
 }
@@ -146,12 +153,16 @@ uint64_t bs_getAleb128(BitStream *b) {
 
 int64_t bs_getAsleb128(BitStream *b) {
   int64_t ret = 0, val;
-  int i;
+  int i = 0;
   uint8_t byte;
 
   bs_align(b);
 
-  for (i = 0; i < 8; i++) {
+  for (; i < 8; i++) {
+    if (b->b8sp + i >= b->size) {
+      ret = UINT64_MAX;
+      break;
+    }
     byte = b->data[b->b8sp + i];
     ret |= ((byte & 0x7f) << (i * 7));
     if (!(byte & 0x80)) {
