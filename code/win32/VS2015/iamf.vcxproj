@@ -130,10 +130,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\common\audio_true_peak_meter.c" />
-    <ClCompile Include="..\..\src\common\bitstreamrw.c" />
     <ClCompile Include="..\..\src\common\fixedp11_5.c" />
-    <ClCompile Include="..\..\src\common\wavreader2.c" />
     <ClCompile Include="..\..\src\common\wavwriter2.c" />
     <ClCompile Include="..\..\src\iamf_dec\aac\aac_multistream_decoder.c" />
     <ClCompile Include="..\..\src\iamf_dec\aac\IAMF_aac_decoder.c" />
@@ -161,12 +158,9 @@
     <ClInclude Include="..\..\include\IAMF_defines.h" />
     <ClInclude Include="..\..\include\vlogging_tool_sr.h" />
     <ClInclude Include="..\..\src\common\audio_defines.h" />
-    <ClInclude Include="..\..\src\common\audio_true_peak_meter.h" />
-    <ClInclude Include="..\..\src\common\bitstreamrw.h" />
     <ClInclude Include="..\..\src\common\fixedp11_5.h" />
     <ClInclude Include="..\..\src\common\IAMF_debug.h" />
     <ClInclude Include="..\..\src\common\IAMF_debug_dev.h" />
-    <ClInclude Include="..\..\src\common\wavreader2.h" />
     <ClInclude Include="..\..\src\common\wavwriter2.h" />
     <ClInclude Include="..\..\src\iamf_dec\aac\aac_multistream_decoder.h" />
     <ClInclude Include="..\..\src\iamf_dec\ae_rdr.h" />

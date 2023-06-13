@@ -193,6 +193,10 @@ int32_t bs_readString(BitStream *b, char *data, int n) {
 
 uint32_t bs_tell(BitStream *b) { return b->b8p ? b->b8sp + 1 : b->b8sp; }
 
+uint8_t readu8(uint8_t *data, int offset) {
+  return data[offset];
+}
+
 uint32_t readu16be(uint8_t *data, int offset) {
   return data[offset] << 8 | data[offset + 1];
 }

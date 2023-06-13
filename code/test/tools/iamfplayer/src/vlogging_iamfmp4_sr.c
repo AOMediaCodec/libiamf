@@ -43,7 +43,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <time.h>
 //#include "IAMF_OBU.h"
-//#include "bitstreamrw.h"
 #include "vlogging_iamfmp4_sr.h"
 
 #ifndef _A2B_ENDIAN_H

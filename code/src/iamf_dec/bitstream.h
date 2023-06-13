@@ -68,6 +68,7 @@ int readi24le(uint8_t *data, int offset);
 int readi32be(uint8_t *data, int offset);
 int readi32le(uint8_t *data, int offset);
 
+uint8_t readu8(uint8_t *data, int offset);
 uint32_t readu16be(uint8_t *data, int offset);
 uint32_t readu24be(uint8_t *data, int offset);
 uint32_t readu32be(uint8_t *data, int offset);

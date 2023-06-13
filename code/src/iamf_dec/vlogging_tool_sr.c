@@ -42,7 +42,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 
 #include "IAMF_OBU.h"
-#include "bitstreamrw.h"
 #include "vlogging_tool_sr.h"
 
 #define LOG_BUFFER_SIZE 100000
@@ -324,12 +323,12 @@ static void write_codec_config_log(uint64_t idx, void* obu, char* log) {
     // __KWON_TODO
   } else if (cc_obu->codec_id == get_4cc_codec_id('O', 'p', 'u', 's') ||
              cc_obu->codec_id == get_4cc_codec_id('d', 'O', 'p', 's')) {
-    uint8_t version = get_uint8(cc_obu->decoder_conf, 0);
-    uint8_t output_channel_count = get_uint8(cc_obu->decoder_conf, 1);
-    uint16_t pre_skip = get_uint16be(cc_obu->decoder_conf, 2);
-    uint32_t input_sample_rate = get_uint32be(cc_obu->decoder_conf, 4);
-    uint16_t output_gain = get_uint16be(cc_obu->decoder_conf, 8);
-    uint8_t channel_mapping_family = get_uint8(cc_obu->decoder_conf, 10);
+    uint8_t version = readu8(cc_obu->decoder_conf, 0);
+    uint8_t output_channel_count = readu8(cc_obu->decoder_conf, 1);
+    uint16_t pre_skip = readu16be(cc_obu->decoder_conf, 2);
+    uint32_t input_sample_rate = readu32be(cc_obu->decoder_conf, 4);
+    uint16_t output_gain = readu16be(cc_obu->decoder_conf, 8);
+    uint8_t channel_mapping_family = readu8(cc_obu->decoder_conf, 10);
 
     log += write_yaml_form(log, 2, "decoder_config_opus:");
     log += write_yaml_form(log, 3, "version: %u", version);
@@ -341,9 +340,9 @@ static void write_codec_config_log(uint64_t idx, void* obu, char* log) {
     log +=
         write_yaml_form(log, 3, "mapping_family: %u", channel_mapping_family);
   } else if (cc_obu->codec_id == get_4cc_codec_id('i', 'p', 'c', 'm')) {
-    uint8_t sample_format_flags = get_uint8(cc_obu->decoder_conf, 0);
-    uint8_t sample_size = get_uint8(cc_obu->decoder_conf, 1);
-    uint32_t sample_rate = get_uint32be(cc_obu->decoder_conf, 2);
+    uint8_t sample_format_flags = readu8(cc_obu->decoder_conf, 0);
+    uint8_t sample_size = readu8(cc_obu->decoder_conf, 1);
+    uint32_t sample_rate = readu32be(cc_obu->decoder_conf, 2);
 
     log += write_yaml_form(log, 2, "decoder_config_lpcm:");
     log +=

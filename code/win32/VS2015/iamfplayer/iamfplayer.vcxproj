@@ -130,7 +130,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\test\tools\iamfplayer\player\iamfplayer.c" />
     <ClCompile Include="..\..\..\test\tools\iamfplayer\src\atom.c" />
-    <ClCompile Include="..\..\..\test\tools\iamfplayer\src\bitstreamrw.c" />
     <ClCompile Include="..\..\..\test\tools\iamfplayer\src\dmemory.c" />
     <ClCompile Include="..\..\..\test\tools\iamfplayer\src\iamf_header.c" />
     <ClCompile Include="..\..\..\test\tools\iamfplayer\src\mp4demux.c" />
@@ -141,7 +140,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\test\tools\iamfplayer\include\a2b_endian.h" />
     <ClInclude Include="..\..\..\test\tools\iamfplayer\include\atom.h" />
-    <ClInclude Include="..\..\..\test\tools\iamfplayer\include\bitstreamrw.h" />
     <ClInclude Include="..\..\..\test\tools\iamfplayer\include\dmemory.h" />
     <ClInclude Include="..\..\..\test\tools\iamfplayer\include\iamf_header.h" />
     <ClInclude Include="..\..\..\test\tools\iamfplayer\include\mp4demux.h" />
