@@ -79,7 +79,7 @@ mix_presentation_metadata {
         mix_gain {
           param_definition {
             parameter_id: 100
-            parameter_rate: 0
+            parameter_rate: 16000
             param_definition_mode: 1
             reserved: 0
           }
@@ -91,7 +91,7 @@ mix_presentation_metadata {
       output_mix_gain {
         param_definition {
           parameter_id: 100
-          parameter_rate: 0
+          parameter_rate: 16000
           param_definition_mode: 1
           reserved: 0
         }
