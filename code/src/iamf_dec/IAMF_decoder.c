@@ -45,7 +45,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "IAMF_utils.h"
 #include "ae_rdr.h"
 #include "bitstream.h"
-#include "bitstreamrw.h"
 #include "demixer.h"
 #include "fixedp11_5.h"
 #include "speex_resampler.h"
@@ -698,10 +697,10 @@ static int iamf_codec_conf_get_sampling_rate(IAMF_CodecConf *c) {
   uint32_t cid = iamf_codec_4cc_get_codecID(c->codec_id);
   if (cid == IAMF_CODEC_PCM) {
     if (c->decoder_conf_size < 6) return IAMF_ERR_BAD_ARG;
-    return get_int32be(c->decoder_conf, 2);
+    return readi32be(c->decoder_conf, 2);
   } else if (cid == IAMF_CODEC_OPUS) {
     if (c->decoder_conf_size < 8) return IAMF_ERR_BAD_ARG;
-    return get_int32be(c->decoder_conf, 4);
+    return readi32be(c->decoder_conf, 4);
   } else if (cid == IAMF_CODEC_AAC) {
     BitStream b;
     int ret, type;
@@ -743,7 +742,7 @@ static int iamf_codec_conf_get_sampling_rate(IAMF_CodecConf *c) {
 static int iamf_codec_conf_get_frame_offset(IAMF_CodecConf *c) {
   if (iamf_codec_4cc_get_codecID(c->codec_id) == IAMF_CODEC_OPUS &&
       c->decoder_conf && c->decoder_conf_size >= 4)
-    return get_int16be(c->decoder_conf, 2);
+    return readi16be(c->decoder_conf, 2);
   return 0;
 }
 

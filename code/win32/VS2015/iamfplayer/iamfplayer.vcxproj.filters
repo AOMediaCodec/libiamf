@@ -24,9 +24,6 @@
     <ClCompile Include="..\..\..\test\tools\iamfplayer\src\atom.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\test\tools\iamfplayer\src\bitstreamrw.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\test\tools\iamfplayer\src\dmemory.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -51,9 +48,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\test\tools\iamfplayer\include\atom.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\test\tools\iamfplayer\include\bitstreamrw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\test\tools\iamfplayer\include\dmemory.h">
