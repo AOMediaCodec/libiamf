@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.1)
 project (iamfplayer)
 
 message(status,"+++++++++++iamfplayer+++++++++++++")
-add_definitions (-O2)
 
 include_directories (iamfplayer)
 include_directories (include)
@@ -12,8 +11,7 @@ aux_source_directory (src DIR_IAMFPLAY_SRC)
 
 set(LIB_DIR  "${CMAKE_INSTALL_PREFIX}/lib")
 set(INCLUDE_IAMF_DIR  "${CMAKE_INSTALL_PREFIX}/include/iamf")
-#add_definitions (-O2)
-set(CMAKE_CXX_FLAGS "-fpermissive -std=c++0x")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 
 message(status,${INCLUDE_IAMF_DIR})
 include_directories(
