@@ -27,7 +27,7 @@ codec_config_metadata {
   codec_config {
     codec_id: 0x6970636d  # "ipcm"
     num_samples_per_frame: 64
-    roll_distance: 0
+    audio_roll_distance: 0
     decoder_config_lpcm {
       sample_format_flags: LPCM_LITTLE_ENDIAN
       sample_size: 16

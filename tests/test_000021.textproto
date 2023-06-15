@@ -24,7 +24,7 @@ codec_config_metadata {
   codec_config {
     codec_id: 0x4f707573  # "Opus"
     num_samples_per_frame: 1920
-    roll_distance: -2
+    audio_roll_distance: -2
     decoder_config_opus {
       version: 1
       output_channel_count: 2
