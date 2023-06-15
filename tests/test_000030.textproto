@@ -9,14 +9,14 @@ test_vector_metadata {
   is_valid: true
   mp4_fixed_timestamp: "2023-05-05 00:00:00"
   temporal_units_per_ia_sample: 1
-  primary_tested_spec_sections: ["3.13.4/sample_rate"]
+  primary_tested_spec_sections: ["2.12.4/sample_rate"]
   base_test: "test_000029"
 }
 
-magic_code_metadata {
+ia_sequence_header_metadata {
   ia_code: 0x69616d66  # "iamf"
-  version: 0
-  profile_version: 0
+  profile_name: PROFILE_VERSION_SIMPLE
+  profile_compatible: PROFILE_VERSION_SIMPLE
 }
 
 codec_config_metadata {
@@ -24,7 +24,7 @@ codec_config_metadata {
   codec_config {
     codec_id: 0x6970636d  # "ipcm"
     num_samples_per_frame: 64
-    roll_distance: 0
+    audio_roll_distance: 0
     decoder_config_lpcm {
       sample_format_flags: LPCM_LITTLE_ENDIAN
       sample_size: 16
@@ -59,9 +59,13 @@ audio_element_metadata {
 
 mix_presentation_metadata {
   mix_presentation_id: 42
-  mix_presentation_annotations {
-    mix_presentation_friendly_label: "test_mix_pres"
-  }
+  count_label: 1
+  language_labels: ["en-us"]
+  mix_presentation_annotations_array: [
+    {
+      mix_presentation_friendly_label: "test_mix_pres"
+    }
+  ]
   num_sub_mixes: 1
   sub_mixes {
     num_audio_elements: 1
@@ -111,46 +115,21 @@ mix_presentation_metadata {
   }
 }
 
-sync_metadata {
-  global_offset: 0
-  num_obu_ids: 2
-  sync_array: [
-    {
-      obu_id: 0
-      obu_data_type: OBU_DATA_TYPE_SUBSTREAM
-      reinitialize_decoder: false
-      reserved_a: 0
-      relative_offset: 0
-    },
-    {
-      obu_id: 100
-      obu_data_type: OBU_DATA_TYPE_PARAMETER
-      reinitialize_decoder: false
-      reserved_a: 0
-      relative_offset: 0
-    }
-  ]
-}
-
 audio_frame_metadata {
   wav_filename: "sawtooth_10000_stereo_44100hz_s16le.wav"
-  substream_metadata {
-    key: 0
-    value {
-      channel_ids: [0, 1]
-    }
-  }
-  substream_id_ordering: [0]
   samples_to_trim_at_end: 30
   samples_to_trim_at_start: 0
+  audio_element_id: 300
+  channel_ids: [0, 1]
+  channel_labels: ["L2", "R2"]
 }
 
 parameter_block_metadata {
   parameter_id: 100
   start_timestamp: 0
-  duration: 22050
+  duration: 22080
   num_subblocks: 1
-  constant_subblock_duration: 22050
+  constant_subblock_duration: 22080
   subblocks: [
     {
       mix_gain_parameter_data {

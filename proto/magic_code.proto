@@ -1,9 +1,0 @@
-syntax = "proto2";
-
-package libiamf_proto;
-
-message MagicCodeObuMetadata {
-  optional uint32 ia_code = 1;
-  optional uint32 version = 2;
-  optional uint32 profile_version = 3;
-}

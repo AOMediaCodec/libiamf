@@ -52,7 +52,7 @@ message AmbisonicsProjectionConfig {
   optional uint32 output_channel_count = 1;
   optional uint32 substream_count = 2;
   optional uint32 coupled_substream_count = 3;
-  repeated uint32 demixing_matrix = 4 [packed = true];
+  repeated int32 demixing_matrix = 4 [packed = true];
 }
 
 message AmbisonicsConfig {

@@ -45,7 +45,8 @@ message DecoderConfigFlac {}
 message CodecConfig {
   optional uint32 codec_id = 1;
   optional uint32 num_samples_per_frame = 2;
-  optional int32 roll_distance = 3;
+  reserved 3;
+  optional int32 audio_roll_distance = 9;
   oneof decoder_config {
     DecoderConfigLpcm decoder_config_lpcm = 5;
     DecoderConfigOpus decoder_config_opus = 6;

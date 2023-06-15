@@ -5,19 +5,19 @@ package libiamf_proto;
 import "audio_element.proto";
 import "audio_frame.proto";
 import "codec_config.proto";
-import "magic_code.proto";
+import "ia_sequence_header.proto";
 import "mix_presentation.proto";
 import "parameter_block.proto";
-import "sync.proto";
 import "temporal_delimiter.proto";
 import "test_vector_metadata.proto";
 
 message UserMetadata {
-  repeated MagicCodeObuMetadata magic_code_metadata = 1;
+  reserved 1;
+  repeated IASequenceHeaderObuMetadata ia_sequence_header_metadata = 10;
   repeated CodecConfigObuMetadata codec_config_metadata = 2;
   repeated AudioElementObuMetadata audio_element_metadata = 3;
   repeated MixPresentationObuMetadata mix_presentation_metadata = 4;
-  repeated SyncObuMetadata sync_metadata = 5;
+  reserved 5;
   repeated AudioFrameObuMetadata audio_frame_metadata = 6;
   repeated ParameterBlockObuMetadata parameter_block_metadata = 7;
   optional TemporalDelimiterObuMetadata temporal_delimiter_metadata = 8;

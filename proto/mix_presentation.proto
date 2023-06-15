@@ -47,6 +47,7 @@ enum SoundSystem {
   SOUND_SYSTEM_J_4_7_0 = 10;
   SOUND_SYSTEM_10_2_7_0 = 11;
   SOUND_SYSTEM_11_2_3_0 = 12;
+  SOUND_SYSTEM_12_0_1_0 = 13;
 }
 
 message LoudspeakersSsConventionLayout {
@@ -96,7 +97,10 @@ message MixPresentationSubMix {
 
 message MixPresentationObuMetadata {
   optional uint32 mix_presentation_id = 1;
-  optional MixPresentationAnnotations mix_presentation_annotations = 2;
+  optional uint32 count_label = 5;
+  repeated string language_labels = 6;
+  reserved 2;
+  repeated MixPresentationAnnotations mix_presentation_annotations_array = 7;
   optional uint32 num_sub_mixes = 3;
   repeated MixPresentationSubMix sub_mixes = 4;
 }

@@ -9,14 +9,14 @@ test_vector_metadata {
   is_valid: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
   temporal_units_per_ia_sample: 1
-  primary_tested_spec_sections: ["3.2/num_samples_to_trim_at_end"]
+  primary_tested_spec_sections: ["2.2/num_samples_to_trim_at_end"]
   base_test: "None"
 }
 
-magic_code_metadata {
+ia_sequence_header_metadata {
   ia_code: 0x69616d66  # "iamf"
-  version: 0
-  profile_version: 0
+  profile_name: PROFILE_VERSION_SIMPLE
+  profile_compatible: PROFILE_VERSION_SIMPLE
 }
 
 codec_config_metadata {
@@ -24,7 +24,7 @@ codec_config_metadata {
   codec_config {
     codec_id: 0x6970636d  # "ipcm"
     num_samples_per_frame: 128
-    roll_distance: 0
+    audio_roll_distance: 0
     decoder_config_lpcm {
       sample_format_flags: LPCM_LITTLE_ENDIAN
       sample_size: 16
@@ -59,9 +59,13 @@ audio_element_metadata {
 
 mix_presentation_metadata {
   mix_presentation_id: 42
-  mix_presentation_annotations {
-    mix_presentation_friendly_label: "test_mix_pres"
-  }
+  count_label: 1
+  language_labels: ["en-us"]
+  mix_presentation_annotations_array: [
+    {
+      mix_presentation_friendly_label: "test_mix_pres"
+    }
+  ]
   num_sub_mixes: 1
   sub_mixes {
     num_audio_elements: 1
@@ -74,7 +78,7 @@ mix_presentation_metadata {
         mix_gain {
           param_definition {
             parameter_id: 100
-            parameter_rate: 0
+            parameter_rate: 16000
             param_definition_mode: 1
             reserved: 0
           }
@@ -86,7 +90,7 @@ mix_presentation_metadata {
       output_mix_gain {
         param_definition {
           parameter_id: 100
-          parameter_rate: 0
+          parameter_rate: 16000
           param_definition_mode: 1
           reserved: 0
         }
@@ -111,31 +115,13 @@ mix_presentation_metadata {
   }
 }
 
-sync_metadata {
-  global_offset: 0
-  num_obu_ids: 1
-  sync_array: [
-    {
-      obu_id: 0
-      obu_data_type: OBU_DATA_TYPE_SUBSTREAM
-      reinitialize_decoder: false
-      reserved_a: 0
-      relative_offset: 0
-    }
-  ]
-}
-
 audio_frame_metadata {
   wav_filename: "sawtooth_100_stereo.wav"
-  substream_metadata {
-    key: 0
-    value {
-      channel_ids: [0, 1]
-    }
-  }
-  substream_id_ordering: [0]
   samples_to_trim_at_end: 64
   samples_to_trim_at_start: 0
+  audio_element_id: 300
+  channel_ids: [0, 1]
+  channel_labels: ["L2", "R2"]
 }
 
 temporal_delimiter_metadata {
