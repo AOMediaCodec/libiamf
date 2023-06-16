@@ -97,7 +97,7 @@ int mp4_iamf_parser_get_audio_track_header(MP4IAMFParser *ths,
     if (i) --i;
   } else {
     for (; i < atr[0].frame.chunk_count; ++i) {
-      idx -= (atr[0].frame.chunks[i].sample_per_chunk +
+      idx -= (int)(atr[0].frame.chunks[i].sample_per_chunk +
               atr[0].frame.chunks[i].sample_offset);
       if (idx < 0) break;
     }
@@ -149,7 +149,7 @@ int mp4_iamf_parser_read_packet(MP4IAMFParser *ths, int trakn, void *pkt_buf,
   } else {
     int sdi, sdin;
     for (int i = 0; i < atr[trakn].frame.chunk_count; ++i) {
-      ret -= (atr[trakn].frame.chunks[i].sample_per_chunk +
+      ret -= (int )(atr[trakn].frame.chunks[i].sample_per_chunk +
               atr[trakn].frame.chunks[i].sample_offset);
       if (!ret) {
         sdi = atr[trakn].frame.chunks[i].sample_description_index;

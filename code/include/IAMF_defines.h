@@ -74,6 +74,8 @@ typedef enum IAMF_SoundSystem {
   SOUND_SYSTEM_J,        // 4+7+0, 1
   SOUND_SYSTEM_EXT_712,  // 2+7+0, 1
   SOUND_SYSTEM_EXT_312,  // 2+3+0, 1
+  SOUND_SYSTEM_MONO,     // 0+1+0, 1
+  SOUND_SYSTEM_END
 } IAMF_SoundSystem;
 
 typedef enum IAMF_ParameterType {
@@ -146,14 +148,30 @@ typedef struct IAMF_Layout {
  *    if (info_type & 1) {
  *      signed int (16) true_peak;
  *    }
+ *
+ *    if (info_type & 2) {
+ *      unsigned int (8) num_anchored_loudness;
+ *      for (i = 0; i < num_anchored_loudness; i++) {
+ *        unsigned int (8) anchor_element;
+ *        signed int (16) anchored_loudness;
+ *      }
+ *    }
  *  }
  *
  * */
+
+typedef struct _anchor_loudness_t {
+  uint8_t anchor_element;
+  int16_t anchored_loudness;
+} anchor_loudness_t;
+
 typedef struct IAMF_LoudnessInfo {
   uint8_t info_type;
   int16_t integrated_loudness;
   int16_t digital_peak;
   int16_t true_peak;
+  uint8_t num_anchor_loudness;
+  anchor_loudness_t *anchor_loudness;
 } IAMF_LoudnessInfo;
 
 /**
@@ -181,7 +199,6 @@ enum {
   IAMF_ERR_INVALID_STATE = -5,
   IAMF_ERR_UNIMPLEMENTED = -6,
   IAMF_ERR_ALLOC_FAIL = -7,
-  IAMF_ERR_NEED_MORE_DATA = -8,
 };
 
 /**

@@ -49,7 +49,7 @@ int demixer_set_frame_offset(Demixer *, uint32_t offset);
 int demixer_set_channel_layout(Demixer *, IAChannelLayoutType);
 int demixer_set_channels_order(Demixer *, IAChannel *, int);
 int demixer_set_output_gain(Demixer *, IAChannel *, float *, int);
-int demixer_set_demixing_mode(Demixer *, int);
+int demixer_set_demixing_info(Demixer *, int, int);
 int demixer_set_recon_gain(Demixer *, int, IAChannel *, float *, uint32_t);
 int demixer_demixing(Demixer *, float *, float *, uint32_t);
 

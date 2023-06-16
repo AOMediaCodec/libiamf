@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "aac_multistream_decoder.h"
 
-#include <fdk-aac/aacdecoder_lib.h>
+#include "fdk-aac/aacdecoder_lib.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -123,7 +123,7 @@ static int aac_multistream_decode_native(
     err = aacDecoder_DecodeFrame(st->handles[i], st->buffer, MAX_BUFFER_SIZE,
                                  flags);
     if (err == AAC_DEC_NOT_ENOUGH_BITS) {
-      return IAMF_ERR_NEED_MORE_DATA;
+      return IAMF_ERR_BUFFER_TOO_SMALL;
     }
     if (err != AAC_DEC_OK) {
       ia_loge("stream %d : fail to decode", i);

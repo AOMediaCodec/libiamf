@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @brief Convert to fixed functions
  * @version 0.1
  * @date Created 3/3/2023
-**/
+ **/
 
 #ifndef _FIXEDP11_5_H_
 #define _FIXEDP11_5_H_
@@ -60,6 +60,8 @@ float lin2db(float lin);
 float db2lin(float db);
 
 /// Mapping of wIdx(k) to w(k) for de-mixer
+#define MIN_W_INDEX 0
+#define MAX_W_INDEX 10
 float calc_w(int w_idx_offset, int w_idx_prev, int *w_idx);
 float get_w(int w_idx);
 #endif

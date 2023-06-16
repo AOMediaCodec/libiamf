@@ -100,6 +100,7 @@ struct Demixer {
   } chs_gain_list;
 
   int demixing_mode;
+
   struct {
     struct {
       IAChannel ch;
@@ -120,297 +121,259 @@ enum {
   CH_MX_COUNT
 };
 
+/**
+ * S1to2 de-mixer: R2 = 2 x Mono - L2
+ * */
 static int dmx_s2(Demixer *ths) {
-  if (!ths->ch_data[IA_CH_L2]) {
-    return IAMF_ERR_INTERNAL;
+  float *r = 0;
+  if (!ths->ch_data[IA_CH_L2]) return IAMF_ERR_INTERNAL;
+  if (ths->ch_data[IA_CH_R2]) return 0;
+  if (!ths->ch_data[IA_CH_MONO]) return IAMF_ERR_INTERNAL;
+
+  ia_logd("---- s1to2 ----");
+
+  r = &ths->large_buffer[ths->frame_size * CH_MX_S_R];
+
+  for (int i = 0; i < ths->frame_size; ++i) {
+    r[i] = 2 * ths->ch_data[IA_CH_MONO][i] - ths->ch_data[IA_CH_L2][i];
   }
 
-  /**
-   * S1to2 de-mixer: R2 = 2 x Mono - L2
-   * */
-  if (!ths->ch_data[IA_CH_R2]) {
-    float *r = 0;
+  ths->ch_data[IA_CH_R2] = r;
 
-    if (!ths->ch_data[IA_CH_MONO]) {
-      return IAMF_ERR_INTERNAL;
-    }
-
-    ia_logd("---- s1to2 ----");
-
-    r = &ths->large_buffer[ths->frame_size * CH_MX_S_R];
-
-    for (int i = 0; i < ths->frame_size; ++i) {
-      r[i] = 2 * ths->ch_data[IA_CH_MONO][i] - ths->ch_data[IA_CH_L2][i];
-    }
-
-    ths->ch_data[IA_CH_R2] = r;
-
-    ia_logd("reconstructed channel %s(%d) at %p, buffer at %p",
-            ia_channel_name(IA_CH_R2), IA_CH_R2, ths->ch_data[IA_CH_R2],
-            ths->large_buffer);
-  }
+  ia_logd("reconstructed channel %s(%d) at %p, buffer at %p",
+          ia_channel_name(IA_CH_R2), IA_CH_R2, ths->ch_data[IA_CH_R2],
+          ths->large_buffer);
   return 0;
 }
 
+/**
+ * S2to3 de-mixer: L3 = L2 - 0.707 x C and R3 = R2 - 0.707 x C
+ * */
 static int dmx_s3(Demixer *ths) {
-  /**
-   * S2to3 de-mixer: L3 = L2 - 0.707 x C and R3 = R2 - 0.707 x C
-   * */
-  if (!ths->ch_data[IA_CH_R3]) {
-    float *l, *r;
-    uint32_t fs = ths->frame_size;
+  float *l, *r;
+  uint32_t fs = ths->frame_size;
 
-    if (dmx_s2(ths)) {
-      return IAMF_ERR_INTERNAL;
-    }
+  if (ths->ch_data[IA_CH_R3]) return 0;
+  if (dmx_s2(ths)) return IAMF_ERR_INTERNAL;
+  if (!ths->ch_data[IA_CH_C]) return IAMF_ERR_INTERNAL;
 
-    if (!ths->ch_data[IA_CH_C]) {
-      return IAMF_ERR_INTERNAL;
-    }
+  ia_logt("---- s2to3 ----");
 
-    ia_logt("---- s2to3 ----");
+  l = &ths->large_buffer[CH_MX_S_L * fs];
+  r = &ths->large_buffer[CH_MX_S_R * fs];
 
-    l = &ths->large_buffer[CH_MX_S_L * fs];
-    r = &ths->large_buffer[CH_MX_S_R * fs];
-
-    for (int i = 0; i < fs; i++) {
-      l[i] = ths->ch_data[IA_CH_L2][i] - 0.707 * ths->ch_data[IA_CH_C][i];
-      r[i] = ths->ch_data[IA_CH_R2][i] - 0.707 * ths->ch_data[IA_CH_C][i];
-    }
-    ths->ch_data[IA_CH_L3] = l;
-    ths->ch_data[IA_CH_R3] = r;
-
-    ia_logd(
-        "reconstructed channel %s(%d) at %p, channel %s(%d) at %p, buffer at "
-        "%p",
-        ia_channel_name(IA_CH_L3), IA_CH_L3, ths->ch_data[IA_CH_L3],
-        ia_channel_name(IA_CH_R3), IA_CH_R3, ths->ch_data[IA_CH_R3],
-        ths->large_buffer);
+  for (int i = 0; i < fs; i++) {
+    l[i] = ths->ch_data[IA_CH_L2][i] - 0.707 * ths->ch_data[IA_CH_C][i];
+    r[i] = ths->ch_data[IA_CH_R2][i] - 0.707 * ths->ch_data[IA_CH_C][i];
   }
+  ths->ch_data[IA_CH_L3] = l;
+  ths->ch_data[IA_CH_R3] = r;
+
+  ia_logd(
+      "reconstructed channel %s(%d) at %p, channel %s(%d) at %p, buffer at "
+      "%p",
+      ia_channel_name(IA_CH_L3), IA_CH_L3, ths->ch_data[IA_CH_L3],
+      ia_channel_name(IA_CH_R3), IA_CH_R3, ths->ch_data[IA_CH_R3],
+      ths->large_buffer);
 
   return 0;
 }
 
+/**
+ * S3to5 de-mixer: Ls = 1/δ(k) x (L3 - L5) and Rs = 1/δ(k) x (R3 - R5)
+ * */
 static int dmx_s5(Demixer *ths) {
-  /**
-   * S3to5 de-mixer: Ls = 1/δ(k) x (L3 - L5) and Rs = 1/δ(k) x (R3 - R5)
-   * */
-  if (!ths->ch_data[IA_CH_SR5]) {
-    float *l, *r;
-    uint32_t fs = ths->frame_size;
+  float *l, *r;
+  uint32_t fs = ths->frame_size;
 
-    int Typeid = ths->demixing_mode;
-    int last_Typeid = ths->last_dmixtypenum;
-    int i = 0;
+  int Typeid = ths->demixing_mode;
+  int last_Typeid = ths->last_dmixtypenum;
+  int i = 0;
 
-    if (dmx_s3(ths)) {
-      return IAMF_ERR_INTERNAL;
-    }
+  if (ths->ch_data[IA_CH_SR5]) return 0;
+  if (dmx_s3(ths)) return IAMF_ERR_INTERNAL;
+  if (!ths->ch_data[IA_CH_L5] || !ths->ch_data[IA_CH_R5])
+    return IAMF_ERR_INTERNAL;
 
-    if (!ths->ch_data[IA_CH_L5] || !ths->ch_data[IA_CH_R5]) {
-      return IAMF_ERR_INTERNAL;
-    }
+  ia_logt("---- s3to5 ----");
+  ia_logd("Typeid %d, Lasttypeid %d", Typeid, last_Typeid);
 
-    ia_logt("---- s3to5 ----");
-    ia_logd("Typeid %d, Lasttypeid %d", Typeid, last_Typeid);
+  l = &ths->large_buffer[CH_MX_S5_L * fs];
+  r = &ths->large_buffer[CH_MX_S5_R * fs];
 
-    l = &ths->large_buffer[CH_MX_S5_L * fs];
-    r = &ths->large_buffer[CH_MX_S5_R * fs];
-
-    for (; i < ths->skip; i++) {
-      l[i] = (ths->ch_data[IA_CH_L3][i] - ths->ch_data[IA_CH_L5][i]) /
-             demixing_type_mat[last_Typeid].delta;
-      r[i] = (ths->ch_data[IA_CH_R3][i] - ths->ch_data[IA_CH_R5][i]) /
-             demixing_type_mat[last_Typeid].delta;
-    }
-
-    for (; i < fs; i++) {
-      l[i] = (ths->ch_data[IA_CH_L3][i] - ths->ch_data[IA_CH_L5][i]) /
-             demixing_type_mat[Typeid].delta;
-      r[i] = (ths->ch_data[IA_CH_R3][i] - ths->ch_data[IA_CH_R5][i]) /
-             demixing_type_mat[Typeid].delta;
-    }
-
-    ths->ch_data[IA_CH_SL5] = l;
-    ths->ch_data[IA_CH_SR5] = r;
-
-    ia_logd(
-        "reconstructed channel %s(%d) at %p, channel %s(%d) at %p, buffer at "
-        "%p",
-        ia_channel_name(IA_CH_SL5), IA_CH_SL5, ths->ch_data[IA_CH_SL5],
-        ia_channel_name(IA_CH_SR5), IA_CH_SR5, ths->ch_data[IA_CH_SR5],
-        ths->large_buffer);
+  for (; i < ths->skip; i++) {
+    l[i] = (ths->ch_data[IA_CH_L3][i] - ths->ch_data[IA_CH_L5][i]) /
+           demixing_type_mat[last_Typeid].delta;
+    r[i] = (ths->ch_data[IA_CH_R3][i] - ths->ch_data[IA_CH_R5][i]) /
+           demixing_type_mat[last_Typeid].delta;
   }
+
+  for (; i < fs; i++) {
+    l[i] = (ths->ch_data[IA_CH_L3][i] - ths->ch_data[IA_CH_L5][i]) /
+           demixing_type_mat[Typeid].delta;
+    r[i] = (ths->ch_data[IA_CH_R3][i] - ths->ch_data[IA_CH_R5][i]) /
+           demixing_type_mat[Typeid].delta;
+  }
+
+  ths->ch_data[IA_CH_SL5] = l;
+  ths->ch_data[IA_CH_SR5] = r;
+
+  ia_logd(
+      "reconstructed channel %s(%d) at %p, channel %s(%d) at %p, buffer at "
+      "%p",
+      ia_channel_name(IA_CH_SL5), IA_CH_SL5, ths->ch_data[IA_CH_SL5],
+      ia_channel_name(IA_CH_SR5), IA_CH_SR5, ths->ch_data[IA_CH_SR5],
+      ths->large_buffer);
   return 0;
 }
 
+/**
+ * S5to7 de-mixer: Lrs = 1/β(k) x (Ls - α(k) x Lss) and
+ *                 Rrs = 1/β(k) x (Rs - α(k) x Rss)
+ * */
 static int dmx_s7(Demixer *ths) {
-  /**
-   * S5to7 de-mixer: Lrs = 1/β(k) x (Ls - α(k) x Lss) and Rrs = 1/β(k) x (Rs -
-   * α(k) x Rss)
-   * */
-  if (!ths->ch_data[IA_CH_BR7]) {
-    float *l, *r;
-    uint32_t fs = ths->frame_size;
+  float *l, *r;
+  uint32_t fs = ths->frame_size;
 
-    int i = 0;
-    int Typeid = ths->demixing_mode;
-    int last_Typeid = ths->last_dmixtypenum;
+  int i = 0;
+  int Typeid = ths->demixing_mode;
+  int last_Typeid = ths->last_dmixtypenum;
 
-    if (dmx_s5(ths) < 0) {
-      return IAMF_ERR_INTERNAL;
-    }
+  if (ths->ch_data[IA_CH_BR7]) return 0;
+  if (dmx_s5(ths) < 0) return IAMF_ERR_INTERNAL;
+  if (!ths->ch_data[IA_CH_SL7] || !ths->ch_data[IA_CH_SR7])
+    return IAMF_ERR_INTERNAL;
 
-    if (!ths->ch_data[IA_CH_SL7] || !ths->ch_data[IA_CH_SR7]) {
-      return IAMF_ERR_INTERNAL;
-    }
+  ia_logt("---- s5to7 ----");
+  ia_logd("Typeid %d, Lasttypeid %d", Typeid, last_Typeid);
 
-    ia_logt("---- s5to7 ----");
-    ia_logd("Typeid %d, Lasttypeid %d", Typeid, last_Typeid);
+  l = &ths->large_buffer[CH_MX_S_L * fs];
+  r = &ths->large_buffer[CH_MX_S_R * fs];
 
-    l = &ths->large_buffer[CH_MX_S_L * fs];
-    r = &ths->large_buffer[CH_MX_S_R * fs];
-
-    for (; i < ths->skip; i++) {
-      l[i] =
-          (ths->ch_data[IA_CH_SL5][i] -
-           ths->ch_data[IA_CH_SL7][i] * demixing_type_mat[last_Typeid].alpha) /
-          demixing_type_mat[last_Typeid].beta;
-      r[i] =
-          (ths->ch_data[IA_CH_SR5][i] -
-           ths->ch_data[IA_CH_SR7][i] * demixing_type_mat[last_Typeid].alpha) /
-          demixing_type_mat[last_Typeid].beta;
-    }
-
-    for (; i < ths->frame_size; i++) {
-      l[i] = (ths->ch_data[IA_CH_SL5][i] -
-              ths->ch_data[IA_CH_SL7][i] * demixing_type_mat[Typeid].alpha) /
-             demixing_type_mat[Typeid].beta;
-      r[i] = (ths->ch_data[IA_CH_SR5][i] -
-              ths->ch_data[IA_CH_SR7][i] * demixing_type_mat[Typeid].alpha) /
-             demixing_type_mat[Typeid].beta;
-    }
-
-    ths->ch_data[IA_CH_BL7] = l;
-    ths->ch_data[IA_CH_BR7] = r;
-
-    ia_logd(
-        "reconstructed channel %s(%d) at %p, channel %s(%d) at %p, buffer at "
-        "%p",
-        ia_channel_name(IA_CH_BL7), IA_CH_BL7, ths->ch_data[IA_CH_BL7],
-        ia_channel_name(IA_CH_BR7), IA_CH_BR7, ths->ch_data[IA_CH_BR7],
-        ths->large_buffer);
+  for (; i < ths->skip; i++) {
+    l[i] = (ths->ch_data[IA_CH_SL5][i] -
+            ths->ch_data[IA_CH_SL7][i] * demixing_type_mat[last_Typeid].alpha) /
+           demixing_type_mat[last_Typeid].beta;
+    r[i] = (ths->ch_data[IA_CH_SR5][i] -
+            ths->ch_data[IA_CH_SR7][i] * demixing_type_mat[last_Typeid].alpha) /
+           demixing_type_mat[last_Typeid].beta;
   }
+
+  for (; i < ths->frame_size; i++) {
+    l[i] = (ths->ch_data[IA_CH_SL5][i] -
+            ths->ch_data[IA_CH_SL7][i] * demixing_type_mat[Typeid].alpha) /
+           demixing_type_mat[Typeid].beta;
+    r[i] = (ths->ch_data[IA_CH_SR5][i] -
+            ths->ch_data[IA_CH_SR7][i] * demixing_type_mat[Typeid].alpha) /
+           demixing_type_mat[Typeid].beta;
+  }
+
+  ths->ch_data[IA_CH_BL7] = l;
+  ths->ch_data[IA_CH_BR7] = r;
+
+  ia_logd(
+      "reconstructed channel %s(%d) at %p, channel %s(%d) at %p, buffer at "
+      "%p",
+      ia_channel_name(IA_CH_BL7), IA_CH_BL7, ths->ch_data[IA_CH_BL7],
+      ia_channel_name(IA_CH_BR7), IA_CH_BR7, ths->ch_data[IA_CH_BR7],
+      ths->large_buffer);
   return 0;
 }
 
+/**
+ * TF2toT2 de-mixer: Ltf2 = Ltf3 - w(k) x (L3 - L5) and
+ *                   Rtf2 = Rtf3 - w(k) x (R3 - R5)
+ * */
 static int dmx_h2(Demixer *ths) {
-  /**
-   * TF2toT2 de-mixer: Ltf2 = Ltf3 - w(k) x (L3 - L5) and Rtf2 = Rtf3 - w(k) x
-   * (R3 - R5)
-   * */
-  if (!ths->ch_data[IA_CH_HR]) {
-    float *l, *r;
-    float w, lastW;
-    uint32_t fs = ths->frame_size;
-    int i = 0;
+  float *l, *r;
+  float w, lastW;
+  uint32_t fs = ths->frame_size;
+  int i = 0;
 
-    int Typeid = ths->demixing_mode;
-    int last_Typeid = ths->last_dmixtypenum;
-    int32_t WeightTypeNum;
+  int Typeid = ths->demixing_mode;
+  int last_Typeid = ths->last_dmixtypenum;
 
-    if (!ths->ch_data[IA_CH_TL] || !ths->ch_data[IA_CH_TR]) {
-      return IAMF_ERR_INTERNAL;
-    }
+  if (ths->ch_data[IA_CH_HR]) return 0;
+  if (!ths->ch_data[IA_CH_TL] || !ths->ch_data[IA_CH_TR])
+    return IAMF_ERR_INTERNAL;
+  if (dmx_s5(ths)) return IAMF_ERR_INTERNAL;
 
-    if (dmx_s5(ths)) {
-      return IAMF_ERR_INTERNAL;
-    }
+  w = get_w(ths->weight_state_idx);
+  lastW = get_w(ths->last_weight_state_idx);
 
-    WeightTypeNum = demixing_type_mat[ths->demixing_mode].w_idx_offset;
-    w = calc_w(WeightTypeNum, ths->last_weight_state_idx,
-               &ths->weight_state_idx);
-    lastW = get_w(ths->last_weight_state_idx);
+  ia_logt("---- hf2to2 ----");
+  ia_logd("Typeid %d, w %f,, Lasttypeid %d, lastW %f", Typeid, w, last_Typeid,
+          lastW);
 
-    ia_logt("---- hf2to2 ----");
-    ia_logd("Typeid %d, WeightTypeNum %d, w %f,, Lasttypeid %d, lastW %f",
-            Typeid, WeightTypeNum, w, last_Typeid, lastW);
+  l = &ths->large_buffer[CH_MX_T_L * fs];
+  r = &ths->large_buffer[CH_MX_T_R * fs];
 
-    l = &ths->large_buffer[CH_MX_T_L * fs];
-    r = &ths->large_buffer[CH_MX_T_R * fs];
-
-    for (; i < ths->skip; i++) {
-      l[i] = ths->ch_data[IA_CH_TL][i] - demixing_type_mat[last_Typeid].delta *
-                                             lastW * ths->ch_data[IA_CH_SL5][i];
-      r[i] = ths->ch_data[IA_CH_TR][i] - demixing_type_mat[last_Typeid].delta *
-                                             lastW * ths->ch_data[IA_CH_SR5][i];
-    }
-
-    for (; i < ths->frame_size; i++) {
-      l[i] = ths->ch_data[IA_CH_TL][i] -
-             demixing_type_mat[Typeid].delta * w * ths->ch_data[IA_CH_SL5][i];
-      r[i] = ths->ch_data[IA_CH_TR][i] -
-             demixing_type_mat[Typeid].delta * w * ths->ch_data[IA_CH_SR5][i];
-    }
-
-    ths->ch_data[IA_CH_HL] = l;
-    ths->ch_data[IA_CH_HR] = r;
-
-    ia_logt("channel %s(%d) at %p, channel %s(%d) at %p, buffer at %p",
-            ia_channel_name(IA_CH_HL), IA_CH_HL, ths->ch_data[IA_CH_HL],
-            ia_channel_name(IA_CH_HR), IA_CH_HR, ths->ch_data[IA_CH_HR],
-            ths->large_buffer);
+  for (; i < ths->skip; i++) {
+    l[i] = ths->ch_data[IA_CH_TL][i] - demixing_type_mat[last_Typeid].delta *
+                                           lastW * ths->ch_data[IA_CH_SL5][i];
+    r[i] = ths->ch_data[IA_CH_TR][i] - demixing_type_mat[last_Typeid].delta *
+                                           lastW * ths->ch_data[IA_CH_SR5][i];
   }
+
+  for (; i < ths->frame_size; i++) {
+    l[i] = ths->ch_data[IA_CH_TL][i] -
+           demixing_type_mat[Typeid].delta * w * ths->ch_data[IA_CH_SL5][i];
+    r[i] = ths->ch_data[IA_CH_TR][i] -
+           demixing_type_mat[Typeid].delta * w * ths->ch_data[IA_CH_SR5][i];
+  }
+
+  ths->ch_data[IA_CH_HL] = l;
+  ths->ch_data[IA_CH_HR] = r;
+
+  ia_logt("channel %s(%d) at %p, channel %s(%d) at %p, buffer at %p",
+          ia_channel_name(IA_CH_HL), IA_CH_HL, ths->ch_data[IA_CH_HL],
+          ia_channel_name(IA_CH_HR), IA_CH_HR, ths->ch_data[IA_CH_HR],
+          ths->large_buffer);
   return 0;
 }
 
+/**
+ * Ltb = 1/γ(k) x (Ltf2 - Ltf4) and Rtb = 1/γ(k) x (Rtf2 - Rtf4)
+ * */
 static int dmx_h4(Demixer *ths) {
-  /**
-   * Ltb = 1/γ(k) x (Ltf2 - Ltf4) and Rtb = 1/γ(k) x (Rtf2 - Rtf4)
-   * */
-  if (!ths->ch_data[IA_CH_HBR]) {
-    float *l, *r;
-    uint32_t fs = ths->frame_size;
-    int i = 0;
-    int Typeid = ths->demixing_mode;
-    int last_Typeid = ths->last_dmixtypenum;
+  float *l, *r;
+  uint32_t fs = ths->frame_size;
+  int i = 0;
+  int Typeid = ths->demixing_mode;
+  int last_Typeid = ths->last_dmixtypenum;
 
-    if (dmx_h2(ths)) {
-      return IAMF_ERR_INTERNAL;
-    }
+  if (ths->ch_data[IA_CH_HBR]) return 0;
+  if (dmx_h2(ths)) return IAMF_ERR_INTERNAL;
+  if (!ths->ch_data[IA_CH_HFR] || !ths->ch_data[IA_CH_HFL])
+    return IAMF_ERR_INTERNAL;
 
-    if (!ths->ch_data[IA_CH_HFR] || !ths->ch_data[IA_CH_HFL]) {
-      return IAMF_ERR_INTERNAL;
-    }
+  ia_logt("---- h2to4 ----");
+  ia_logd("Typeid %d, Lasttypeid %d", Typeid, last_Typeid);
 
-    ia_logt("---- h2to4 ----");
-    ia_logd("Typeid %d, Lasttypeid %d", Typeid, last_Typeid);
+  l = &ths->large_buffer[CH_MX_T_L * fs];
+  r = &ths->large_buffer[CH_MX_T_R * fs];
 
-    l = &ths->large_buffer[CH_MX_T_L * fs];
-    r = &ths->large_buffer[CH_MX_T_R * fs];
-
-    for (; i < ths->skip; i++) {
-      l[i] = (ths->ch_data[IA_CH_HL][i] - ths->ch_data[IA_CH_HFL][i]) /
-             demixing_type_mat[last_Typeid].gamma;
-      r[i] = (ths->ch_data[IA_CH_HR][i] - ths->ch_data[IA_CH_HFR][i]) /
-             demixing_type_mat[last_Typeid].gamma;
-    }
-
-    for (; i < ths->frame_size; i++) {
-      l[i] = (ths->ch_data[IA_CH_HL][i] - ths->ch_data[IA_CH_HFL][i]) /
-             demixing_type_mat[Typeid].gamma;
-      r[i] = (ths->ch_data[IA_CH_HR][i] - ths->ch_data[IA_CH_HFR][i]) /
-             demixing_type_mat[Typeid].gamma;
-    }
-
-    ths->ch_data[IA_CH_HBL] = l;
-    ths->ch_data[IA_CH_HBR] = r;
-
-    ia_logt("channel %s(%d) at %p, channel %s(%d) at %p, buffer at %p",
-            ia_channel_name(IA_CH_HBL), IA_CH_HBL, ths->ch_data[IA_CH_HBL],
-            ia_channel_name(IA_CH_HBR), IA_CH_HBR, ths->ch_data[IA_CH_HBR],
-            ths->large_buffer);
+  for (; i < ths->skip; i++) {
+    l[i] = (ths->ch_data[IA_CH_HL][i] - ths->ch_data[IA_CH_HFL][i]) /
+           demixing_type_mat[last_Typeid].gamma;
+    r[i] = (ths->ch_data[IA_CH_HR][i] - ths->ch_data[IA_CH_HFR][i]) /
+           demixing_type_mat[last_Typeid].gamma;
   }
+
+  for (; i < ths->frame_size; i++) {
+    l[i] = (ths->ch_data[IA_CH_HL][i] - ths->ch_data[IA_CH_HFL][i]) /
+           demixing_type_mat[Typeid].gamma;
+    r[i] = (ths->ch_data[IA_CH_HR][i] - ths->ch_data[IA_CH_HFR][i]) /
+           demixing_type_mat[Typeid].gamma;
+  }
+
+  ths->ch_data[IA_CH_HBL] = l;
+  ths->ch_data[IA_CH_HBR] = r;
+
+  ia_logt("channel %s(%d) at %p, channel %s(%d) at %p, buffer at %p",
+          ia_channel_name(IA_CH_HBL), IA_CH_HBL, ths->ch_data[IA_CH_HBL],
+          ia_channel_name(IA_CH_HBR), IA_CH_HBR, ths->ch_data[IA_CH_HBR],
+          ths->large_buffer);
   return 0;
 }
 
@@ -562,22 +525,13 @@ termination:
 }
 
 void demixer_close(Demixer *ths) {
-  if (ths->hanning_filter) {
-    free(ths->hanning_filter);
+  if (ths) {
+    IAMF_FREE(ths->hanning_filter);
+    IAMF_FREE(ths->start_window);
+    IAMF_FREE(ths->stop_window);
+    IAMF_FREE(ths->large_buffer);
+    free(ths);
   }
-
-  if (ths->start_window) {
-    free(ths->start_window);
-  }
-
-  if (ths->stop_window) {
-    free(ths->stop_window);
-  }
-
-  if (ths->large_buffer) {
-    free(ths->large_buffer);
-  }
-  free(ths);
 }
 
 int demixer_set_frame_offset(Demixer *ths, uint32_t offset) {
@@ -589,19 +543,19 @@ int demixer_set_frame_offset(Demixer *ths, uint32_t offset) {
   ths->skip = preskip;
 
   ia_logd("demixer preskip %d, overlayLen %d", preskip, overlapLen);
-  if (preskip < overlapLen) return IAMF_OK;
+  if (preskip + overlapLen > ths->frame_size) return IAMF_OK;
 
-  for (int i = 0; i < preskip - overlapLen; i++) {
+  for (int i = 0; i < preskip; i++) {
     ths->start_window[i] = 0;
     ths->stop_window[i] = 1;
   }
 
-  for (int i = preskip - overlapLen, j = 0; i < preskip; i++, j++) {
+  for (int i = preskip, j = 0; j < overlapLen; i++, j++) {
     ths->start_window[i] = ths->hanning_filter[j];
     ths->stop_window[i] = ths->hanning_filter[j + overlapLen];
   }
 
-  for (int i = preskip; i < ths->frame_size; i++) {
+  for (int i = preskip + overlapLen; i < ths->frame_size; i++) {
     ths->start_window[i] = 1;
     ths->stop_window[i] = 0;
   }
@@ -635,18 +589,32 @@ int demixer_set_output_gain(Demixer *ths, IAChannel *chs, float *gain,
   return IAMF_OK;
 }
 
-int demixer_set_demixing_mode(Demixer *ths, int mode) {
-  if ((mode >= 0 && mode < 3) || (mode > 3 && mode < 7)) {
-    ia_logd("dmixtypenum: %d -> %d", ths->demixing_mode, mode);
+int demixer_set_demixing_info(Demixer *ths, int mode, int w_idx) {
+  if (mode < 0 || mode == 3 || mode > 6) return IAMF_ERR_BAD_ARG;
 
+  if (w_idx < MIN_W_INDEX || w_idx > MAX_W_INDEX) {
+    ia_logd("dmixtypenum: %d -> %d", ths->demixing_mode, mode);
     ths->last_dmixtypenum = ths->demixing_mode;
+    ths->demixing_mode = mode;
 
     ia_logd("last weight state index : %d -> %d", ths->last_weight_state_idx,
             ths->weight_state_idx);
-
     ths->last_weight_state_idx = ths->weight_state_idx;
-    ths->demixing_mode = mode;
+    calc_w(demixing_type_mat[mode].w_idx_offset, ths->last_weight_state_idx,
+           &ths->weight_state_idx);
+    ia_logd("weight state index : %d -> %d", ths->last_weight_state_idx,
+            ths->weight_state_idx);
+  } else {
+    if (mode != ths->demixing_mode) {
+      ths->last_dmixtypenum = ths->demixing_mode = mode;
+      ia_logd("set default demixing mode %d", mode);
+    }
+    if (ths->weight_state_idx != w_idx) {
+      ths->last_weight_state_idx = ths->weight_state_idx = w_idx;
+      ia_logd("set default weight index %d", w_idx);
+    }
   }
+
   return 0;
 }
 
@@ -668,28 +636,18 @@ int demixer_set_recon_gain(Demixer *ths, int count, IAChannel *chs,
 int demixer_demixing(Demixer *ths, float *dst, float *src, uint32_t size) {
   IAChannel ch;
 
-  if (size != ths->frame_size) {
-    return IAMF_ERR_BAD_ARG;
-  }
-
-  if (ia_channel_layout_get_channels_count(ths->layout) != ths->chs_count) {
+  if (size != ths->frame_size) return IAMF_ERR_BAD_ARG;
+  if (ia_channel_layout_get_channels_count(ths->layout) != ths->chs_count)
     return IAMF_ERR_INTERNAL;
-  }
 
   memset(ths->ch_data, 0, sizeof(float *) * IA_CH_COUNT);
   for (int c = 0; c < ths->chs_count; ++c) {
     ths->ch_data[ths->chs_in[c]] = src + size * c;
   }
 
-  ia_logt("prepare.");
   dmx_gainup(ths);
-  ia_logt("gainup.");
-  if (dmx_demix(ths) < 0) {
-    return IAMF_ERR_INTERNAL;
-  }
-  ia_logt("demix.");
+  if (dmx_demix(ths) < 0) return IAMF_ERR_INTERNAL;
   dmx_rms(ths);
-  ia_logt("rms.");
 
   for (int c = 0; c < ths->chs_count; ++c) {
     ch = ths->chs_out[c];
@@ -702,6 +660,5 @@ int demixer_demixing(Demixer *ths, float *dst, float *src, uint32_t size) {
     memcpy((void *)&dst[c * size], (void *)ths->ch_data[ch],
            sizeof(float) * size);
   }
-  ia_logt("reorder.");
   return IAMF_OK;
 }

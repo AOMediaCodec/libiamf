@@ -32,7 +32,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @date Created 03/03/2023
  **/
 
-
 #include "ae_rdr.h"
 
 float mono_bs020[][2] = {{0.70710678, 0.70710678}};
@@ -48,6 +47,7 @@ float mono_bs070[][8] = {{0, 0, 1.0, 0, 0, 0, 0, 0}};
 float mono_bs470[][12] = {{0, 0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
 float mono_iamf312[][6] = {{0, 0, 1.0, 0, 0, 0}};
 float mono_iamf712[][10] = {{0, 0, 1.0, 0, 0, 0, 0, 0, 0, 0}};
+float mono_mono[][1] = {{1.0}};
 
 ///////////////////////////////
 
@@ -90,20 +90,11 @@ float stereo_bs470[][12] = {{1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 float stereo_iamf312[][6] = {{1.0, 0, 0, 0, 0, 0}, {0, 1.0, 0, 0, 0, 0}};
 // 'M+030', 'M-030', 'M+000', 'LFE1', 'M+090', 'M-090', 'M+135', 'M-135',
 // 'U+045', 'U-045'
-float stereo_iamf712[][10] = {{
-                                  1.0,
-                                  0,
-                                  0,
-                                  0,
-                                  0,
-                                  0,
-                                  0,
-                                  0,
-                                  0,
-                                  0,
-                              },
+float stereo_iamf712[][10] = {{1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                               {0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0}};
+float stereo_mono[][1] = {{0.5}, {0.5}};
 ///////////////////////////
+
 float iamf51_bs020[][2] = {{1.0, 0}, {0, 1.0},        {0.70710678, 0.70710678},
                            {0, 0},   {0.70710678, 0}, {0, 0.70710678}};
 float iamf51_bs050[][6] = {{1.0, 0, 0, 0, 0, 0}, {0, 1.0, 0, 0, 0, 0},
@@ -169,6 +160,8 @@ float iamf51_iamf712[][10] = {{1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                               {0, 0, 0, 1.0, 0, 0, 0, 0, 0, 0},
                               {0, 0, 0, 0, 0.77733427, 0, 0.62908777, 0, 0, 0},
                               {0, 0, 0, 0, 0, 0.77733427, 0, 0.62908777, 0, 0}};
+float iamf51_mono[][1] = {{0.5}, {0.5},        {0.70710678},
+                          {0.0}, {0.35355339}, {0.35355339}};
 //////////////////////
 
 float iamf512_bs020[][2] = {{1.0, 0}, {0, 1.0},        {0.70710678, 0.70710678},
@@ -250,54 +243,16 @@ float iamf512_iamf312[][6] = {{1.0, 0, 0, 0, 0, 0},         // L
                               {0, 0, 0, 0, 1.0, 0},         // Hfl
                               {0, 0, 0, 0, 0, 1.0}};        // hfr
 float iamf512_iamf712[][10] = {
-    {
-        1.0,
-        0,
-        0,
-        0,
-        0,
-        0,
-    },  // L
-    {
-        0,
-        1.0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-    },  // R
-    {
-        0,
-        0,
-        1.0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-    },  // C
-    {
-        0,
-        0,
-        0,
-        1.0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-    },                                                 // Lfe
+    {1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0},                  // L
+    {0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0},                  // R
+    {0, 0, 1.0, 0, 0, 0, 0, 0, 0, 0},                  // C
+    {0, 0, 0, 1.0, 0, 0, 0, 0, 0, 0},                  // Lfe
     {0, 0, 0, 0, 0.77733427, 0, 0.62908777, 0, 0, 0},  // Ls
     {0, 0, 0, 0, 0, 0.77733427, 0, 0.629087, 0, 0},    // Rs
     {0, 0, 0, 0, 0, 0, 0, 0, 0.97338373, 0},           // Hfl
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0.97338373}};          // Hfr
+float iamf512_mono[][1] = {{0.5},        {0.5},        {0.70710678}, {0.0},
+                           {0.35355339}, {0.35355339}, {0.5},        {0.5}};
 ////////////////////////////////////////////////////
 
 float iamf514_bs020[][2] = {
@@ -403,49 +358,19 @@ float iamf514_iamf312[][6] = {{1.0, 0, 0, 0, 0, 0},          // L
                               {0, 0, 0, 0, 0.70710678, 0},   // Hbl
                               {0, 0, 0, 0, 0, 0.70710678}};  // Hbr
 float iamf514_iamf712[][10] = {
-    {1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  // L
-    {
-        0,
-        1.0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-    },  // R
-    {
-        0,
-        0,
-        1.0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-    },  // C
-    {
-        0,
-        0,
-        0,
-        1.0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-    },                                                 // Lfe
+    {1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0},                  // L
+    {0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0},                  // R
+    {0, 0, 1.0, 0, 0, 0, 0, 0, 0, 0},                  // C
+    {0, 0, 0, 1.0, 0, 0, 0, 0, 0, 0},                  // Lfe
     {0, 0, 0, 0, 0.77733427, 0, 0.62908777, 0, 0, 0},  // Ls
     {0, 0, 0, 0, 0, 0.77733427, 0, 0.629087, 0, 0},    // Rs
     {0, 0, 0, 0, 0, 0, 0, 0, 1.0, 0},                  // Hfl
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0},                  // Hfr
     {0, 0, 0, 0, 0, 0, 0, 0, 0.70710678, 0},           // Hbl
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0.70710678}};          // Hbr
+float iamf514_mono[][1] = {{0.5},        {0.5},        {0.70710678}, {0.0},
+                           {0.35355339}, {0.35355339}, {0.5},        {0.5},
+                           {0.35355339}, {0.35355339}};
 /////////////////////////////////////
 
 float iamf71_bs020[][2] = {
@@ -538,6 +463,10 @@ float iamf71_iamf712[][10] = {{1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0},   // L
                               {0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0},   // Rs
                               {0, 0, 0, 0, 0, 0, 1.0, 0, 0, 0},   // Lb
                               {0, 0, 0, 0, 0, 0, 0, 1.0, 0, 0}};  // Rb
+float iamf71_mono[][1] = {{0.5},        {0.5},        {0.70710678},
+                          {0.0},        {0.35355339}, {0.35355339},
+                          {0.32042819}, {0.32042819}};
+
 ///////////////////////////////////////
 
 float iamf712_bs020[][2] = {
@@ -659,6 +588,9 @@ float iamf712_iamf712[][10] = {{1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0},         // L
                                {0, 0, 0, 0, 0, 0, 0, 1.0, 0, 0},         // Rb
                                {0, 0, 0, 0, 0, 0, 0, 0, 1.0, 0},         // HL
                                {0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0}};        // HR
+float iamf712_mono[][1] = {
+    {0.5},        {0.5},        {0.70710678}, {0.0},         {0.35355339},
+    {0.35355339}, {0.32042819}, {0.32042819}, {0.462950855}, {0.462950855}};
 ///////////////////////////////////////
 
 float iamf714_bs020[][2] = {
@@ -801,6 +733,10 @@ float iamf714_iamf712[][10] = {{1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0},          // L
                                {0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0},          // Hfr
                                {0, 0, 0, 0, 0, 0, 0, 0, 0.70710678, 0},   // Hbl
                                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0.70710678}};  // Hbr
+float iamf714_mono[][1] = {{0.5},         {0.5},        {0.70710678},
+                           {0.0},         {0.35355339}, {0.35355339},
+                           {0.32042819},  {0.32042819}, {0.462950855},
+                           {0.462950855}, {0.32042819}, {0.32042819}};
 ///////////////////////////////////////
 
 float iamf312_bs020[][2] = {{1.0, 0}, {0, 1.0}, {0.70710678, 0.70710678},
@@ -864,6 +800,7 @@ float iamf312_iamf712[][10] = {{1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0},   // L
                                {0, 0, 0, 1.0, 0, 0, 0, 0, 0, 0},   // Lfe
                                {0, 0, 0, 0, 0, 0, 0, 0, 1.0, 0},   // Hfl
                                {0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0}};  // Hfr
+float iamf312_mono[][1] = {{0.5}, {0.5}, {0.70710678}, {0.0}, {0.5}, {0.5}};
 ////////////////////////////////
 
 struct m2m_rdr_t m2m_rdr_tab[] = {
@@ -880,6 +817,7 @@ struct m2m_rdr_t m2m_rdr_tab[] = {
     {IAMF_MONO, IAMF_312, (float *)mono_iamf312, 1, 6},
     {IAMF_MONO, IAMF_712, (float *)mono_iamf712, 1, 10},
     {IAMF_MONO, IAMF_BINAURAL, (float *)mono_bs020, 1, 2},
+    {IAMF_MONO, IAMF_MONO, (float *)mono_mono, 1, 1},
 
     {IAMF_STEREO, BS2051_A, (float *)stereo_bs020, 2, 2},
     {IAMF_STEREO, BS2051_B, (float *)stereo_bs050, 2, 6},
@@ -894,6 +832,7 @@ struct m2m_rdr_t m2m_rdr_tab[] = {
     {IAMF_STEREO, IAMF_312, (float *)stereo_iamf312, 2, 6},
     {IAMF_STEREO, IAMF_712, (float *)stereo_iamf712, 2, 10},
     {IAMF_STEREO, IAMF_BINAURAL, (float *)stereo_bs020, 2, 2},
+    {IAMF_STEREO, IAMF_MONO, (float *)stereo_mono, 2, 1},
 
     {IAMF_312, BS2051_A, (float *)iamf312_bs020, 6, 2},
     {IAMF_312, BS2051_B, (float *)iamf312_bs050, 6, 6},
@@ -908,6 +847,7 @@ struct m2m_rdr_t m2m_rdr_tab[] = {
     {IAMF_312, IAMF_312, (float *)iamf312_iamf312, 6, 6},
     {IAMF_312, IAMF_712, (float *)iamf312_iamf712, 6, 10},
     {IAMF_312, IAMF_BINAURAL, (float *)iamf312_bs020, 6, 2},
+    {IAMF_312, IAMF_MONO, (float *)iamf312_mono, 6, 1},
 
     {IAMF_51, BS2051_A, (float *)iamf51_bs020, 6, 2},
     {IAMF_51, BS2051_B, (float *)iamf51_bs050, 6, 6},
@@ -922,6 +862,7 @@ struct m2m_rdr_t m2m_rdr_tab[] = {
     {IAMF_51, IAMF_312, (float *)iamf51_iamf312, 6, 6},
     {IAMF_51, IAMF_712, (float *)iamf51_iamf712, 6, 10},
     {IAMF_51, IAMF_BINAURAL, (float *)iamf51_bs020, 6, 2},
+    {IAMF_51, IAMF_MONO, (float *)iamf51_mono, 6, 1},
 
     {IAMF_512, BS2051_A, (float *)iamf512_bs020, 8, 2},
     {IAMF_512, BS2051_B, (float *)iamf512_bs050, 8, 6},
@@ -936,6 +877,7 @@ struct m2m_rdr_t m2m_rdr_tab[] = {
     {IAMF_512, IAMF_312, (float *)iamf512_iamf312, 8, 6},
     {IAMF_512, IAMF_712, (float *)iamf512_iamf712, 8, 10},
     {IAMF_512, IAMF_BINAURAL, (float *)iamf512_bs020, 8, 2},
+    {IAMF_512, IAMF_MONO, (float *)iamf512_mono, 8, 1},
 
     {IAMF_514, BS2051_A, (float *)iamf514_bs020, 10, 2},
     {IAMF_514, BS2051_B, (float *)iamf514_bs050, 10, 6},
@@ -950,6 +892,7 @@ struct m2m_rdr_t m2m_rdr_tab[] = {
     {IAMF_514, IAMF_312, (float *)iamf514_iamf312, 10, 6},
     {IAMF_514, IAMF_712, (float *)iamf514_iamf712, 10, 10},
     {IAMF_514, IAMF_BINAURAL, (float *)iamf514_bs020, 10, 2},
+    {IAMF_514, IAMF_MONO, (float *)iamf514_mono, 10, 1},
 
     {IAMF_71, BS2051_A, (float *)iamf71_bs020, 8, 2},
     {IAMF_71, BS2051_B, (float *)iamf71_bs050, 8, 6},
@@ -964,6 +907,7 @@ struct m2m_rdr_t m2m_rdr_tab[] = {
     {IAMF_71, IAMF_312, (float *)iamf71_iamf312, 8, 6},
     {IAMF_71, IAMF_712, (float *)iamf71_iamf712, 8, 10},
     {IAMF_71, IAMF_BINAURAL, (float *)iamf71_bs020, 8, 2},
+    {IAMF_71, IAMF_MONO, (float *)iamf71_mono, 8, 1},
 
     {IAMF_712, BS2051_A, (float *)iamf712_bs020, 10, 2},
     {IAMF_712, BS2051_B, (float *)iamf712_bs050, 10, 6},
@@ -978,6 +922,7 @@ struct m2m_rdr_t m2m_rdr_tab[] = {
     {IAMF_712, IAMF_312, (float *)iamf712_iamf312, 10, 6},
     {IAMF_712, IAMF_712, (float *)iamf712_iamf712, 10, 10},
     {IAMF_712, IAMF_BINAURAL, (float *)iamf712_bs020, 10, 2},
+    {IAMF_712, IAMF_MONO, (float *)iamf712_mono, 10, 1},
 
     {IAMF_714, BS2051_A, (float *)iamf714_bs020, 12, 2},
     {IAMF_714, BS2051_B, (float *)iamf714_bs050, 12, 6},
@@ -992,6 +937,7 @@ struct m2m_rdr_t m2m_rdr_tab[] = {
     {IAMF_714, IAMF_312, (float *)iamf714_iamf312, 12, 6},
     {IAMF_714, IAMF_712, (float *)iamf714_iamf712, 12, 10},
     {IAMF_714, IAMF_BINAURAL, (float *)iamf714_bs020, 12, 2},
+    {IAMF_714, IAMF_MONO, (float *)iamf714_mono, 12, 1},
 
     {IAMF_BINAURAL, BS2051_A, (float *)stereo_bs020, 2, 2},
     {IAMF_BINAURAL, BS2051_B, (float *)stereo_bs050, 2, 6},
@@ -1005,7 +951,8 @@ struct m2m_rdr_t m2m_rdr_tab[] = {
     {IAMF_BINAURAL, BS2051_J, (float *)stereo_bs470, 2, 12},
     {IAMF_BINAURAL, IAMF_312, (float *)stereo_iamf312, 2, 6},
     {IAMF_BINAURAL, IAMF_712, (float *)stereo_iamf712, 2, 10},
-    {IAMF_BINAURAL, IAMF_BINAURAL, (float *)stereo_bs020, 2, 2}};
+    {IAMF_BINAURAL, IAMF_BINAURAL, (float *)stereo_bs020, 2, 2},
+    {IAMF_BINAURAL, IAMF_MONO, (float *)stereo_mono, 2, 1}};
 
 /*
 Layout in: Predefined Direct speaker input channel layout

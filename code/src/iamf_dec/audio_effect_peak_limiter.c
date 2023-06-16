@@ -48,9 +48,7 @@ static float compute_target_gain(AudioEffectPeakLimiter*, float);
 inline static float curve_accel(float x);
 
 AudioEffectPeakLimiter* audio_effect_peak_limiter_create(void) {
-  AudioEffectPeakLimiter* ths = NULL;
-  ths = (AudioEffectPeakLimiter*)malloc(sizeof(AudioEffectPeakLimiter));
-  return ths;
+  return (AudioEffectPeakLimiter* )calloc(1, sizeof(AudioEffectPeakLimiter));
 }
 
 void audio_effect_peak_limiter_uninit(AudioEffectPeakLimiter* ths) {
@@ -165,11 +163,10 @@ int audio_effect_peak_limiter_process_block(AudioEffectPeakLimiter* ths,
       channel_peak = audio_true_peak_meter_next_true_peak(
           &ths->truePeakMeters[channel], data);
       channel_peak = fabs(channel_peak);
-      if (channel_peak > peakMax) peakMax = channel_peak;
 #else
       channel_peak = fabs(ths->delayData[channel][DB_IDX(idx)]);
-      if (channel_peak > peakMax) peakMax = channel_peak;
 #endif
+      if (channel_peak > peakMax) peakMax = channel_peak;
     }
 
 #ifndef OLD_CODE

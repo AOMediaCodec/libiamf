@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\test\tools\iamfplayer\src\wavwriter.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\test\tools\iamfplayer\player\iamfplayer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -41,9 +38,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\test\tools\iamfplayer\include\wavwriter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\test\tools\iamfplayer\include\a2b_endian.h">
       <Filter>Header Files</Filter>
     </ClInclude>

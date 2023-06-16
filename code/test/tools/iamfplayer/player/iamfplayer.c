@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "IAMF_decoder.h"
 #include "mp4iamfpar.h"
 #include "string.h"
-#include "wavwriter.h"
+#include "dep_wavwriter.h"
 
 #define SR 0
 #if SR
@@ -50,7 +50,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #if SR
 #define FLAG_VLOG 0x2
 #endif
-#define FLAG_MP_LABLES 0x4
 #define SAMPLING_RATE 48000
 
 typedef struct Layout {
@@ -73,6 +72,7 @@ typedef struct PlayerArgs {
   uint32_t st;
   uint32_t rate;
   uint32_t bit_depth;
+  uint64_t mix_presentation_id;
 } PlayerArgs;
 
 static void print_usage(char *argv[]) {
@@ -107,17 +107,18 @@ static void print_usage(char *argv[]) {
   fprintf(stderr, "           9 : Sound system J (4+7+0)\n");
   fprintf(stderr, "          10 : Sound system extension 712 (2+7+0)\n");
   fprintf(stderr, "          11 : Sound system extension 312 (2+3+0)\n");
+  fprintf(stderr, "          12 : Sound system mono (0+1+0)\n");
   fprintf(stderr, "           b : Binaural.\n");
   fprintf(stderr, "-p [dB]      : Peak threshold in dB.\n");
   fprintf(stderr, "-l [LKFS]    : Normalization loudness in LKFS.\n");
   fprintf(stderr, "-d           : Bit depth of pcm output.\n");
+  fprintf(stderr, "-mp [id]     : Set mix presentation id.\n");
   fprintf(stderr,
           "-m           : Generate a metadata file with the suffix .met .\n");
-  fprintf(stderr, "-test_mp_labels : Test all mix presentation labels.");
 }
 
 static uint32_t valid_sound_system_layout(uint32_t ss) {
-  return ss <= SOUND_SYSTEM_EXT_312 ? 1 : 0;
+  return ss < SOUND_SYSTEM_END ? 1 : 0;
 }
 
 typedef struct extradata_header {
@@ -156,6 +157,18 @@ static int extradata_loudness2stream(uint8_t *buf,
     offset += 2;
   }
 
+  if (loudness->info_type & 2) {
+    memcpy(buf + offset, &loudness->num_anchor_loudness, 1);
+    offset += 1;
+
+    for (int i = 0; i < loudness->num_anchor_loudness; ++i) {
+      memcpy(buf + offset, &loudness->anchor_loudness[i].anchor_element, 1);
+      offset += 1;
+      memcpy(buf + offset, &loudness->anchor_loudness[i].anchored_loudness, 2);
+      offset += 2;
+    }
+  }
+
   return offset;
 }
 
@@ -166,8 +179,12 @@ static int extradata_iamf_layout_size(IAMF_Layout *layout) {
 }
 
 static int extradata_iamf_loudness_size(IAMF_LoudnessInfo *loudness) {
-  if (loudness->info_type & 1) return 7;
-  return 5;
+  int ret = 5;
+  if (loudness->info_type & 1) ret += 2;
+  if (loudness->info_type & 2) {
+    ret += (1 + loudness->num_anchor_loudness * sizeof(anchor_loudness_t));
+  }
+  return ret;
 }
 
 static int extradata_iamf_size(IAMF_extradata *meta) {
@@ -185,15 +202,17 @@ static int extradata_iamf_size(IAMF_extradata *meta) {
 }
 
 /**
- *  [0..3] PTS #8 bytes  // ex) PTS = 90000 * [sample start clock] / 48000
- *  [4..n]
+ *  [0..7] PTS #8 bytes  // ex) PTS = 90000 * [sample start clock] / 48000
+ *  [8..n]
  *  struct extradata_type {
  *     u32 nSize;
  *     u32 nVersion;   // 1
  *     u32 nPortIndex; // 0
- *     u32 nType;       // Extra Data type,  0x7f000001 : raw data, 0x7f000005 :
- * info data u32 nDataSize;   // Size of the supporting data to follow u8
- * data[1];     // Supporting data hint  ===>iamf_extradata } extradata_type;
+ *     u32 nType;       // Extra Data type,  0x7f000001 : raw data,
+ *                      // 0x7f000005 : info data
+ *     u32 nDataSize;   // Size of the supporting data to follow
+ *     u8  data[1];     // Supporting data hint  ===> iamf_extradata
+ *   } extradata_type;
  *
  *  struct iamf_extradata {
  *    IAMF_SoundSystem output_sound_system; // sound system (5.1.2 -> -s2): 0~11
@@ -253,9 +272,9 @@ static int extradata_write(FILE *f, int64_t pts, IAMF_extradata *meta) {
   offset += 4;
   memcpy(buf + offset, &meta->sampling_rate, sizeof(uint32_t));
   offset += 4;
-  memcpy(buf + offset, &meta->num_loudness_layouts, sizeof(uint32_t));
-  offset += 4;
   memcpy(buf + offset, &meta->output_sound_mode, sizeof(int));
+  offset += 4;
+  memcpy(buf + offset, &meta->num_loudness_layouts, sizeof(uint32_t));
   offset += 4;
 
   for (int i = 0; i < meta->num_loudness_layouts; ++i) {
@@ -292,20 +311,14 @@ static void extradata_iamf_clean(IAMF_extradata *data) {
       free(data->loudness_layout);
     }
 
-    if (data->loudness) free(data->loudness);
+    if (data->loudness) {
+      if (data->loudness->anchor_loudness)
+        free(data->loudness->anchor_loudness);
+      free(data->loudness);
+    }
     if (data->param) free(data->param);
+    memset(data, 0, sizeof(IAMF_extradata));
   }
-}
-
-static void mix_presentation_labels_dump(IAMF_Labels *labels) {
-  fprintf(stderr, "There are %d mix presetation labels.\n", labels->count);
-  for (int i = 0; i < labels->count; ++i)
-    fprintf(stderr, "mix presetation %d label %s\n", i, labels->labels[i]);
-}
-static void mix_presentation_labels_free(IAMF_Labels *labels) {
-  for (int i = 0; i < labels->count; ++i)
-    if (labels->labels[i]) free(labels->labels[i]);
-  free(labels);
 }
 
 #define BLOCK_SIZE 8192
@@ -328,7 +341,7 @@ static int bs_input_wav_output(PlayerArgs *pas) {
   int rsize = 0;
   void *pcm = NULL;
   IAMF_DecoderHandle dec;
-  int channels;
+  int channels = 0;
   int count = 0;
   uint64_t frsize = 0, fsize = 0;
   uint32_t size;
@@ -398,8 +411,10 @@ static int bs_input_wav_output(PlayerArgs *pas) {
   if (layout->type == 2) {
     IAMF_decoder_output_layout_set_sound_system(dec, layout->ss);
     channels = IAMF_layout_sound_system_channels_count(layout->ss);
+    const char *letter[] = {"A", "B", "C", "D",       "E",       "F",   "G",
+                            "H", "I", "J", "EXT 712", "EXT 312", "MONO"};
 
-    fprintf(stdout, "Sound system %c has %d channels\n", layout->ss + 'A',
+    fprintf(stdout, "Sound system %s has %d channels\n", letter[layout->ss],
             channels);
   } else {
     IAMF_decoder_output_layout_set_binaural(dec);
@@ -418,7 +433,7 @@ static int bs_input_wav_output(PlayerArgs *pas) {
   fseek(f, 0L, SEEK_SET);
 
   if (!r) r = SAMPLING_RATE;
-  wav_f = (FILE *)wav_write_open(out, r, bit_depth, channels);
+  wav_f = (FILE *)dep_wav_write_open(out, r, bit_depth, channels);
   if (!wav_f) {
     fprintf(stderr, "%s can't opened.\n", out);
     return -1;
@@ -446,6 +461,8 @@ static int bs_input_wav_output(PlayerArgs *pas) {
       if (end) break;
       rsize = 0;
       if (!state) IAMF_decoder_set_pts(dec, 0, 90000);
+      if (pas->mix_presentation_id != UINT64_MAX)
+        IAMF_decoder_set_mix_presentation_id(dec, pas->mix_presentation_id);
       ret = IAMF_decoder_configure(dec, block + used, size - used, &rsize);
       if (ret == IAMF_OK) {
         state = 1;
@@ -470,7 +487,7 @@ static int bs_input_wav_output(PlayerArgs *pas) {
           ++count;
           /* fprintf(stderr, "===================== Get %d frame and size %d\n",
            * count, ret); */
-          wav_write_data(wav_f, (unsigned char *)pcm,
+          dep_wav_write_data(wav_f, (unsigned char *)pcm,
                          (bit_depth / 8) * ret * channels);
 
           if (pas->flags & FLAG_METADATA) {
@@ -516,7 +533,7 @@ end:
   FCLOSE(meta_f);
 
   if (wav_f) {
-    wav_write_close(wav_f);
+    dep_wav_write_close(wav_f);
   }
   if (dec) {
     IAMF_decoder_close(dec);
@@ -524,6 +541,7 @@ end:
   return ret;
 }
 
+#if 0
 static int mp4_input_wav_output(PlayerArgs *pas) {
   MP4IAMFParser mp4par;
   IAMFHeader *header = 0;
@@ -552,7 +570,6 @@ static int mp4_input_wav_output(PlayerArgs *pas) {
   uint32_t bit_depth = pas->bit_depth;
   uint32_t r = pas->rate;
   int64_t st = 0;
-  IAMF_Labels *labels = 0;
   int labels_idx = 0;
 
   if (!path) return -1;
@@ -633,7 +650,7 @@ static int mp4_input_wav_output(PlayerArgs *pas) {
   }
 
   if (!r) r = SAMPLING_RATE;
-  wav_f = (FILE *)wav_write_open(out, r, bit_depth, channels);
+  wav_f = (FILE *)dep_wav_write_open(out, r, bit_depth, channels);
   if (!wav_f) {
     fprintf(stderr, "%s can't opened.\n", out);
     ret = errno;
@@ -706,15 +723,6 @@ static int mp4_input_wav_output(PlayerArgs *pas) {
       used -= rsize;
 
       if (ret == IAMF_OK) {
-        if (pas->flags & FLAG_MP_LABLES) {
-          labels = IAMF_decoder_get_mix_presentation_labels(dec);
-          if (labels) {
-            mix_presentation_labels_dump(labels);
-            IAMF_decoder_set_mix_presentation_label(dec,
-                                                    labels->labels[labels_idx]);
-            IAMF_decoder_configure(dec, 0, 0, 0);
-          }
-        }
         state = 1;
       } else
         continue;
@@ -732,21 +740,13 @@ static int mp4_input_wav_output(PlayerArgs *pas) {
       /* fprintf(stderr, */
       /* "===================== Get %d frame and size %d, offset %ld\n", */
       /* count, ret, sample_offs); */
-      wav_write_data(wav_f, (unsigned char *)pcm,
+      dep_wav_write_data(wav_f, (unsigned char *)pcm,
                      (bit_depth / 8) * ret * channels);
 
       if (pas->flags & FLAG_METADATA) {
         IAMF_decoder_get_last_metadata(dec, &pts, &meta);
         if (meta_f) extradata_write(meta_f, pts, &meta);
         extradata_iamf_clean(&meta);
-      }
-
-      if (pas->flags & FLAG_MP_LABLES && labels && count && !(count % 100)) {
-        ++labels_idx;
-        labels_idx %= labels->count;
-        IAMF_decoder_set_mix_presentation_label(dec,
-                                                labels->labels[labels_idx]);
-        IAMF_decoder_configure(dec, 0, 0, 0);
       }
     }
     if (end) break;
@@ -761,11 +761,219 @@ static int mp4_input_wav_output(PlayerArgs *pas) {
   } while (1);
 end:
   fprintf(stderr, "===================== Get %d frames\n", count);
-  if (labels) mix_presentation_labels_free(labels);
   if (pcm) free(pcm);
   FCLOSE(f)
   FCLOSE(meta_f)
-  if (wav_f) wav_write_close(wav_f);
+  if (wav_f) dep_wav_write_close(wav_f);
+  if (dec) IAMF_decoder_close(dec);
+  mp4_iamf_parser_close(&mp4par);
+
+  return ret;
+}
+#endif
+
+static int mp4_input_wav_output2(PlayerArgs *pas) {
+  MP4IAMFParser mp4par;
+  IAMFHeader *header = 0;
+  FILE *f = 0;
+  FILE *wav_f = 0, *meta_f = 0;
+  uint8_t block[BLOCK_SIZE];
+  char out[NAME_LENGTH] = {0};
+  char meta_n[NAME_LENGTH] = {0};
+  int used = 0, end = 0;
+  int ret = 0;
+  int state = 0;
+  int rsize = 0;
+  void *pcm = NULL;
+  IAMF_DecoderHandle dec;
+  int channels;
+  int count = 0;
+  uint64_t frsize = 0;
+  uint32_t size;
+  const char *s = 0, *d;
+  int entno = 0;
+  int64_t sample_offs;
+  const char *path = pas->path;
+  Layout *layout = pas->layout;
+  float db = pas->peak;
+  float loudness = pas->loudness;
+  uint32_t bit_depth = pas->bit_depth;
+  uint32_t r = pas->rate;
+  int64_t st = 0;
+
+  if (!path) return -1;
+
+  memset(&mp4par, 0, sizeof(mp4par));
+  if (layout->type == 2) {
+    snprintf(out, NAME_LENGTH, "ss%d_", layout->ss);
+    ret = strlen(out);
+  } else if (layout->type == 3) {
+    snprintf(out, NAME_LENGTH, "binaural_");
+    ret = strlen(out);
+  } else {
+    fprintf(stdout, "Invalid output layout type %d.\n", layout->type);
+    return -1;
+  }
+
+#if defined(__linux__)
+  s = strrchr(path, '/');
+#else
+  s = strrchr(path, '\\');
+#endif
+  if (!s) {
+    s = path;
+  } else {
+    ++s;
+  }
+  d = strrchr(path, '.');
+  if (d) {
+    strncpy(out + ret, s,
+            d - s < NAME_LENGTH - 5 - ret ? d - s : NAME_LENGTH - 5 - ret);
+    ret = strlen(out);
+  }
+  snprintf(out + ret, NAME_LENGTH - ret, "%s", ".wav");
+  if (pas->flags & FLAG_METADATA) {
+    strcpy(meta_n, out);
+    snprintf(meta_n + ret, NAME_LENGTH - ret, "%s", ".met");
+    meta_f = fopen(meta_n, "w+");
+    if (!meta_f) {
+      fprintf(stderr, "%s can't opened.\n", out);
+    }
+  }
+
+  dec = IAMF_decoder_open();
+  if (!dec) {
+    fprintf(stderr, "IAMF decoder can't created.\n");
+    return -1;
+  }
+
+  IAMF_decoder_peak_limiter_set_threshold(dec, db);
+  IAMF_decoder_set_normalization_loudness(dec, loudness);
+  IAMF_decoder_set_bit_depth(dec, bit_depth);
+
+  if (r > 0 && IAMF_decoder_set_sampling_rate(dec, r) != IAMF_OK) {
+    fprintf(stderr, "Invalid sampling rate %u\n", r);
+    goto end;
+  }
+
+  if (layout->type == 2) {
+    IAMF_decoder_output_layout_set_sound_system(dec, layout->ss);
+    channels = IAMF_layout_sound_system_channels_count(layout->ss);
+    const char *letter[] = {"A", "B", "C", "D",       "E",       "F",   "G",
+                            "H", "I", "J", "EXT 712", "EXT 312", "MONO"};
+
+    fprintf(stdout, "Sound system %s has %d channels\n", letter[layout->ss],
+            channels);
+
+  } else if (layout->type == 3) {
+    IAMF_decoder_output_layout_set_binaural(dec);
+    channels = IAMF_layout_binaural_channels_count();
+    fprintf(stdout, "Binaural has %d channels\n", channels);
+  } else {
+    fprintf(stderr, "Invalid layout");
+    ret = -1;
+    goto end;
+  }
+
+  f = fopen(path, "rb");
+  if (!f) {
+    fprintf(stderr, "%s can't opened.\n", path);
+    ret = errno;
+    goto end;
+  }
+
+  if (!r) r = SAMPLING_RATE;
+  wav_f = (FILE *)dep_wav_write_open(out, r, bit_depth, channels);
+  if (!wav_f) {
+    fprintf(stderr, "%s can't opened.\n", out);
+    ret = errno;
+    goto end;
+  }
+
+  pcm = (void *)malloc(sizeof(int16_t) * 3840 * channels);
+  if (!pcm) {
+    ret = errno;
+    fprintf(stderr, "error no(%d):fail to malloc memory for pcm.", ret);
+    goto end;
+  }
+
+  mp4_iamf_parser_init(&mp4par);
+  mp4_iamf_parser_set_logger(&mp4par, 0);
+  ret = mp4_iamf_parser_open_audio_track(&mp4par, path, &header);
+
+  if (ret <= 0) {
+    fprintf(stderr, "mp4opusdemuxer can not open mp4 file(%s)\n", path);
+    goto end;
+  }
+
+  if (pas->st)
+    st = pas->st * 90000;
+  else {
+    double r = header->skip * 90000;
+    st = r / header->timescale + 0.5f;
+    printf("skip %d/%d pts is %ld/90000\n", header->skip, header->timescale,
+           st);
+  }
+  IAMF_decoder_set_pts(dec, st * -1, 90000);
+
+  if (pas->st > 0) {
+    ret = mp4_iamf_parser_set_starting_time(&mp4par, 0, pas->st);
+    if (ret < 0) {
+      fprintf(stderr, "invalid starting time for %s\n", pas->path);
+      goto end;
+    }
+
+    mp4_iamf_parser_get_audio_track_header(&mp4par, &header);
+  }
+
+  ret = iamf_header_read_description_OBUs(header, block, BLOCK_SIZE);
+  if (!ret) {
+    fprintf(stderr, "fail to copy description obu.\n");
+    goto end;
+  }
+
+  if (pas->mix_presentation_id != UINT64_MAX)
+    IAMF_decoder_set_mix_presentation_id(dec, pas->mix_presentation_id);
+  ret = IAMF_decoder_configure(dec, block, ret, 0);
+  if (ret != IAMF_OK) {
+    fprintf(stderr, "errno: %d, fail to configure decoder.\n", ret);
+    goto end;
+  }
+
+  do {
+    IAMF_extradata meta;
+    int64_t pts;
+    if (mp4_iamf_parser_read_packet(&mp4par, 0, (void *)block, BLOCK_SIZE, &ret,
+                                    &sample_offs, &entno) < 0) {
+      end = 1;
+    }
+
+    if (!end)
+      ret = IAMF_decoder_decode(dec, block, ret, 0, pcm);
+    else
+      ret = IAMF_decoder_decode(dec, (const uint8_t *)NULL, 0, 0, pcm);
+    if (ret > 0) {
+      ++count;
+      /* fprintf(stderr, */
+      /* "===================== Get %d frame and size %d, offset %ld\n", */
+      /* count, ret, sample_offs); */
+      dep_wav_write_data(wav_f, (unsigned char *)pcm,
+                     (bit_depth / 8) * ret * channels);
+
+      if (pas->flags & FLAG_METADATA) {
+        IAMF_decoder_get_last_metadata(dec, &pts, &meta);
+        if (meta_f) extradata_write(meta_f, pts, &meta);
+        extradata_iamf_clean(&meta);
+      }
+    }
+    if (end) break;
+  } while (1);
+end:
+  fprintf(stderr, "===================== Get %d frames\n", count);
+  if (pcm) free(pcm);
+  FCLOSE(f)
+  FCLOSE(meta_f)
+  if (wav_f) dep_wav_write_close(wav_f);
   if (dec) IAMF_decoder_close(dec);
   mp4_iamf_parser_close(&mp4par);
 
@@ -787,6 +995,7 @@ int main(int argc, char *argv[]) {
   pas.peak = -1.f;
   pas.loudness = .0f;
   pas.bit_depth = 16;
+  pas.mix_presentation_id = UINT64_MAX;
 
   if (argc < 2) {
     print_usage(argv);
@@ -833,7 +1042,7 @@ int main(int argc, char *argv[]) {
       } else if (!strcmp(argv[args], "-d")) {
         pas.bit_depth = strtof(argv[++args], 0);
         fprintf(stdout, "Bit depth of pcm output : %u bit\n", pas.bit_depth);
-      } else if (argv[args][1] == 'm') {
+      } else if (!strcmp(argv[args], "-m")) {
         pas.flags |= FLAG_METADATA;
         fprintf(stdout, "Generate metadata file");
       } else if (argv[args][1] == 'v') {
@@ -849,13 +1058,14 @@ int main(int argc, char *argv[]) {
         if (!strcmp(argv[args], "-ts")) {
           pas.st = strtoul(argv[++args], NULL, 10);
           fprintf(stdout, "Start time : %us\n", pas.st);
-        } else if (!strcmp(argv[args], "-test_mp_labels")) {
-          pas.flags |= FLAG_MP_LABLES;
-          fprintf(stdout, "Test all mix presentation labels\n");
         }
       } else if (!strcmp(argv[args], "-r")) {
         pas.rate = strtoul(argv[++args], NULL, 10);
         fprintf(stdout, "sampling rate : %u\n", pas.rate);
+      } else if (!strcmp(argv[args], "-mp")) {
+        pas.mix_presentation_id = strtoull(argv[++args], NULL, 10);
+        fprintf(stdout, "select mix presentation id %ld",
+                pas.mix_presentation_id);
       }
     } else {
       f = argv[args];
@@ -882,7 +1092,8 @@ int main(int argc, char *argv[]) {
     if (!input_mode && output_mode == 2) {
       bs_input_wav_output(&pas);
     } else if (input_mode == 1 && output_mode == 2) {
-      mp4_input_wav_output(&pas);
+      // mp4_input_wav_output(&pas);
+      mp4_input_wav_output2(&pas);
     }
 #if SR
     if (pas.flags & FLAG_VLOG) vlog_file_close();

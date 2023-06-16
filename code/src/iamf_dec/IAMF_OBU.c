@@ -46,6 +46,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #define IAMF_OBU_MIN_SIZE 2
+#define STRING_SIZE 128
 
 #ifdef IA_TAG
 #undef IA_TAG
@@ -69,9 +70,6 @@ static IAMF_Parameter *iamf_parameter_new(IAMF_OBU *obu,
 static void iamf_parameter_free(IAMF_Parameter *obj);
 
 static IAMF_Frame *iamf_frame_new(IAMF_OBU *obu);
-
-static IAMF_Sync *iamf_sync_new(IAMF_OBU *obu);
-static void iamf_sync_free(IAMF_Sync *obj);
 
 static void iamf_parameter_recon_gain_segment_free(ReconGainSegment *seg);
 
@@ -139,7 +137,7 @@ int IAMF_OBU_is_descrptor_OBU(IAMF_OBU *obu) {
   IAMF_OBU_Type type = obu->type;
 
   if (type == IAMF_OBU_CODEC_CONFIG || type == IAMF_OBU_AUDIO_ELEMENT ||
-      type == IAMF_OBU_MIX_PRESENTATION || type == IAMF_OBU_MAGIC_CODE) {
+      type == IAMF_OBU_MIX_PRESENTATION || type == IAMF_OBU_SEQUENCE_HEADER) {
     return 1;
   }
   return 0;
@@ -168,7 +166,7 @@ const char *IAMF_OBU_type_string(IAMF_OBU_Type type) {
       "Audio Frame ID18", "Audio Frame ID19",   "Audio Frame ID20",
       "Audio Frame ID21", "Magic Code"};
 
-  if (type < IAMF_OBU_CODEC_CONFIG || type > IAMF_OBU_MAGIC_CODE) {
+  if (type < IAMF_OBU_CODEC_CONFIG || type > IAMF_OBU_SEQUENCE_HEADER) {
     return "Invalid OBU type.";
   }
   return obu_type_string[type];
@@ -178,7 +176,7 @@ IAMF_Object *IAMF_object_new(IAMF_OBU *obu, IAMF_ObjectParameter *param) {
   IAMF_Object *obj = 0;
 
   switch (obu->type) {
-    case IAMF_OBU_MAGIC_CODE:
+    case IAMF_OBU_SEQUENCE_HEADER:
       obj = IAMF_OBJ(iamf_version_new(obu));
       break;
     case IAMF_OBU_CODEC_CONFIG:
@@ -194,12 +192,9 @@ IAMF_Object *IAMF_object_new(IAMF_OBU *obu, IAMF_ObjectParameter *param) {
       IAMF_ParameterParam *p = IAMF_PARAMETER_PARAM(param);
       obj = IAMF_OBJ(iamf_parameter_new(obu, p));
     } break;
-    case IAMF_OBU_SYNC:
-      obj = IAMF_OBJ(iamf_sync_new(obu));
-      break;
     default:
       if (obu->type >= IAMF_OBU_AUDIO_FRAME &&
-          obu->type < IAMF_OBU_MAGIC_CODE) {
+          obu->type < IAMF_OBU_SEQUENCE_HEADER) {
         obj = IAMF_OBJ(iamf_frame_new(obu));
       }
       break;
@@ -215,7 +210,7 @@ IAMF_Object *IAMF_object_new(IAMF_OBU *obu, IAMF_ObjectParameter *param) {
 void IAMF_object_free(IAMF_Object *obj) {
   if (obj) {
     switch (obj->type) {
-      case IAMF_OBU_MAGIC_CODE:
+      case IAMF_OBU_SEQUENCE_HEADER:
         free(obj);
         break;
       case IAMF_OBU_CODEC_CONFIG:
@@ -230,12 +225,9 @@ void IAMF_object_free(IAMF_Object *obj) {
       case IAMF_OBU_PARAMETER_BLOCK:
         iamf_parameter_free((IAMF_Parameter *)obj);
         break;
-      case IAMF_OBU_SYNC:
-        iamf_sync_free((IAMF_Sync *)obj);
-        break;
       default:
         if (obj->type >= IAMF_OBU_AUDIO_FRAME &&
-            obj->type < IAMF_OBU_MAGIC_CODE) {
+            obj->type < IAMF_OBU_SEQUENCE_HEADER) {
           free(obj);
         }
         break;
@@ -268,20 +260,16 @@ IAMF_Version *iamf_version_new(IAMF_OBU *obu) {
 
   bs(&b, obu->payload, iamf_obu_get_payload_size(obu));
 
-  ver->obj.type = IAMF_OBU_MAGIC_CODE;
+  ver->obj.type = IAMF_OBU_SEQUENCE_HEADER;
   bs_read(&b, (uint8_t *)&ver->iamf_code, 4);
-  ver->version = bs_getA8b(&b);
-  ver->profile_version = bs_getA8b(&b);
+  ver->profile_name = bs_getA8b(&b);
+  ver->profile_compatible = bs_getA8b(&b);
 
-  ia_logd(
-      "magic code object: %.4s, version 0x%x(%d.%d), profile version "
-      "0x%x(%d.%d)",
-      (char *)&ver->iamf_code, ver->version, ver->version_major,
-      ver->version_minor, ver->profile_version, ver->profile_major,
-      ver->profile_minor);
+  ia_logd("magic code object: %.4s, profile name 0x%x, profile compatible 0x%x",
+          (char *)&ver->iamf_code, ver->profile_name, ver->profile_compatible);
 
 #if SR
-  vlog_obu(IAMF_OBU_MAGIC_CODE, ver, 0, 0);
+  vlog_obu(IAMF_OBU_SEQUENCE_HEADER, ver, 0, 0);
 #endif
 
   return ver;
@@ -304,7 +292,7 @@ IAMF_CodecConf *iamf_codec_conf_new(IAMF_OBU *obu) {
   conf->codec_conf_id = bs_getAleb128(&b);
   bs_read(&b, (uint8_t *)&conf->codec_id, 4);
   conf->nb_samples_per_frame = bs_getAleb128(&b);
-  conf->roll_distance = bs_getA16b(&b);
+  conf->roll_distance = (int16_t)bs_getA16b(&b);
 
   conf->decoder_conf_size = iamf_obu_get_payload_size(obu) - bs_tell(&b);
   conf->decoder_conf = IAMF_MALLOC(uint8_t, conf->decoder_conf_size);
@@ -436,6 +424,16 @@ IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
     }
     elem->parameters[i] = p;
     if (iamf_parameter_base_init(p, type, &b) != IAMF_OK) goto element_fail;
+
+    if (type == IAMF_PARAMETER_TYPE_DEMIXING) {
+      DemixingParameter *dp = (DemixingParameter *)p;
+      dp->mode = bs_get32b(&b, 3);
+      bs_skip(&b, 5);
+      dp->w = bs_get32b(&b, 4);
+      bs_skip(&b, 4);
+      ia_logd("default mode is %d, weight index %d", dp->mode & U8_MASK,
+              dp->w & U8_MASK);
+    }
   }
 
   if (elem->element_type == AUDIO_ELEMENT_TYPE_CHANNEL_BASED) {
@@ -595,6 +593,7 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
   OutputMixConf *output_mix_config;
   BitStream b;
   uint32_t val;
+  int length = STRING_SIZE;
 
   mixp = IAMF_MALLOCZ(IAMF_MixPresentation, 1);
   if (!mixp) {
@@ -606,20 +605,51 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
 
   mixp->obj.type = IAMF_OBU_MIX_PRESENTATION;
   mixp->mix_presentation_id = bs_getAleb128(&b);
+  mixp->num_labels = bs_getAleb128(&b);
+
+  mixp->language = IAMF_MALLOCZ(char *, mixp->num_labels);
   mixp->mix_presentation_friendly_label =
-      IAMF_MALLOCZ(char, iamf_obu_get_payload_size(obu));
-  if (!mixp->mix_presentation_friendly_label) {
-    ia_loge("fail to allocate memory for label of Mix Presentation Object.");
+      IAMF_MALLOCZ(char *, mixp->num_labels);
+
+  if (!mixp->language || !mixp->mix_presentation_friendly_label) {
+    ia_logd(
+        "fail to allocate memory for languages or labels of Mix Presentation "
+        "Object.");
     goto mix_presentation_fail;
   }
-  mixp->label_size = bs_readString(&b, mixp->mix_presentation_friendly_label,
-                                   iamf_obu_get_payload_size(obu));
+
+  if (length > iamf_obu_get_payload_size(obu))
+    length = iamf_obu_get_payload_size(obu);
+
+  for (int i = 0; i < mixp->num_labels; ++i) {
+    mixp->language[i] = IAMF_MALLOCZ(char, length);
+    mixp->mix_presentation_friendly_label[i] = IAMF_MALLOCZ(char, length);
+    if (!mixp->language[i] || !mixp->mix_presentation_friendly_label[i]) {
+      ia_logd(
+          "fail to allocate memory for language or label of Mix Presentation "
+          "Object.");
+      goto mix_presentation_fail;
+    }
+  }
+
+  for (int i = 0; i < mixp->num_labels; ++i)
+    bs_readString(&b, mixp->language[i], length);
+
+  for (int i = 0; i < mixp->num_labels; ++i)
+    bs_readString(&b, mixp->mix_presentation_friendly_label[i], length);
 
   mixp->num_sub_mixes = bs_getAleb128(&b);
   ia_logd(
-      "Mix Presentation Object : id %lu, label %s, number of sub mixes %lu.",
-      mixp->mix_presentation_id, mixp->mix_presentation_friendly_label,
-      mixp->num_sub_mixes);
+      "Mix Presentation Object : id %lu, number of label %lu, number of sub "
+      "mixes %lu.",
+      mixp->mix_presentation_id, mixp->num_labels, mixp->num_sub_mixes);
+
+  ia_logd("languages: ");
+  for (int i = 0; i < mixp->num_labels; ++i) ia_logd("\t%s", mixp->language[i]);
+
+  ia_logd("mix presentation friendly labels: ");
+  for (int i = 0; i < mixp->num_labels; ++i)
+    ia_logd("\t%s", mixp->mix_presentation_friendly_label[i]);
 
   if (mixp->num_sub_mixes != 1) {
     ia_loge("the total of sub mixes should be 1, not support %lu",
@@ -635,6 +665,11 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
         "Object.");
     goto mix_presentation_fail;
   }
+
+  if (iamf_obu_get_payload_size(obu) > STRING_SIZE)
+    length = iamf_obu_get_payload_size(obu);
+  else
+    length = STRING_SIZE;
 
   for (int n = 0; n < mixp->num_sub_mixes; ++n) {
     sub = &mixp->sub_mixes[n];
@@ -652,20 +687,34 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
       }
       sub->conf_s = conf_s;
       for (uint32_t i = 0; i < val; ++i) {
+        conf_s[i].element_id = bs_getAleb128(&b);
         conf_s[i].audio_element_friendly_label =
-            IAMF_MALLOCZ(char, iamf_obu_get_payload_size(obu));
+            IAMF_MALLOCZ(char *, mixp->num_labels);
         if (!conf_s[i].audio_element_friendly_label) {
           ia_loge(
-              "fail to allocate memory for audio element label of mixing and "
+              "fail to allocate memory for audio element labels of mixing and "
               "rendering config.");
           goto mix_presentation_fail;
         }
-        conf_s[i].element_id = bs_getAleb128(&b);
-        conf_s[i].label_size =
-            bs_readString(&b, conf_s[i].audio_element_friendly_label,
-                          iamf_obu_get_payload_size(obu));
-        ia_logd("rendering info : element id %lu, label %s",
-                conf_s[i].element_id, conf_s[i].audio_element_friendly_label);
+
+        for (int k = 0; k < mixp->num_labels; ++k) {
+          conf_s[i].audio_element_friendly_label[k] =
+              IAMF_MALLOCZ(char, length);
+          if (!conf_s[i].audio_element_friendly_label[k]) {
+            ia_loge(
+                "fail to allocate memory for audio element label of mixing and "
+                "rendering config.");
+            goto mix_presentation_fail;
+          }
+
+          bs_readString(&b, conf_s[i].audio_element_friendly_label[k], length);
+        }
+        ia_logd(
+            "rendering info : element id %lu, audio element friendly labels:",
+            conf_s[i].element_id);
+
+        for (int k = 0; k < mixp->num_labels; ++k)
+          ia_logd("\t%s", conf_s[i].audio_element_friendly_label[k]);
 
         // rendering_config
 
@@ -764,8 +813,8 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
 
         // loudness
         loudness[i].info_type = bs_getA8b(&b);
-        loudness[i].integrated_loudness = bs_getA16b(&b);
-        loudness[i].digital_peak = bs_getA16b(&b);
+        loudness[i].integrated_loudness = (int16_t)bs_getA16b(&b);
+        loudness[i].digital_peak = (int16_t)bs_getA16b(&b);
         ia_logd(
             "\tLoudness : %d > info type 0x%x, integrated loudness 0x%x, "
             "digital peak 0x%x",
@@ -776,6 +825,31 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
           loudness[i].true_peak = bs_getA16b(&b);
           ia_logd("\tloudness > %d > true peak 0x%x", i,
                   loudness[i].true_peak & U16_MASK);
+        }
+
+        if (loudness[i].info_type & 2) {
+          loudness[i].num_anchor_loudness = bs_getA8b(&b);
+          if (loudness[i].num_anchor_loudness > 0) {
+            loudness[i].anchor_loudness = IAMF_MALLOCZ(
+                anchor_loudness_t, loudness[i].num_anchor_loudness);
+            if (!loudness[i].anchor_loudness) {
+              ia_loge(
+                  "fail to allocate memory anchor loudness in loudness info.");
+              goto mix_presentation_fail;
+            }
+
+            ia_logd("\tloudness > %d > number of anchor loudness %d", i,
+                    loudness[i].num_anchor_loudness);
+            for (int k = 0; k < loudness[i].num_anchor_loudness; ++k) {
+              loudness[i].anchor_loudness[k].anchor_element = bs_getA8b(&b);
+              loudness[i].anchor_loudness[k].anchored_loudness = bs_getA16b(&b);
+              ia_logd("\t\tanchor loudness > %d > anchor element %d", k,
+                      loudness[i].anchor_loudness[k].anchor_element & U8_MASK);
+              ia_logd(
+                  "\t\tanchor loudness > %d > anchored loudness 0x%x", k,
+                  loudness[i].anchor_loudness[k].anchored_loudness & U16_MASK);
+            }
+          }
         }
       }
     }
@@ -794,7 +868,16 @@ mix_presentation_fail:
 }
 
 void iamf_mix_presentation_free(IAMF_MixPresentation *obj) {
-  IAMF_FREE(obj->mix_presentation_friendly_label);
+  if (obj->language) {
+    for (int i = 0; i < obj->num_labels; ++i) IAMF_FREE(obj->language[i]);
+    free(obj->language);
+  }
+
+  if (obj->mix_presentation_friendly_label) {
+    for (int i = 0; i < obj->num_labels; ++i)
+      IAMF_FREE(obj->mix_presentation_friendly_label[i]);
+    free(obj->mix_presentation_friendly_label);
+  }
 
   if (obj->sub_mixes) {
     SubMixPresentation *sub;
@@ -803,7 +886,11 @@ void iamf_mix_presentation_free(IAMF_MixPresentation *obj) {
 
       if (sub->conf_s) {
         for (int i = 0; i < sub->nb_elements; ++i) {
-          IAMF_FREE(sub->conf_s[i].audio_element_friendly_label);
+          if (sub->conf_s[i].audio_element_friendly_label) {
+            for (int k = 0; k < obj->num_labels; ++k)
+              IAMF_FREE(sub->conf_s[i].audio_element_friendly_label[k]);
+            free(sub->conf_s[i].audio_element_friendly_label);
+          }
           IAMF_FREE(sub->conf_s[i].conf_m.gain.base.segments);
         }
         free(sub->conf_s);
@@ -821,6 +908,10 @@ void iamf_mix_presentation_free(IAMF_MixPresentation *obj) {
         free(sub->layouts);
       }
 
+      if (sub->loudness) {
+        for (int i = 0; i < sub->num_layouts; ++i)
+          IAMF_FREE(sub->loudness[i].anchor_loudness);
+      }
       IAMF_FREE(sub->loudness);
     }
 
@@ -1088,61 +1179,6 @@ IAMF_Frame *iamf_frame_new(IAMF_OBU *obu) {
   vlog_obu(IAMF_OBU_AUDIO_FRAME, pkt, obu->trim_start, obu->trim_end);
 #endif
   return pkt;
-}
-
-IAMF_Sync *iamf_sync_new(IAMF_OBU *obu) {
-  IAMF_Sync *sync = 0;
-  BitStream b;
-
-  sync = IAMF_MALLOCZ(IAMF_Sync, 1);
-  if (!sync) {
-    ia_loge("fail to allocate memory for Sync Object.");
-    goto sync_fail;
-  }
-
-  bs(&b, obu->payload, iamf_obu_get_payload_size(obu));
-
-  sync->obj.type = IAMF_OBU_SYNC;
-  sync->global_offset = bs_getAleb128(&b);
-  sync->nb_obu_ids = bs_getAleb128(&b);
-  ia_logd("global offset %lu, numbers of obu %lu", sync->global_offset,
-          sync->nb_obu_ids);
-  if (sync->nb_obu_ids > 0) {
-    sync->objs = IAMF_MALLOCZ(ObjectSync, sync->nb_obu_ids);
-    if (!sync->objs) {
-      ia_loge("fail to allocate object sync for Sync Object.");
-      goto sync_fail;
-    }
-
-    for (int i = 0; i < sync->nb_obu_ids; ++i) {
-      sync->objs[i].obu_id = bs_getAleb128(&b);
-      sync->objs[i].obu_data_type = bs_get32b(&b, 1);
-      sync->objs[i].reinitialize_decoder = bs_get32b(&b, 1);
-      sync->objs[i].relative_offset = bs_getAsleb128(&b);
-      ia_logd(
-          "\t > %d : obu id %lu, data type %u, reset decoder %u, relative "
-          "offset %ld",
-          i, sync->objs[i].obu_id, sync->objs[i].obu_data_type,
-          sync->objs[i].reinitialize_decoder, sync->objs[i].relative_offset);
-    }
-  }
-
-#if SR
-  vlog_obu(IAMF_OBU_SYNC, sync, 0, 0);
-#endif
-  return sync;
-
-sync_fail:
-  if (sync) {
-    iamf_sync_free(sync);
-  }
-
-  return 0;
-}
-
-void iamf_sync_free(IAMF_Sync *obj) {
-  IAMF_FREE(obj->objs);
-  free(obj);
 }
 
 void iamf_parameter_recon_gain_segment_free(ReconGainSegment *seg) {

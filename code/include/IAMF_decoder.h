@@ -49,11 +49,6 @@ extern "C" {
 
 typedef struct IAMF_Decoder *IAMF_DecoderHandle;
 
-typedef struct {
-  int count;
-  char **labels;
-} IAMF_Labels;
-
 /**
  * @brief     Open an iamf decoder.
  * @return    return an iamf decoder handle.
@@ -74,8 +69,10 @@ int IAMF_decoder_close(IAMF_DecoderHandle handle);
  * @param     [in] handle : iamf decoder handle.
  * @param     [in] data : the bitstream.
  * @param     [in] size : the size in bytes of bitstream.
- * @param     [out] rsize : the size in bytes of bitstream that has been
- * consumed.
+ * @param     [in & out] rsize : the size in bytes of bitstream that has been
+ *                               consumed.
+ *                               if is null, it means the data is the complete
+ *                               configuration OBUs.
  * @return    @ref IAErrCode.
  */
 int IAMF_decoder_configure(IAMF_DecoderHandle handle, const uint8_t *data,
@@ -84,10 +81,14 @@ int IAMF_decoder_configure(IAMF_DecoderHandle handle, const uint8_t *data,
 /**
  * @brief     Decode bitstream.
  * @param     [in] handle : iamf decoder handle.
- * @param     [in] data : the bitstream.
+ * @param     [in] data : the OBUs in bitstream.
+ *                        if is null, the output is delay signal.
  * @param     [in] size : the size in bytes of bitstream.
- * @param     [out] rsize : the size in bytes of bitstream that has been
- * consumed.
+ * @param     [in & out] rsize : the size in bytes of bitstream that has been
+ *                               consumed.
+ *                               if is null, it means the data is a complete
+ *                               access unit which includes all OBUs of
+ *                               substream frames and parameters.
  * @param     [out] pcm : output signal.
  * @return    the number of decoded samples or @ref IAErrCode.
  */
@@ -95,22 +96,14 @@ int IAMF_decoder_decode(IAMF_DecoderHandle handle, const uint8_t *data,
                         int32_t size, uint32_t *rsize, void *pcm);
 
 /**
- * @brief     Get mix presentation labels.
- * @param     [in] handle : iamf decoder handle.
- * @return    @ref IAMF_Labels or 0.
- */
-IAMF_Labels *IAMF_decoder_get_mix_presentation_labels(
-    IAMF_DecoderHandle handle);
-
-/**
  * @brief     Set a mix presentation label.
  * @param     [in] handle : iamf decoder handle.
- * @param     [in] label : a human-friendly label (@ref
- * IAMF_decoder_get_mix_presentation_labels) to describe mix presentation.
+ * @param     [in] id : an identifier for a Mix Presentation.
  * @return    @ref IAErrCode.
  */
-int IAMF_decoder_set_mix_presentation_label(IAMF_DecoderHandle handle,
-                                            const char *label);
+int IAMF_decoder_set_mix_presentation_id(IAMF_DecoderHandle handle,
+                                         uint64_t id);
+
 /**
  * @brief     Set sound system output layout.
  * @param     [in] handle : iamf decoder handle.

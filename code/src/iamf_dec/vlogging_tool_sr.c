@@ -42,6 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 
 #include "IAMF_OBU.h"
+#include "bitstream.h"
 #include "vlogging_tool_sr.h"
 
 #define LOG_BUFFER_SIZE 100000
@@ -289,16 +290,16 @@ int write_yaml_form(char* log, uint8_t indent, const char* format, ...) {
   return ret;
 }
 
-static void write_magic_code_log(uint64_t idx, void* obu, char* log) {
+static void write_sequence_header_log(uint64_t idx, void* obu, char* log) {
   IAMF_Version* mc_obu = (IAMF_Version*)obu;
 
   log += write_prefix(LOG_OBU, log);
   log += write_yaml_form(log, 0, "MagicCodeOBU_%llu:", idx);
   log += write_yaml_form(log, 0, "- ia_code: %u",
                          swapByteOrder(mc_obu->iamf_code));
-  log += write_yaml_form(log, 1, "version: %u", mc_obu->version);
-  log +=
-      write_yaml_form(log, 1, "profile_version: %u", mc_obu->profile_version);
+  log += write_yaml_form(log, 1, "profile_name: %u", mc_obu->profile_name);
+  log += write_yaml_form(log, 1, "profile_compatible: %u",
+                         mc_obu->profile_compatible);
   write_postfix(LOG_OBU, log);
 }
 
@@ -634,6 +635,7 @@ static void write_temporal_delimiter_block_log(uint64_t idx, void* obu,
   write_postfix(LOG_OBU, log);
 }
 
+#ifdef SYNC_OBU
 static void write_sync_log(uint64_t idx, void* obu, char* log) {
   IAMF_Sync* sc_obu = (IAMF_Sync*)obu;
 
@@ -655,6 +657,7 @@ static void write_sync_log(uint64_t idx, void* obu, char* log) {
   }
   write_postfix(LOG_OBU, log);
 }
+#endif
 
 int vlog_obu(uint32_t obu_type, void* obu,
              uint64_t num_samples_to_trim_at_start,
@@ -684,11 +687,13 @@ int vlog_obu(uint32_t obu_type, void* obu,
     case IAMF_OBU_TEMPORAL_DELIMITER:
       write_temporal_delimiter_block_log(obu_count++, obu, log);
       break;
+#ifdef SYNC_OBU
     case IAMF_OBU_SYNC:
       write_sync_log(obu_count++, obu, log);
       break;
-    case IAMF_OBU_MAGIC_CODE:
-      write_magic_code_log(obu_count++, obu, log);
+#endif
+    case IAMF_OBU_SEQUENCE_HEADER:
+      write_sequence_header_log(obu_count++, obu, log);
       break;
     default:
       if (obu_type >= IAMF_OBU_AUDIO_FRAME &&
