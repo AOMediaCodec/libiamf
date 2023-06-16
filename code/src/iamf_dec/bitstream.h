@@ -61,12 +61,12 @@ int32_t bs_read(BitStream *b, uint8_t *data, int n);
 int32_t bs_readString(BitStream *b, char *data, int n);
 uint32_t bs_tell(BitStream *b);
 
-int readi16be(uint8_t *data, int offset);
-int readi16le(uint8_t *data, int offset);
-int readi24be(uint8_t *data, int offset);
-int readi24le(uint8_t *data, int offset);
-int readi32be(uint8_t *data, int offset);
-int readi32le(uint8_t *data, int offset);
+int reads16be(uint8_t *data, int offset);
+int reads16le(uint8_t *data, int offset);
+int reads24be(uint8_t *data, int offset);
+int reads24le(uint8_t *data, int offset);
+int reads32be(uint8_t *data, int offset);
+int reads32le(uint8_t *data, int offset);
 
 uint8_t readu8(uint8_t *data, int offset);
 uint32_t readu16be(uint8_t *data, int offset);

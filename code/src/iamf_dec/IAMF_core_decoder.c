@@ -108,7 +108,7 @@ static int iamf_core_decoder_convert_mono(IAMF_CoreDecoder *ths, float *out,
 
   memset(out, 0, sizeof(float) * frame_size * ths->ctx->channels);
   for (int i = 0; i < ths->ctx->channels; ++i) {
-    memcpy(&out[frame_size * map[i]], &in[frame_size * i],
+    memcpy(&out[frame_size * i], &in[frame_size * map[i]],
         frame_size * sizeof(float));
   }
   return IAMF_OK;

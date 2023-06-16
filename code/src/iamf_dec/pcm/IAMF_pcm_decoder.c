@@ -64,22 +64,22 @@ static int iamf_pcm_init(IAMF_CodecContext *ths) {
   ia_logd("sample format flags 0x%x, size %u, rate %u", ths->flags,
           ths->sample_size, ths->sample_rate);
 
-  ctx->func = readi16le;
+  ctx->func = reads16le;
   ctx->scale_i2f = 1 << 15;
   if (ths->sample_size == 16) {
-    if (!ths->flags) ctx->func = readi16be;
+    if (!ths->flags) ctx->func = reads16be;
   } else if (ths->sample_size == 24) {
     ctx->scale_i2f = 1 << 23;
     if (!ths->flags)
-      ctx->func = readi24be;
+      ctx->func = reads24be;
     else
-      ctx->func = readi24le;
+      ctx->func = reads24le;
   } else if (ths->sample_size == 32) {
     ctx->scale_i2f = 1 << 31;
     if (!ths->flags)
-      ctx->func = readi32be;
+      ctx->func = reads32be;
     else
-      ctx->func = readi32le;
+      ctx->func = reads32le;
   }
 
   ia_logd("the scale of int to float: %f", ctx->scale_i2f);
@@ -93,18 +93,47 @@ static int iamf_pcm_decode(IAMF_CodecContext *ths, uint8_t *buf[],
   float *fpcm = (float *)pcm;
   int c = 0, cc;
   int sample_size_bytes = ths->sample_size / 8;
+  int samples = 0;
 
-  if (count != ths->streams) {
-    return IAMF_ERR_BAD_ARG;
+  if (!count || count != ths->streams) return IAMF_ERR_BAD_ARG;
+
+  if (ths->coupled_streams)
+    samples = len[0] / 2 / sample_size_bytes;
+  else
+    samples = len[0] / sample_size_bytes;
+
+  for (; c < ths->coupled_streams; ++c)
+    if (len[c] / 2 / sample_size_bytes != samples) {
+      ia_loge("the length of stream %d and 0 is different %d vs %d", c,
+              len[c] / 2 / sample_size_bytes, samples);
+      samples = -1;
+      break;
+    }
+
+  if (samples > 0) {
+    for (; c < ths->streams; ++c)
+      if (len[c] / sample_size_bytes != samples) {
+        ia_loge("the length of stream %d and 0 is different %d vs %d", c,
+                len[c] / sample_size_bytes, samples);
+        samples = -1;
+        break;
+      }
   }
 
-  ia_logd("cs %d, s %d, frame size %d", ths->coupled_streams, ths->streams,
-          frame_size);
+  if (samples < 0) return IAMF_ERR_INTERNAL;
 
+  ia_logd("cs %d, s %d, frame size %d, samples %d", ths->coupled_streams,
+          ths->streams, frame_size, samples);
+
+  if (samples != frame_size)
+    ia_logw("real samples and frame size are different: %d vs %d", samples,
+            frame_size);
+
+  c = 0;
   for (; c < ths->coupled_streams; ++c) {
-    for (int s = 0; s < frame_size; ++s) {
+    for (int s = 0; s < samples; ++s) {
       for (int lf = 0; lf < 2; ++lf) {
-        fpcm[frame_size * (c * 2 + lf) + s] =
+        fpcm[samples * (c * 2 + lf) + s] =
             ctx->func(buf[c], (s * 2 + lf) * sample_size_bytes) /
             ctx->scale_i2f;
       }
@@ -113,8 +142,8 @@ static int iamf_pcm_decode(IAMF_CodecContext *ths, uint8_t *buf[],
 
   cc = ths->coupled_streams;
   for (; c < ths->streams; ++c) {
-    for (int s = 0; s < frame_size; ++s) {
-      fpcm[frame_size * (cc + c) + s] =
+    for (int s = 0; s < samples; ++s) {
+      fpcm[samples * (cc + c) + s] =
           ctx->func(buf[c], s * sample_size_bytes) / ctx->scale_i2f;
     }
   }

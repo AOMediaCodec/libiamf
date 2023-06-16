@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 
 #include "IAMF_utils.h"
-#include "wavwriter2.h"
+#include "wav/dep_wavwriter.h"
 #define N_AUDIO_STREAM 10
 
 static void ia_decoder_plane2stride_out_float(void *dst, const float *src,
@@ -92,7 +92,7 @@ void iamf_rec_stream_log(int eid, int chs, float *in, int size) {
       sprintf(ae_fname, "rec_%d.wav", eid);
       nch = _rec_stream_log[_rec_stream_count].nchannels = chs;
       wf = _rec_stream_log[_rec_stream_count].wav =
-          wav_write_open3(ae_fname, WAVE_FORMAT_FLOAT2, 48000, 32, nch);
+          dep_wav_write_open2(ae_fname, DEP_WAVE_FORMAT_FLOAT, 48000, 32, nch);
       _rec_stream_log[_rec_stream_count].element_id = eid;
       _rec_stream_count++;
     }
@@ -100,7 +100,7 @@ void iamf_rec_stream_log(int eid, int chs, float *in, int size) {
 
   pcm_b = IAMF_MALLOC(float, size *nch);
   ia_decoder_plane2stride_out_float(pcm_b, in, size, nch);
-  wav_write_data2(wf, pcm_b, size * nch * sizeof(float));
+  dep_wav_write_data(wf, pcm_b, size * nch * sizeof(float));
   free(pcm_b);
 }
 
@@ -126,7 +126,7 @@ void iamf_ren_stream_log(int eid, int chs, float *out, int size) {
       nch = _ren_stream_log[_ren_stream_count].nchannels = chs;
       /* iamf_layout_channels_count(&stream->final_layout->layout); */
       wf = _ren_stream_log[_ren_stream_count].wav =
-          wav_write_open3(ae_fname, WAVE_FORMAT_FLOAT2, 48000, 32, nch);
+          dep_wav_write_open2(ae_fname, DEP_WAVE_FORMAT_FLOAT, 48000, 32, nch);
       _ren_stream_log[_ren_stream_count].element_id = eid;
       _ren_stream_count++;
     }
@@ -134,7 +134,7 @@ void iamf_ren_stream_log(int eid, int chs, float *out, int size) {
 
   pcm_b = IAMF_MALLOC(float, size *nch);
   ia_decoder_plane2stride_out_float(pcm_b, out, size, nch);
-  wav_write_data2(wf, pcm_b, size * nch * sizeof(float));
+  dep_wav_write_data(wf, pcm_b, size * nch * sizeof(float));
   free(pcm_b);
 }
 
@@ -154,27 +154,27 @@ void iamf_mix_stream_log(int chs, float *out, int size) {
     nch = _mix_stream_log.nchannels = chs;
     /* iamf_layout_channels_count(&stream->final_layout->layout); */
     wf = _mix_stream_log.wav =
-        wav_write_open3(ae_fname, WAVE_FORMAT_FLOAT2, 48000, 32, nch);
+        dep_wav_write_open2(ae_fname, DEP_WAVE_FORMAT_FLOAT, 48000, 32, nch);
     _mix_stream_count++;
   }
 
   pcm_b = IAMF_MALLOC(float, size *nch);
   ia_decoder_plane2stride_out_float(pcm_b, out, size, nch);
-  wav_write_data2(wf, pcm_b, size * nch * sizeof(float));
+  dep_wav_write_data(wf, pcm_b, size * nch * sizeof(float));
   free(pcm_b);
 }
 
 void iamf_stream_log_free() {
   for (int i = 0; i < _dec_stream_count; i++) {
-    wav_write_close2(_dec_stream_log[i].wav);
+    dep_wav_write_close(_dec_stream_log[i].wav);
   }
   for (int i = 0; i < _rec_stream_count; i++) {
-    wav_write_close2(_rec_stream_log[i].wav);
+    dep_wav_write_close(_rec_stream_log[i].wav);
   }
   for (int i = 0; i < _ren_stream_count; i++) {
-    wav_write_close2(_ren_stream_log[i].wav);
+    dep_wav_write_close(_ren_stream_log[i].wav);
   }
   if (_mix_stream_log.wav) {
-    wav_write_close2(_mix_stream_log.wav);
+    dep_wav_write_close(_mix_stream_log.wav);
   }
 }

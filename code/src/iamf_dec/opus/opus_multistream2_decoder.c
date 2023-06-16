@@ -117,7 +117,7 @@ static int opus_multistream2_decoder_init(OpusMS2Decoder *st, opus_int32 Fs,
     ptr += align(mono_size);
   }
 
-  st->buffer = malloc(MAX_OPUS_FRAME_SIZE * 2 * sizeof(short));
+  st->buffer = calloc(1, MAX_OPUS_FRAME_SIZE * 2 * sizeof(short));
   if (!st->buffer) return IAMF_ERR_ALLOC_FAIL;
   return IAMF_OK;
 }

@@ -62,8 +62,7 @@ static const char *gIAECString[] = {"Ok",
                                     "Invalid packet",
                                     "Invalid state",
                                     "Unimplemented",
-                                    "Memory allocation failure",
-                                    "need more data."};
+                                    "Memory allocation failure"};
 
 const char *ia_error_code_string(int ec) {
   int cnt = sizeof(gIAECString) / sizeof(char *);

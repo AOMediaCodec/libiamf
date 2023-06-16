@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "flac_multistream_decoder.h"
 
-#include <FLAC/stream_decoder.h>
+#include "FLAC/stream_decoder.h"
 #include <stdlib.h>
 #include <string.h>
 

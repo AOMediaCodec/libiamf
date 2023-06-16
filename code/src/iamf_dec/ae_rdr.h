@@ -32,7 +32,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @date Created 03/03/2023
  **/
 
-
 #ifndef AE_RDR_H_
 #define AE_RDR_H_
 
@@ -62,7 +61,7 @@ typedef enum {
 typedef struct {
   int init;
   float c, a1, a2, a3, b1, b2;
-  float input_history[3], output_history[3];
+  float input_history[2], output_history[2];
 } lfe_filter_t;
 
 typedef struct {
@@ -84,7 +83,12 @@ typedef struct {
   lfe_filter_t lfe_f;  // for H2M lfe
 } IAMF_SP_LAYOUT;
 
-typedef enum { IAMF_FOA = 1, IAMF_SOA = 2, IAMF_TOA = 3 } HOA_ORDER;
+typedef enum {
+  IAMF_ZOA = 0,
+  IAMF_FOA = 1,
+  IAMF_SOA = 2,
+  IAMF_TOA = 3
+} HOA_ORDER;
 
 typedef struct {
   HOA_ORDER order;

@@ -152,7 +152,7 @@ static int avio_rstring(FILE *fin, char *txt, int sizemax) {
 #define avio_rb32() avio_rb32_(mp4r)
 static uint32_t avio_rb32_(mp4r_t *mp4r) {
   FILE *fin = mp4r->fin;
-  uint32_t val;
+  uint32_t val = 0;
   avio_rdata(fin, &val, 4);
   val = bswap32(val);
   return val;
@@ -1253,13 +1253,12 @@ int mp4demux_audio(mp4r_t *mp4r, int trakn, int *delta) {
     return ERR_FAIL;
   }
 
-  if (atr[trakn].sample_size != 0) {
+  if (atr[trakn].frame.sizes) {
+    // VBR
+    atr[trakn].bitbuf.size = atr[trakn].frame.sizes[idx];
+  } else if (atr[trakn].sample_size != 0) {
     // CBR.. stsz
     atr[trakn].bitbuf.size = atr[trakn].sample_size;
-  } else {
-    // VBR
-    if (atr[trakn].frame.sizes)
-      atr[trakn].bitbuf.size = atr[trakn].frame.sizes[idx];
   }
 
   mp4demux_seek(mp4r, trakn, atr[trakn].frame.current);
@@ -1289,12 +1288,22 @@ int mp4demux_parse(mp4r_t *mp4r, int trak) {
     int ret;
     uint64_t pos = ftell(mp4r->fin);
     uint64_t next_moov = 0;
+    uint64_t size;
 
+    fseek(mp4r->fin, 0, SEEK_END);
+    size = ftell(mp4r->fin);
+    if (pos == size) return ERR_FAIL;
+
+    fprintf(stderr, "Warning: pos %lu, file size %lu\n", pos, size);
+    fseek(mp4r->fin, pos, SEEK_SET);
+
+#if 0
     mp4r->atom = moov_probe;
     if (parse(mp4r, &atomsize) < 0) {
-      mp4r->next_moov = -1;
+      mp4r->next_moov = (uint64_t)-1;
     }
     fseek(mp4r->fin, pos, SEEK_SET);
+#endif
 
     atomsize = INT_MAX;
     mp4r->atom = moof_probe;
