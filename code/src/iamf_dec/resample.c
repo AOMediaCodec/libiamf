@@ -512,7 +512,7 @@ static int update_filter(SpeexResamplerState *st) {  ////
                       st->den_rate) != RESAMPLER_ERR_SUCCESS)
       goto fail;
     /* Round up to make sure we have a multiple of 8 for SSE */
-    st->filt_len = ((st->filt_len - 1) & (~(uint32_t)0x7)) + 8;
+    st->filt_len = ((st->filt_len - 1) & (~0x7U)) + 8;
     if (2 * st->den_rate < st->num_rate) st->oversample >>= 1;
     if (4 * st->den_rate < st->num_rate) st->oversample >>= 1;
     if (8 * st->den_rate < st->num_rate) st->oversample >>= 1;

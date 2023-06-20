@@ -10,7 +10,7 @@ as described here:
 Please see the examples in the "test/tools" directory. If you're already building this project.
 
 ### Compiling
-There are 2 parts to build: iamf(common&iamf_dec) tools(iamfpackager&iamfplayer).
+There are 2 parts to build: iamf(common&iamf_dec) tool(iamfplayer).
 
 "build_x86.sh" is an example to build, you can run it directly at your side.
 
@@ -22,7 +22,7 @@ There are 2 parts to build: iamf(common&iamf_dec) tools(iamfpackager&iamfplayer)
 % make install
 ```
 
-2. build tools in "test/tools/iamfplayer" directory separately
+2. build tool in "test/tools/iamfplayer" directory
 ```sh
 % cmake ./-DCMAKE_INSTALL_PREFIX=${BUILD_LIBS}
 % make 
@@ -54,10 +54,12 @@ options:
            9 : Sound system J (4+7+0)
           10 : Sound system extension 712 (2+7+0)
           11 : Sound system extension 312 (2+3+0)
+          12 : Sound system mono (0+1+0)
            b : Binaural.
 -p [dB]      : Peak threshold in dB.
 -l [LKFS]    : Normalization loudness in LKFS.
 -d [bit]     : Bit depth of pcm output.
+-mp [id]     : Set mix presentation id.
 -m           : Generate a metadata file with the suffix .met.
 
 Example:  ./iamfplayer -o2 -s9 simple_profile.iamf

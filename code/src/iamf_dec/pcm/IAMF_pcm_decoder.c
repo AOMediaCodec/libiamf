@@ -75,7 +75,7 @@ static int iamf_pcm_init(IAMF_CodecContext *ths) {
     else
       ctx->func = reads24le;
   } else if (ths->sample_size == 32) {
-    ctx->scale_i2f = 1 << 31;
+    ctx->scale_i2f = 1U << 31;
     if (!ths->flags)
       ctx->func = reads32be;
     else
