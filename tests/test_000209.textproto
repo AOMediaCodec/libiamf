@@ -53,7 +53,7 @@ audio_element_metadata {
         constant_subblock_duration: 1024
       }
       default_demixing_info_parameter_data: {
-        dmixp_mode: DMIXP_MODE_2
+        dmixp_mode: DMIXP_MODE_1
       }
       default_w: 0
     }
@@ -139,8 +139,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -5544
-        digital_peak: -1183
+        integrated_loudness: -4148
+        digital_peak: -998
       }
     }
   }
