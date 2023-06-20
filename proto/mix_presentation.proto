@@ -75,11 +75,29 @@ message Layout {
   }
 }
 
+enum AnchorType {
+  ANCHOR_TYPE_NOT_DEFINED = 0;
+  ANCHOR_TYPE_UNKNOWN = 1;
+  ANCHOR_TYPE_DIALOGUE = 2;
+  ANCHOR_TYPE_ALBUM = 3;
+}
+
+message AnchorElement {
+  optional AnchorType anchor_element = 1;
+  optional int32 anchored_loudness = 2;
+}
+
+message AnchoredLoudness {
+  optional uint32 num_anchored_loudness = 1;
+  repeated AnchorElement anchor_elements = 2;
+}
+
 message LoudnessInfo {
   optional uint32 info_type = 1;
   optional int32 integrated_loudness = 2;
   optional int32 digital_peak = 3;
   optional int32 true_peak = 4;
+  optional AnchoredLoudness anchored_loudness = 5;
 }
 
 message MixPresentationLayout {
