@@ -37,9 +37,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 
 #include "IAMF_decoder.h"
+#include "dep_wavwriter.h"
 #include "mp4iamfpar.h"
 #include "string.h"
-#include "dep_wavwriter.h"
 
 #define SR 0
 #if SR
@@ -195,7 +195,7 @@ static int extradata_iamf_size(IAMF_extradata *meta) {
   }
   ret += 4;
   if (meta->num_parameters) {
-    ret += sizeof(IAMF_Param);
+    ret += sizeof(IAMF_Param) * meta->num_parameters;
   }
   /* printf("iamf extradata size %d\n", ret); */
   return ret;
@@ -294,6 +294,7 @@ static int extradata_write(FILE *f, int64_t pts, IAMF_extradata *meta) {
   fwrite(buf, 1, size, f);
 
   if (buf) free(buf);
+  return size;
 }
 
 static void extradata_iamf_layout_clean(IAMF_Layout *layout) {
@@ -338,7 +339,7 @@ static int bs_input_wav_output(PlayerArgs *pas) {
   int used = 0, end = 0;
   int ret = 0;
   int state = 0;
-  int rsize = 0;
+  uint32_t rsize = 0;
   void *pcm = NULL;
   IAMF_DecoderHandle dec;
   int channels = 0;
@@ -488,7 +489,7 @@ static int bs_input_wav_output(PlayerArgs *pas) {
           /* fprintf(stderr, "===================== Get %d frame and size %d\n",
            * count, ret); */
           dep_wav_write_data(wav_f, (unsigned char *)pcm,
-                         (bit_depth / 8) * ret * channels);
+                             (bit_depth / 8) * ret * channels);
 
           if (pas->flags & FLAG_METADATA) {
             IAMF_decoder_get_last_metadata(dec, &pts, &meta);
@@ -541,255 +542,24 @@ end:
   return ret;
 }
 
-#if 0
-static int mp4_input_wav_output(PlayerArgs *pas) {
-  MP4IAMFParser mp4par;
-  IAMFHeader *header = 0;
-  FILE *f = 0;
-  FILE *wav_f = 0, *meta_f = 0;
-  uint8_t block[BLOCK_SIZE];
-  char out[NAME_LENGTH] = {0};
-  char meta_n[NAME_LENGTH] = {0};
-  int used = 0, end = 0;
-  int ret = 0;
-  int state = 0;
-  int rsize = 0;
-  void *pcm = NULL;
-  IAMF_DecoderHandle dec;
-  int channels;
-  int count = 0;
-  uint64_t frsize = 0;
-  uint32_t size;
-  const char *s = 0, *d;
-  int entno = 0;
-  int64_t sample_offs;
-  const char *path = pas->path;
-  Layout *layout = pas->layout;
-  float db = pas->peak;
-  float loudness = pas->loudness;
-  uint32_t bit_depth = pas->bit_depth;
-  uint32_t r = pas->rate;
-  int64_t st = 0;
-  int labels_idx = 0;
-
-  if (!path) return -1;
-
-  if (layout->type == 2) {
-    snprintf(out, NAME_LENGTH, "ss%d_", layout->ss);
-    ret = strlen(out);
-  } else if (layout->type == 3) {
-    snprintf(out, NAME_LENGTH, "binaural_");
-    ret = strlen(out);
-  } else {
-    fprintf(stdout, "Invalid output layout type %d.\n", layout->type);
-    return -1;
-  }
-
-#if defined(__linux__)
-  s = strrchr(path, '/');
-#else
-  s = strrchr(path, '\\');
-#endif
-  if (!s) {
-    s = path;
-  } else {
-    ++s;
-  }
-  d = strrchr(path, '.');
-  if (d) {
-    strncpy(out + ret, s,
-            d - s < NAME_LENGTH - 5 - ret ? d - s : NAME_LENGTH - 5 - ret);
-    ret = strlen(out);
-  }
-  snprintf(out + ret, NAME_LENGTH - ret, "%s", ".wav");
-  if (pas->flags & FLAG_METADATA) {
-    strcpy(meta_n, out);
-    snprintf(meta_n + ret, NAME_LENGTH - ret, "%s", ".met");
-    meta_f = fopen(meta_n, "w+");
-    if (!meta_f) {
-      fprintf(stderr, "%s can't opened.\n", out);
-    }
-  }
-
-  dec = IAMF_decoder_open();
-  if (!dec) {
-    fprintf(stderr, "IAMF decoder can't created.\n");
-    return -1;
-  }
-
-  IAMF_decoder_peak_limiter_set_threshold(dec, db);
-  IAMF_decoder_set_normalization_loudness(dec, loudness);
-  IAMF_decoder_set_bit_depth(dec, bit_depth);
-
-  if (r > 0 && IAMF_decoder_set_sampling_rate(dec, r) != IAMF_OK) {
-    fprintf(stderr, "Invalid sampling rate %u\n", r);
-    goto end;
-  }
-
-  if (layout->type == 2) {
-    IAMF_decoder_output_layout_set_sound_system(dec, layout->ss);
-    channels = IAMF_layout_sound_system_channels_count(layout->ss);
-
-    fprintf(stdout, "Sound system %c has %d channels\n", layout->ss + 'A',
-            channels);
-  } else if (layout->type == 3) {
-    IAMF_decoder_output_layout_set_binaural(dec);
-    channels = IAMF_layout_binaural_channels_count();
-    fprintf(stdout, "Binaural has %d channels\n", channels);
-  } else {
-    fprintf(stderr, "Invalid layout");
-    ret = -1;
-    goto end;
-  }
-
-  f = fopen(path, "rb");
-  if (!f) {
-    fprintf(stderr, "%s can't opened.\n", path);
-    ret = errno;
-    goto end;
-  }
-
-  if (!r) r = SAMPLING_RATE;
-  wav_f = (FILE *)dep_wav_write_open(out, r, bit_depth, channels);
-  if (!wav_f) {
-    fprintf(stderr, "%s can't opened.\n", out);
-    ret = errno;
-    goto end;
-  }
-
-  pcm = (void *)malloc(sizeof(int16_t) * 3840 * channels);
-  if (!pcm) {
-    ret = errno;
-    fprintf(stderr, "error no(%d):fail to malloc memory for pcm.", ret);
-    goto end;
-  }
-
-  mp4_iamf_parser_init(&mp4par);
-  mp4_iamf_parser_set_logger(&mp4par, 0);
-  ret = mp4_iamf_parser_open_audio_track(&mp4par, path, &header);
-
-  if (ret <= 0) {
-    fprintf(stderr, "mp4opusdemuxer can not open mp4 file(%s)\n", path);
-    goto end;
-  }
-
-  if (pas->st)
-    st = pas->st * 90000;
-  else {
-    double r = header->skip * 90000;
-    st = r / header->timescale + 0.5f;
-    printf("skip %d/%d pts is %ld/90000\n", header->skip, header->timescale,
-           st);
-  }
-  IAMF_decoder_set_pts(dec, st * -1, 90000);
-
-  if (pas->st > 0) {
-    ret = mp4_iamf_parser_set_starting_time(&mp4par, 0, pas->st);
-    if (ret < 0) {
-      fprintf(stderr, "invalid starting time for %s\n", pas->path);
-      goto end;
-    }
-
-    mp4_iamf_parser_get_audio_track_header(&mp4par, &header);
-  }
-
-  ret = iamf_header_read_description_OBUs(header, block, BLOCK_SIZE);
-  if (!ret) {
-    fprintf(stderr, "fail to copy description obu.\n");
-    goto end;
-  }
-  used += ret;
-
-  do {
-    IAMF_extradata meta;
-    int64_t pts;
-    if (mp4_iamf_parser_read_packet(&mp4par, 0, (void *)(block + used),
-                                    BLOCK_SIZE - used, &ret, &sample_offs,
-                                    &entno) < 0) {
-      end = 1;
-    }
-
-    used += ret;
-
-    /* fprintf(stdout, "packet size %d, add %d\n", used, ret); */
-
-  configure:
-    if (state <= 0) {
-      if (end) break;
-      rsize = 0;
-      ret = IAMF_decoder_configure(dec, block, used, &rsize);
-      /* fprintf(stdout, "header length %d\n", rsize); */
-      if (rsize < used) memmove(block, block + rsize, used - rsize);
-      used -= rsize;
-
-      if (ret == IAMF_OK) {
-        state = 1;
-      } else
-        continue;
-    }
-  decode:
-    rsize = 0;
-    if (!end)
-      ret = IAMF_decoder_decode(dec, block, used, &rsize, pcm);
-    else
-      ret = IAMF_decoder_decode(dec, (const uint8_t *)NULL, 0, &rsize, pcm);
-    /* fprintf(stdout, "packet size %d, read %d, ret %d\n", used, rsize, ret);
-     */
-    if (ret > 0) {
-      ++count;
-      /* fprintf(stderr, */
-      /* "===================== Get %d frame and size %d, offset %ld\n", */
-      /* count, ret, sample_offs); */
-      dep_wav_write_data(wav_f, (unsigned char *)pcm,
-                     (bit_depth / 8) * ret * channels);
-
-      if (pas->flags & FLAG_METADATA) {
-        IAMF_decoder_get_last_metadata(dec, &pts, &meta);
-        if (meta_f) extradata_write(meta_f, pts, &meta);
-        extradata_iamf_clean(&meta);
-      }
-    }
-    if (end) break;
-    if (rsize < used) memmove(block, block + rsize, used - rsize);
-    used -= rsize;
-    if (ret == IAMF_ERR_INVALID_STATE) {
-      state = ret;
-      goto configure;
-    }
-    if (used) goto decode;
-
-  } while (1);
-end:
-  fprintf(stderr, "===================== Get %d frames\n", count);
-  if (pcm) free(pcm);
-  FCLOSE(f)
-  FCLOSE(meta_f)
-  if (wav_f) dep_wav_write_close(wav_f);
-  if (dec) IAMF_decoder_close(dec);
-  mp4_iamf_parser_close(&mp4par);
-
-  return ret;
-}
-#endif
-
 static int mp4_input_wav_output2(PlayerArgs *pas) {
   MP4IAMFParser mp4par;
   IAMFHeader *header = 0;
   FILE *f = 0;
   FILE *wav_f = 0, *meta_f = 0;
-  uint8_t block[BLOCK_SIZE];
+  uint8_t *block = 0;
+  uint32_t size = 0;
   char out[NAME_LENGTH] = {0};
   char meta_n[NAME_LENGTH] = {0};
   int used = 0, end = 0;
   int ret = 0;
   int state = 0;
-  int rsize = 0;
+  uint32_t rsize = 0;
   void *pcm = NULL;
   IAMF_DecoderHandle dec;
   int channels;
   int count = 0;
   uint64_t frsize = 0;
-  uint32_t size;
   const char *s = 0, *d;
   int entno = 0;
   int64_t sample_offs;
@@ -926,7 +696,7 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
     mp4_iamf_parser_get_audio_track_header(&mp4par, &header);
   }
 
-  ret = iamf_header_read_description_OBUs(header, block, BLOCK_SIZE);
+  ret = iamf_header_read_description_OBUs(header, &block, &size);
   if (!ret) {
     fprintf(stderr, "fail to copy description obu.\n");
     goto end;
@@ -935,6 +705,7 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
   if (pas->mix_presentation_id != UINT64_MAX)
     IAMF_decoder_set_mix_presentation_id(dec, pas->mix_presentation_id);
   ret = IAMF_decoder_configure(dec, block, ret, 0);
+  if (block) free(block);
   if (ret != IAMF_OK) {
     fprintf(stderr, "errno: %d, fail to configure decoder.\n", ret);
     goto end;
@@ -943,22 +714,25 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
   do {
     IAMF_extradata meta;
     int64_t pts;
-    if (mp4_iamf_parser_read_packet(&mp4par, 0, (void *)block, BLOCK_SIZE, &ret,
-                                    &sample_offs, &entno) < 0) {
+    if (mp4_iamf_parser_read_packet(&mp4par, 0, &block, &size, &sample_offs,
+                                    &entno) < 0) {
       end = 1;
     }
 
     if (!end)
-      ret = IAMF_decoder_decode(dec, block, ret, 0, pcm);
+      ret = IAMF_decoder_decode(dec, block, size, 0, pcm);
     else
       ret = IAMF_decoder_decode(dec, (const uint8_t *)NULL, 0, 0, pcm);
+
+    if (block) free(block);
+    block = 0;
     if (ret > 0) {
       ++count;
       /* fprintf(stderr, */
       /* "===================== Get %d frame and size %d, offset %ld\n", */
       /* count, ret, sample_offs); */
       dep_wav_write_data(wav_f, (unsigned char *)pcm,
-                     (bit_depth / 8) * ret * channels);
+                         (bit_depth / 8) * ret * channels);
 
       if (pas->flags & FLAG_METADATA) {
         IAMF_decoder_get_last_metadata(dec, &pts, &meta);

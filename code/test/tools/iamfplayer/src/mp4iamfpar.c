@@ -98,7 +98,7 @@ int mp4_iamf_parser_get_audio_track_header(MP4IAMFParser *ths,
   } else {
     for (; i < atr[0].frame.chunk_count; ++i) {
       idx -= (int)(atr[0].frame.chunks[i].sample_per_chunk +
-              atr[0].frame.chunks[i].sample_offset);
+                   atr[0].frame.chunks[i].sample_offset);
       if (idx < 0) break;
     }
   }
@@ -108,13 +108,15 @@ int mp4_iamf_parser_get_audio_track_header(MP4IAMFParser *ths,
   return 1;
 }
 
-int mp4_iamf_parser_read_packet(MP4IAMFParser *ths, int trakn, void *pkt_buf,
-                                int inbytes, int *pktlen_out,
+int mp4_iamf_parser_read_packet(MP4IAMFParser *ths, int trakn,
+                                uint8_t **pkt_buf, uint32_t *pktlen_out,
                                 int64_t *sample_offs, int *cur_entno) {
   audio_rtr_t *atr = ths->m_mp4r->a_trak;
   int sample_delta = 0, idx = 0;
-  int ret = 0, used = 0;
+  int ret = 0;
+  uint32_t used = 0;
   IAMFHeader *header;
+  uint8_t *pkt = 0;
 
   if (atr[trakn].frame.ents_offset + atr[trakn].frame.ents <=
       atr[trakn].frame.current) {
@@ -125,10 +127,9 @@ int mp4_iamf_parser_read_packet(MP4IAMFParser *ths, int trakn, void *pkt_buf,
         header = (IAMFHeader *)atr[trakn].csc;
         if (ths->m_mp4r->next_moov > 0 &&
             ths->m_mp4r->next_moov < ths->m_mp4r->next_moof &&
-            header->description) {
-          ret = iamf_header_read_description_OBUs(header, pkt_buf, inbytes);
-          used += ret;
-        }
+            header->description &&
+            !iamf_header_read_description_OBUs(header, &pkt, &used))
+          return (-1);
       }
     } else
       return (-1);
@@ -142,23 +143,21 @@ int mp4_iamf_parser_read_packet(MP4IAMFParser *ths, int trakn, void *pkt_buf,
       header = (IAMFHeader *)atr[trakn].csc;
       atr[trakn].frag_sdidx = ~atr[trakn].frag_sdidx;
       ret = iamf_header_read_description_OBUs(
-          &header[atr[trakn].frag_sdidx - 1], pkt_buf, inbytes);
-      used += ret;
+          &header[atr[trakn].frag_sdidx - 1], &pkt, &used);
       /* printf("Read next description at %d.\n", atr[trakn].frame.current); */
     }
   } else {
     int sdi, sdin;
     for (int i = 0; i < atr[trakn].frame.chunk_count; ++i) {
-      ret -= (int )(atr[trakn].frame.chunks[i].sample_per_chunk +
-              atr[trakn].frame.chunks[i].sample_offset);
+      ret -= (int)(atr[trakn].frame.chunks[i].sample_per_chunk +
+                   atr[trakn].frame.chunks[i].sample_offset);
       if (!ret) {
         sdi = atr[trakn].frame.chunks[i].sample_description_index;
         sdin = atr[trakn].frame.chunks[i + 1].sample_description_index;
         if (sdi != sdin && sdin > 0) {
           header = (IAMFHeader *)atr[trakn].csc;
-          ret = iamf_header_read_description_OBUs(&header[sdin - 1], pkt_buf,
-                                                  inbytes);
-          used += ret;
+          ret =
+              iamf_header_read_description_OBUs(&header[sdin - 1], &pkt, &used);
           printf("Read next samples description (%d -> )%d at %d\n", sdi, sdin,
                  atr[trakn].frame.current);
         }
@@ -181,19 +180,12 @@ int mp4_iamf_parser_read_packet(MP4IAMFParser *ths, int trakn, void *pkt_buf,
     return (-1);
   }
 
-  /* printf("Parameter length %d\n", ret); */
-  if (inbytes - used < atr[trakn].bitbuf.size) {
-    memcpy((uint8_t *)pkt_buf + ret, atr[trakn].bitbuf.data, inbytes - used);
-    *pktlen_out = atr[trakn].bitbuf.size + used;
-    return (sample_delta);
-  } else {
-    memcpy((uint8_t *)pkt_buf + used, atr[trakn].bitbuf.data,
-           atr[trakn].bitbuf.size);
-    *pktlen_out = atr[trakn].bitbuf.size + used;
-    return (sample_delta);
-  }
-
-  //////////////////////////////////////
+  pkt = (uint8_t *)realloc(pkt, used + atr[trakn].bitbuf.size);
+  if (!pkt) return (-1);
+  memcpy((uint8_t *)pkt + used, atr[trakn].bitbuf.data, atr[trakn].bitbuf.size);
+  *pkt_buf = pkt;
+  *pktlen_out = used + atr[trakn].bitbuf.size;
+  return (sample_delta);
 }
 
 void mp4_iamf_parser_close(MP4IAMFParser *ths) {

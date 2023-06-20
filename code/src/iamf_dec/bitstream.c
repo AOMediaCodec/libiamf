@@ -66,7 +66,6 @@ static uint32_t bs_getLastA32b(BitStream *b) {
 uint32_t bs_get32b(BitStream *b, int n) {
   uint32_t ret = 0;
   uint32_t nb8p = 0, nn;
-  uint32_t zero = 0;
 
   assert(n <= INT32_BITS);
 
@@ -80,7 +79,7 @@ uint32_t bs_get32b(BitStream *b, int n) {
 
   ret >>= INT32_BITS - nn - b->b8p;
   if (nn < INT32_BITS) {
-    ret &= ~((~zero) << nn);
+    ret &= ~((~0U) << nn);
   }
   b->b8p += nn;
   b->b8sp += (b->b8p / INT8_BITS);
@@ -238,7 +237,9 @@ uint32_t readu32be(uint8_t *data, int offset) {
   return readu16be(data, offset) << 16 | readu16be(data, offset + 2);
 }
 
-int reads32be(uint8_t *data, int offset) { return readu32be(data, offset); }
+int reads32be(uint8_t *data, int offset) {
+  return (int)readu32be(data, offset);
+}
 
 int reads32le(uint8_t *data, int offset) {
   return readu16le(data, offset) | readu16le(data, offset + 2) << 16;

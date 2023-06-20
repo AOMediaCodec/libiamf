@@ -85,8 +85,8 @@ typedef struct {
 #ifdef __cplusplus
 extern "C" {
 #endif
-int iamf_header_read_description_OBUs(IAMFHeader *h, unsigned char *dst,
-                                      int size);
+int iamf_header_read_description_OBUs(IAMFHeader *h, uint8_t **dst,
+                                      uint32_t *size);
 void iamf_header_free(IAMFHeader *h, int n);
 #ifdef __cplusplus
 }
