@@ -78,7 +78,7 @@ mix_presentation_metadata {
       element_mix_config {
         mix_gain {
           param_definition {
-            parameter_id: 999 # Non-existent; default will be used
+            parameter_id: 999  # Non-existent; default will be used
             parameter_rate: 48000
             param_definition_mode: 1
             reserved: 0
@@ -90,7 +90,7 @@ mix_presentation_metadata {
     output_mix_config {
       output_mix_gain {
         param_definition {
-          parameter_id: 998 # Non-existent; default will be used
+          parameter_id: 998  # Non-existent; default will be used
           parameter_rate: 48000
           param_definition_mode: 1
           reserved: 0
@@ -109,7 +109,7 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -2790
+        integrated_loudness: -2631
         digital_peak: 0
       }
     }
