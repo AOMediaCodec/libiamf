@@ -84,7 +84,7 @@ mix_presentation_metadata {
       element_mix_config {
         mix_gain {
           param_definition {
-            parameter_id: 999 # Non-existent; default will be used
+            parameter_id: 999  # Non-existent; default will be used
             parameter_rate: 48000
             param_definition_mode: 1
             reserved: 0
@@ -96,7 +96,7 @@ mix_presentation_metadata {
     output_mix_config {
       output_mix_gain {
         param_definition {
-          parameter_id: 998 # Non-existent; default will be used
+          parameter_id: 998  # Non-existent; default will be used
           parameter_rate: 48000
           param_definition_mode: 1
           reserved: 0
@@ -109,7 +109,7 @@ mix_presentation_metadata {
       loudness_layout {
         layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
         ss_layout {
-          sound_system: 12 # Mono in spec
+          sound_system: 12  # Mono in spec
           reserved: 0
         }
       }
@@ -141,7 +141,7 @@ audio_frame_metadata {
   samples_to_trim_at_end: 648
   samples_to_trim_at_start: 312
   audio_element_id: 300
-  channel_ids: [2] # Center
+  channel_ids: [2]  # Center
   channel_labels: ["M"]
 }
 

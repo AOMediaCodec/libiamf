@@ -3,7 +3,8 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A simple example of a 5.1 IAMF stream and no parameter blocks."
+    "A simple example of a 5.1 IAMF stream and no parameter "
+    "blocks."
   file_name_prefix: "test_000203"
   is_valid: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
@@ -76,7 +77,7 @@ mix_presentation_metadata {
       element_mix_config {
         mix_gain {
           param_definition {
-            parameter_id: 999 # Non-existent; default will be used
+            parameter_id: 999  # Non-existent; default will be used
             parameter_rate: 48000
             param_definition_mode: 1
             reserved: 0
@@ -88,7 +89,7 @@ mix_presentation_metadata {
     output_mix_config {
       output_mix_gain {
         param_definition {
-          parameter_id: 998 # Non-existent; default will be used
+          parameter_id: 998  # Non-existent; default will be used
           parameter_rate: 48000
           param_definition_mode: 1
           reserved: 0
