@@ -44,6 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ae_rdr.h"
 #include "audio_effect_peak_limiter.h"
 #include "demixer.h"
+#include "downmix_renderer.h"
 #include "queue_t.h"
 #include "speex_resampler.h"
 
@@ -272,6 +273,11 @@ typedef struct IAMF_StreamDecoder {
 
 } IAMF_StreamDecoder;
 
+typedef struct IAMF_StreamRenderer {
+  IAMF_Stream *stream;
+  DMRenderer *downmixer;
+} IAMF_StreamRenderer;
+
 typedef struct IAMF_Mixer {
   uint64_t *element_ids;
   int nb_elements;
@@ -284,6 +290,7 @@ typedef struct IAMF_Presentation {
   IAMF_Stream **streams;
   uint32_t nb_streams;
   IAMF_StreamDecoder **decoders;
+  IAMF_StreamRenderer **renderers;
   SpeexResamplerState *resampler;
   IAMF_Mixer mixer;
   uint64_t output_gain_id;

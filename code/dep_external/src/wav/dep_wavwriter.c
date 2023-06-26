@@ -1,6 +1,4 @@
-//
-// Samsung internal use only
-//
+
 /* ------------------------------------------------------------------
  * Copyright (C) 2009 Martin Storsjo
  *

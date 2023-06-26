@@ -99,6 +99,14 @@ typedef enum {
   STREAM_MODE_AMBISONICS_PROJECTION
 } IAMF_Stream_Mode;
 
+typedef struct MixFactors {
+  float alpha;
+  float beta;
+  float gamma;
+  float delta;
+  int w_idx_offset;
+} MixFactors;
+
 #define U8_MASK 0xFF
 #define U16_MASK 0xFFFF
 

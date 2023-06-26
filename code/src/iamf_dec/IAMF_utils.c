@@ -211,3 +211,16 @@ int bit1_count(uint32_t value) {
   }
   return n;
 }
+
+int iamf_valid_mix_mode(int mode) { return mode >= 0 && mode != 3 && mode < 7; }
+
+const MixFactors mix_factors_mat[] = {
+    {1.0, 1.0, 0.707, 0.707, -1},   {0.707, 0.707, 0.707, 0.707, -1},
+    {1.0, 0.866, 0.866, 0.866, -1}, {0, 0, 0, 0, 0},
+    {1.0, 1.0, 0.707, 0.707, 1},    {0.707, 0.707, 0.707, 0.707, 1},
+    {1.0, 0.866, 0.866, 0.866, 1},  {0, 0, 0, 0, 0}};
+
+const MixFactors *iamf_get_mix_factors(int mode) {
+  if (iamf_valid_mix_mode(mode)) return &mix_factors_mat[mode];
+  return 0;
+}
