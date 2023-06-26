@@ -55,6 +55,7 @@
 "test_000062","test_000005","2.8.7/info_type, 2.8.7/num_anchored_loudness",True,"A stereo IAMF stream with anchored loudness provided with 2 different anchor elements."
 "test_000063","test_000062","2.8.7/info_type, 2.8.7/num_anchored_loudness",False,"A stereo IAMF stream with anchored loudness provided. It is invalid because anchor elements must be unique."
 "test_000064","test_000003","2.8/element_mix_config, 2.8.4/default_mix_gain",True,"A simple example of a stereo IAMF stream with non-zero default mix gain and no parameter blocks."
+"test_000065","test_000038","2.7.3/ambisonics_mono_config, 2.9.1/animation_type",True,"A first-order ambisonics IAMF stream encoded with a linear mix gain."
 "test_000100","test_000038","2.7.3/ambisonics_mono_config",True,"A zero-order ambisonics IAMF stream encoded using `ambisonics_mode` = `MONO`."
 "test_000101","test_000038","2.7.3/ambisonics_mono_config",True,"A first-order ambisonics IAMF stream encoded using `ambisonics_mode` = `MONO`."
 "test_000102","test_000038","2.7.3/ambisonics_mono_config",True,"A second-order ambisonics IAMF stream encoded using `ambisonics_mode` = `MONO`."
@@ -103,4 +104,5 @@
 "test_000400","test_000303","2.8.4/default_mix_gain, 3.2, 7.5.1",True,"A simple example of a stereo + stereo base profile IAMF stream."
 "test_000401","test_000403","2.8.4/default_mix_gain, 3.2, 7.5.1",True,"A simple example of a 3.1.2 + stereo base profile IAMF stream."
 "test_000402","test_000404","2.8.4/default_mix_gain, 3.2, 7.5.1",True,"A simple example of a 5.1 + stereo base profile IAMF stream."
+"test_000406","test_000400","2.9.1/animation_type",True,"A simple example of a stereo + stereo base profile IAMF stream using linear gain."
 "test_000409","test_000400","6.3.1",True,"A simple example of a stereo + stereo base profile IAMF stream has 2 Mix  Presentation OBUs."
