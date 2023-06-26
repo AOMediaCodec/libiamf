@@ -86,14 +86,13 @@ static int _valid_downmix(IAChannelLayoutType in, IAChannelLayoutType out) {
   t1 = ia_channel_layout_get_category_channels_count(in, IA_CH_CATE_TOP);
   t2 = ia_channel_layout_get_category_channels_count(out, IA_CH_CATE_TOP);
 
-  if ((!t2 && t1) || s2 < 2) return 0;
   return s1 > s2 || t1 > t2;
 }
 
-static void _downmix_dump(DMRenderer *this, IAChannel c) {
-  DependOnChannel *cs = this->deps[c];
-  if (this->chs_data[c]) return;
-  if (!this->deps[c]) {
+static void _downmix_dump(DMRenderer *thisp, IAChannel c) {
+  DependOnChannel *cs = thisp->deps[c];
+  if (thisp->chs_data[c]) return;
+  if (!thisp->deps[c]) {
     ia_loge("channel %s(%d) can not be found.", ia_channel_name(c), c);
     return;
   }
@@ -101,35 +100,35 @@ static void _downmix_dump(DMRenderer *this, IAChannel c) {
   while (cs->ch) {
     if (cs->sp) {
       ia_logd("channel %s(%d), scale point %f%s", ia_channel_name(cs->ch),
-              cs->ch, *cs->sp, this->chs_data[cs->ch] ? ", s." : " m.");
-      _downmix_dump(this, cs->ch);
+              cs->ch, *cs->sp, thisp->chs_data[cs->ch] ? ", s." : " m.");
+      _downmix_dump(thisp, cs->ch);
     } else {
       ia_logd("channel %s(%d), scale %f%s", ia_channel_name(cs->ch), cs->ch,
-              cs->s, this->chs_data[cs->ch] ? ", s." : " m.");
-      _downmix_dump(this, cs->ch);
+              cs->s, thisp->chs_data[cs->ch] ? ", s." : " m.");
+      _downmix_dump(thisp, cs->ch);
     }
     ++cs;
   }
 }
 
-static float _downmix_channel_data(DMRenderer *this, IAChannel c, int i) {
-  DependOnChannel *cs = this->deps[c];
+static float _downmix_channel_data(DMRenderer *thisp, IAChannel c, int i) {
+  DependOnChannel *cs = thisp->deps[c];
   float sum = 0.f;
-  if (this->chs_data[c]) return this->chs_data[c][i];
-  if (!this->deps[c]) return 0.f;
+  if (thisp->chs_data[c]) return thisp->chs_data[c][i];
+  if (!thisp->deps[c]) return 0.f;
 
   while (cs->ch) {
     if (cs->sp)
-      sum += _downmix_channel_data(this, cs->ch, i) * (*cs->sp);
+      sum += _downmix_channel_data(thisp, cs->ch, i) * (*cs->sp);
     else
-      sum += _downmix_channel_data(this, cs->ch, i) * cs->s;
+      sum += _downmix_channel_data(thisp, cs->ch, i) * cs->s;
     ++cs;
   }
   return sum;
 }
 
 DMRenderer *DMRenderer_open(IAChannelLayoutType in, IAChannelLayoutType out) {
-  DMRenderer *this = 0;
+  DMRenderer *thisp = 0;
   ia_logd("%s downmix to %s", ia_channel_layout_name(in),
           ia_channel_layout_name(out));
   if (in == out || !_valid_channel_layout(in) || !_valid_channel_layout(out))
@@ -137,97 +136,100 @@ DMRenderer *DMRenderer_open(IAChannelLayoutType in, IAChannelLayoutType out) {
 
   if (!_valid_downmix(in, out)) return 0;
 
-  this = IAMF_MALLOCZ(DMRenderer, 1);
-  if (!this) return 0;
+  thisp = IAMF_MALLOCZ(DMRenderer, 1);
+  if (!thisp) return 0;
 
-  this->chs_icount = ia_channel_layout_get_channels(in, this->chs_in,
-                                                    IA_CH_LAYOUT_MAX_CHANNELS);
-  this->chs_ocount = ia_channel_layout_get_channels(out, this->chs_out,
-                                                    IA_CH_LAYOUT_MAX_CHANNELS);
+  thisp->chs_icount = ia_channel_layout_get_channels(in, thisp->chs_in,
+                                                     IA_CH_LAYOUT_MAX_CHANNELS);
+  thisp->chs_ocount = ia_channel_layout_get_channels(out, thisp->chs_out,
+                                                     IA_CH_LAYOUT_MAX_CHANNELS);
 
-  this->mode = -1;
-  this->w_idx = -1;
+  thisp->mode = -1;
+  thisp->w_idx = -1;
 
-  this->deps[IA_CH_MONO] = chmono;
-  this->deps[IA_CH_L2] = chl2;
-  this->deps[IA_CH_R2] = chr2;
-  this->deps[IA_CH_L3] = chl3;
-  this->deps[IA_CH_R3] = chr3;
-  this->deps[IA_CH_SL5] = chsl5;
-  this->deps[IA_CH_SR5] = chsr5;
-  this->deps[IA_CH_TL] = chtl;
-  this->deps[IA_CH_TR] = chtr;
-  this->deps[IA_CH_HL] = chhl;
-  this->deps[IA_CH_HR] = chhr;
+  thisp->deps[IA_CH_MONO] = chmono;
+  thisp->deps[IA_CH_L2] = chl2;
+  thisp->deps[IA_CH_R2] = chr2;
+  thisp->deps[IA_CH_L3] = chl3;
+  thisp->deps[IA_CH_R3] = chr3;
+  thisp->deps[IA_CH_SL5] = chsl5;
+  thisp->deps[IA_CH_SR5] = chsr5;
+  thisp->deps[IA_CH_TL] = chtl;
+  thisp->deps[IA_CH_TR] = chtr;
+  thisp->deps[IA_CH_HL] = chhl;
+  thisp->deps[IA_CH_HR] = chhr;
 
-  this->deps[IA_CH_SR5][0].sp = this->deps[IA_CH_SL5][0].sp =
-      &this->mix_factors.alpha;
-  this->deps[IA_CH_SR5][1].sp = this->deps[IA_CH_SL5][1].sp =
-      &this->mix_factors.beta;
-  this->deps[IA_CH_L3][1].sp = this->deps[IA_CH_R3][1].sp =
-      &this->mix_factors.delta;
-  this->deps[IA_CH_HL][1].sp = this->deps[IA_CH_HR][1].sp =
-      &this->mix_factors.gamma;
+  thisp->deps[IA_CH_SR5][0].sp = thisp->deps[IA_CH_SL5][0].sp =
+      &thisp->mix_factors.alpha;
+  thisp->deps[IA_CH_SR5][1].sp = thisp->deps[IA_CH_SL5][1].sp =
+      &thisp->mix_factors.beta;
+  thisp->deps[IA_CH_L3][1].sp = thisp->deps[IA_CH_R3][1].sp =
+      &thisp->mix_factors.delta;
+  thisp->deps[IA_CH_HL][1].sp = thisp->deps[IA_CH_HR][1].sp =
+      &thisp->mix_factors.gamma;
 
-  for (int i = 0; i < this->chs_icount; ++i) this->deps[this->chs_in[i]] = 0;
+  for (int i = 0; i < thisp->chs_icount; ++i) thisp->deps[thisp->chs_in[i]] = 0;
 
-  return this;
+  return thisp;
 }
 
-void DMRenderer_close(DMRenderer *this) { IAMF_FREE(this); }
+void DMRenderer_close(DMRenderer *thisp) { IAMF_FREE(thisp); }
 
-int DMRenderer_set_mode_weight(DMRenderer *this, int mode, int w_idx) {
-  if (!this || !iamf_valid_mix_mode(mode)) return IAMF_ERR_BAD_ARG;
+int DMRenderer_set_mode_weight(DMRenderer *thisp, int mode, int w_idx) {
+  if (!thisp || !iamf_valid_mix_mode(mode)) return IAMF_ERR_BAD_ARG;
 
-  if (this->mode != mode) {
-    ia_logd("dmixtypenum: %d -> %d", this->mode, mode);
-    this->mode = mode;
-    this->mix_factors = *iamf_get_mix_factors(mode);
+  if (thisp->mode != mode) {
+    ia_logd("dmixtypenum: %d -> %d", thisp->mode, mode);
+    thisp->mode = mode;
+    thisp->mix_factors = *iamf_get_mix_factors(mode);
     ia_logd("mode %d: a %f, b %f, g %f, d %f, w index offset %d", mode,
-            this->mix_factors.alpha, this->mix_factors.beta,
-            this->mix_factors.gamma, this->mix_factors.delta,
-            this->mix_factors.w_idx_offset);
+            thisp->mix_factors.alpha, thisp->mix_factors.beta,
+            thisp->mix_factors.gamma, thisp->mix_factors.delta,
+            thisp->mix_factors.w_idx_offset);
   }
 
   if (w_idx < MIN_W_INDEX || w_idx > MAX_W_INDEX) {
     int new_w_idx;
 
-    calc_w(this->mix_factors.w_idx_offset, this->w_idx, &new_w_idx);
-    ia_logd("weight state index : %d (%f) -> %d (%f)", this->w_idx,
-            get_w(this->w_idx), new_w_idx, get_w(new_w_idx));
-    this->w_idx = new_w_idx;
-
-    this->deps[IA_CH_TL][1].s = this->deps[IA_CH_TR][1].s =
-        this->mix_factors.gamma * get_w(new_w_idx);
+    calc_w(thisp->mix_factors.w_idx_offset, thisp->w_idx, &new_w_idx);
+    ia_logd("weight state index : %d (%f) -> %d (%f)", thisp->w_idx,
+            get_w(thisp->w_idx), new_w_idx, get_w(new_w_idx));
+    thisp->w_idx = new_w_idx;
+    if (thisp->deps[IA_CH_TL] && thisp->deps[IA_CH_TR])
+      thisp->deps[IA_CH_TL][1].s = thisp->deps[IA_CH_TR][1].s =
+          thisp->mix_factors.gamma * get_w(new_w_idx);
   } else {
-    if (mode != this->mode) ia_logd("set default demixing mode %d", mode);
-    if (this->w_idx != w_idx) {
-      this->w_idx = w_idx;
+    if (mode != thisp->mode) ia_logd("set default demixing mode %d", mode);
+    if (thisp->w_idx != w_idx) {
+      thisp->w_idx = w_idx;
       ia_logd("set default weight index %d, value %f", w_idx, get_w(w_idx));
-      this->deps[IA_CH_TL][1].s = this->deps[IA_CH_TR][1].s =
-          this->mix_factors.gamma * get_w(w_idx);
+      if (thisp->deps[IA_CH_TL] && thisp->deps[IA_CH_TR]) {
+        thisp->deps[IA_CH_TL][1].s = thisp->deps[IA_CH_TR][1].s =
+            thisp->mix_factors.gamma * get_w(w_idx);
+      }
     }
   }
 
   return IAMF_OK;
 }
 
-int DMRenderer_downmix(DMRenderer *this, float *in, float *out, uint32_t size) {
+int DMRenderer_downmix(DMRenderer *thisp, float *in, float *out,
+                       uint32_t size) {
   int off;
-  if (!this || !in || !out || !size) return IAMF_ERR_BAD_ARG;
+  if (!thisp || !in || !out || !size) return IAMF_ERR_BAD_ARG;
 
-  memset(this->chs_data, 0, IA_CH_COUNT * sizeof(float));
-  for (int i = 0; i < this->chs_icount; ++i) {
-    this->chs_data[this->chs_in[i]] = in + size * i;
+  memset(thisp->chs_data, 0, IA_CH_COUNT * sizeof(float));
+  for (int i = 0; i < thisp->chs_icount; ++i) {
+    thisp->chs_data[thisp->chs_in[i]] = in + size * i;
   }
 
-  for (int i = 0; i < this->chs_ocount; ++i) {
-    ia_logd("channel %s(%d) checking...", ia_channel_name(this->chs_out[i]),
-            this->chs_out[i]);
-    _downmix_dump(this, this->chs_out[i]);
+  for (int i = 0; i < thisp->chs_ocount; ++i) {
+    ia_logd("channel %s(%d) checking...", ia_channel_name(thisp->chs_out[i]),
+            thisp->chs_out[i]);
+    _downmix_dump(thisp, thisp->chs_out[i]);
     off = size * i;
     for (int j = 0; j < size; ++j) {
-      out[off + j] = _downmix_channel_data(this, this->chs_out[i], j);
+      out[off + j] = _downmix_channel_data(thisp, thisp->chs_out[i], j);
     }
   }
 
