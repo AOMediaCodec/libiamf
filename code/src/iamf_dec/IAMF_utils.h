@@ -76,4 +76,7 @@ const char *ia_channel_name(IAChannel ch);
 
 int bit1_count(uint32_t value);
 
+int iamf_valid_mix_mode(int mode);
+const MixFactors *iamf_get_mix_factors(int mode);
+
 #endif /* IAMF_UITLS_H */

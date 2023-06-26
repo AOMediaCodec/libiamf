@@ -322,7 +322,7 @@ static void extradata_iamf_clean(IAMF_extradata *data) {
   }
 }
 
-#define BLOCK_SIZE 8192
+#define BLOCK_SIZE 960 * 6 * 2 * 16
 #define NAME_LENGTH 128
 #define FCLOSE(f) \
   if (f) {        \
@@ -468,6 +468,12 @@ static int bs_input_wav_output(PlayerArgs *pas) {
       if (ret == IAMF_OK) {
         state = 1;
         if (!pcm) pcm = (void *)malloc(sizeof(int16_t) * 3840 * channels);
+      } else if (ret != IAMF_ERR_BUFFER_TOO_SMALL) {
+        fprintf(stderr, "errno: %d, fail to configure decoder.\n", ret);
+        break;
+      } else if (!rsize){
+        fprintf(stderr, "errno: %d, buffer is too small.\n", ret);
+        break;
       }
       /* fprintf(stdout, "header length %d, ret %d\n", rsize, ret); */
       used += rsize;

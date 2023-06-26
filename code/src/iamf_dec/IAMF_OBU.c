@@ -723,7 +723,7 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
                                      IAMF_PARAMETER_TYPE_MIX_GAIN,
                                      &b) != IAMF_OK)
           goto mix_presentation_fail;
-        conf_s[i].conf_m.gain.mix_gain = bs_getA16b(&b);
+        conf_s[i].conf_m.gain.mix_gain = (short)bs_getA16b(&b);
         ia_logd("element mix info : element mix gain 0x%x",
                 conf_s[i].conf_m.gain.mix_gain & U16_MASK);
       }

@@ -137,6 +137,7 @@
     <ClCompile Include="..\..\src\iamf_dec\audio_effect_peak_limiter.c" />
     <ClCompile Include="..\..\src\iamf_dec\bitstream.c" />
     <ClCompile Include="..\..\src\iamf_dec\demixer.c" />
+    <ClCompile Include="..\..\src\iamf_dec\downmix_renderer.c" />
     <ClCompile Include="..\..\src\iamf_dec\flac\flac_multistream_decoder.c" />
     <ClCompile Include="..\..\src\iamf_dec\flac\IAMF_flac_decoder.c" />
     <ClCompile Include="..\..\src\iamf_dec\h2m_rdr.c" />
@@ -168,6 +169,7 @@
     <ClInclude Include="..\..\src\iamf_dec\audio_effect_peak_limiter.h" />
     <ClInclude Include="..\..\src\iamf_dec\bitstream.h" />
     <ClInclude Include="..\..\src\iamf_dec\demixer.h" />
+    <ClInclude Include="..\..\src\iamf_dec\downmix_renderer.h" />
     <ClInclude Include="..\..\src\iamf_dec\flac\flac_multistream_decoder.h" />
     <ClInclude Include="..\..\src\iamf_dec\IAMF_codec.h" />
     <ClInclude Include="..\..\src\iamf_dec\IAMF_core_decoder.h" />

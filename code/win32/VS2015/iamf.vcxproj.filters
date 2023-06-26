@@ -81,6 +81,9 @@
     <ClCompile Include="..\..\dep_external\src\wav\dep_wavwriter.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\iamf_dec\downmix_renderer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\IAMF_decoder.h">
@@ -153,6 +156,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\dep_external\include\wav\dep_wavwriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\iamf_dec\downmix_renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
