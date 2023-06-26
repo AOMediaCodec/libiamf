@@ -137,7 +137,7 @@ static const struct {
   int t;
 } gIACLC2Count[IA_CHANNEL_LAYOUT_COUNT] = {
     {1, 0, 0}, {2, 0, 0}, {5, 1, 0}, {5, 1, 2}, {5, 1, 4},
-    {7, 1, 0}, {7, 1, 2}, {7, 1, 4}, {3, 1, 2},
+    {7, 1, 0}, {7, 1, 2}, {7, 1, 4}, {3, 1, 2}, {2, 0, 0}
 };
 
 int ia_channel_layout_get_category_channels_count(IAChannelLayoutType type,
