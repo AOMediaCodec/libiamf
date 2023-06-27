@@ -136,7 +136,7 @@ audio_frame_metadata {
   samples_to_trim_at_end: 640
   samples_to_trim_at_start: 0
   audio_element_id: 300
-  channel_ids: [0, 1, 2, 3, 6, 7, 8, 9]
+  channel_ids: [0, 1, 2, 3, 4, 5, 8, 9]
   channel_labels: ["L5", "R5", "C", "LFE", "Ls5", "Rs5", "Ltf2", "Rtf2"]
 }
 
