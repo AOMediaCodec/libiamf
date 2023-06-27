@@ -111,7 +111,7 @@ mix_presentation_metadata {
       loudness_layout {
         layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
         ss_layout {
-          sound_system: 12  # Mono in spec
+          sound_system: SOUND_SYSTEM_12_0_1_0  # Mono in spec
           reserved: 0
         }
       }
