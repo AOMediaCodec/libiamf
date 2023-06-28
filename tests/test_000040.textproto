@@ -16,8 +16,8 @@ test_vector_metadata {
 
 ia_sequence_header_metadata {
   ia_code: 0x69616d66  # "iamf"
-  profile_name: PROFILE_VERSION_SIMPLE
-  profile_compatible: PROFILE_VERSION_SIMPLE
+  primary_profile: PROFILE_VERSION_SIMPLE
+  additional_profile: PROFILE_VERSION_SIMPLE
 }
 
 codec_config_metadata {
