@@ -41,13 +41,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "mp4iamfpar.h"
 #include "string.h"
 
-#define SR 0
-#if SR
+#ifndef SUPPORT_VERIFIER
+#define SUPPORT_VERIFIER 0
+#endif
+#if SUPPORT_VERIFIER
 #include "vlogging_tool_sr.h"
 #endif
 
 #define FLAG_METADATA 0x1
-#if SR
+#if SUPPORT_VERIFIER
 #define FLAG_VLOG 0x2
 #endif
 #define SAMPLING_RATE 48000
@@ -89,7 +91,7 @@ static void print_usage(char *argv[]) {
   fprintf(stderr,
           "-ts pos      : seek to a given position in seconds, which is valid "
           "when mp4 file is used as input.\n");
-#if SR
+#if SUPPORT_VERIFIER
   fprintf(stderr, "-v <file>    : verification log generation.\n");
 #endif
   fprintf(stderr,
@@ -782,7 +784,7 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-#if SR
+#if SUPPORT_VERIFIER
   char *vlog_file = 0;
 #endif
 
@@ -826,7 +828,7 @@ int main(int argc, char *argv[]) {
         pas.flags |= FLAG_METADATA;
         fprintf(stdout, "Generate metadata file");
       } else if (argv[args][1] == 'v') {
-#if SR
+#if SUPPORT_VERIFIER
         pas.flags |= FLAG_VLOG;
         vlog_file = argv[++args];
         fprintf(stdout, "Verification log file : %s\n", vlog_file);
@@ -866,7 +868,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (target.type) {
-#if SR
+#if SUPPORT_VERIFIER
     if (pas.flags & FLAG_VLOG) vlog_file_open(vlog_file);
 #endif
     if (!input_mode && output_mode == 2) {
@@ -875,7 +877,7 @@ int main(int argc, char *argv[]) {
       // mp4_input_wav_output(&pas);
       mp4_input_wav_output2(&pas);
     }
-#if SR
+#if SUPPORT_VERIFIER
     if (pas.flags & FLAG_VLOG) vlog_file_close();
 #endif
     else {

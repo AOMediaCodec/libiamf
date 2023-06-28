@@ -42,6 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 
 #include "IAMF_OBU.h"
+#include "IAMF_utils.h"
 #include "bitstream.h"
 #include "vlogging_tool_sr.h"
 
@@ -294,7 +295,7 @@ static void write_sequence_header_log(uint64_t idx, void* obu, char* log) {
   IAMF_Version* mc_obu = (IAMF_Version*)obu;
 
   log += write_prefix(LOG_OBU, log);
-  log += write_yaml_form(log, 0, "MagicCodeOBU_%llu:", idx);
+  log += write_yaml_form(log, 0, "IaSequenceHeaderOBU_%llu:", idx);
   log += write_yaml_form(log, 0, "- ia_code: %u",
                          swapByteOrder(mc_obu->iamf_code));
   log += write_yaml_form(log, 1, "profile_name: %u", mc_obu->profile_name);
@@ -315,7 +316,8 @@ static void write_codec_config_log(uint64_t idx, void* obu, char* log) {
       write_yaml_form(log, 2, "codec_id: %u", swapByteOrder(cc_obu->codec_id));
   log += write_yaml_form(log, 2, "num_samples_per_frame: %llu",
                          cc_obu->nb_samples_per_frame);
-  log += write_yaml_form(log, 2, "roll_distance: %d", cc_obu->roll_distance);
+  log +=
+      write_yaml_form(log, 2, "audio_roll_distance: %d", cc_obu->roll_distance);
 
   // NOTE: Self parsing
 
@@ -372,6 +374,67 @@ static void write_audio_element_log(uint64_t idx, void* obu, char* log) {
     log += write_yaml_form(log, 1, "- %llu", ae_obu->substream_ids[i]);
   }
   log += write_yaml_form(log, 1, "num_parameters: %llu", ae_obu->nb_parameters);
+  if (ae_obu->nb_parameters) {
+    log += write_yaml_form(log, 1, "audio_element_params:");
+    for (uint64_t i = 0; i < ae_obu->nb_parameters; ++i) {
+      ParameterBase* param = ae_obu->parameters[i];
+      log +=
+          write_yaml_form(log, 1, "- param_definition_type: %llu", param->type);
+
+      if (param->type == IAMF_PARAMETER_TYPE_DEMIXING) {
+        DemixingParameter* dp = (DemixingParameter*)param;
+        log += write_yaml_form(log, 2, "demixing_param:");
+
+        log += write_yaml_form(log, 3, "param_definition:");
+        log += write_yaml_form(log, 4, "parameter_id: %llu", dp->base.id);
+        log += write_yaml_form(log, 4, "parameter_rate: %llu", dp->base.rate);
+        log +=
+            write_yaml_form(log, 4, "param_definition_mode: %u", dp->base.mode);
+        if (dp->base.mode == 0) {
+          log += write_yaml_form(log, 4, "duration: %llu", dp->base.duration);
+          log += write_yaml_form(log, 4, "num_subblocks: %llu",
+                                 dp->base.nb_segments);
+          log += write_yaml_form(log, 4, "constant_subblock_duration: %llu",
+                                 dp->base.constant_segment_interval);
+          if (dp->base.constant_segment_interval == 0) {
+            log += write_yaml_form(log, 4, "subblock_durations:");
+            for (uint64_t j = 0; j < dp->base.nb_segments; ++j) {
+              log += write_yaml_form(log, 4, "- %llu",
+                                     dp->base.segments->segment_interval);
+            }
+          }
+        }
+        log += write_yaml_form(log, 3, "default_demixing_info_parameter_data:");
+        log += write_yaml_form(log, 4, "dmixp_mode: %lu", dp->mode);
+
+        log += write_yaml_form(log, 3, "default_w: %lu", dp->w);
+      } else if (param->type == IAMF_PARAMETER_TYPE_RECON_GAIN) {
+        ReconGainParameter* rp = (ReconGainParameter*)param;
+        log += write_yaml_form(log, 2, "recon_gain_param:");
+
+        log += write_yaml_form(log, 3, "param_definition:");
+        log += write_yaml_form(log, 4, "parameter_id: %llu", rp->base.id);
+        log += write_yaml_form(log, 4, "parameter_rate: %llu", rp->base.rate);
+        log +=
+            write_yaml_form(log, 4, "param_definition_mode: %u", rp->base.mode);
+        if (rp->base.mode == 0) {
+          log += write_yaml_form(log, 4, "duration: %llu", rp->base.duration);
+          log += write_yaml_form(log, 4, "num_subblocks: %llu",
+                                 rp->base.nb_segments);
+          log += write_yaml_form(log, 4, "constant_subblock_duration: %llu",
+                                 rp->base.constant_segment_interval);
+          if (rp->base.constant_segment_interval == 0) {
+            log += write_yaml_form(log, 4, "subblock_durations:");
+            for (uint64_t j = 0; j < rp->base.nb_segments; ++j) {
+              log += write_yaml_form(log, 4, "- %llu",
+                                     rp->base.segments->segment_interval);
+            }
+          }
+        }
+      }
+    }
+  }
+
   if (ae_obu->element_type == AUDIO_ELEMENT_TYPE_CHANNEL_BASED) {
     log += write_yaml_form(log, 1, "scalable_channel_layout_config:");
     log += write_yaml_form(log, 2, "num_layers: %u",
@@ -389,6 +452,12 @@ static void write_audio_element_log(uint64_t idx, void* obu, char* log) {
                              layer_conf->nb_substreams);
       log += write_yaml_form(log, 3, "coupled_substream_count: %u",
                              layer_conf->nb_coupled_substreams);
+      if (layer_conf->output_gain_flag) {
+        log += write_yaml_form(log, 3, "output_gain_flag: %u",
+                               layer_conf->output_gain_info->output_gain_flag);
+        log += write_yaml_form(log, 3, "output_gain: %d",
+                               layer_conf->output_gain_info->output_gain);
+      }
     }
   } else if (ae_obu->element_type == AUDIO_ELEMENT_TYPE_SCENE_BASED) {
     // log += write_yaml_form(log, 0, "- scene_based:");
@@ -435,9 +504,17 @@ static void write_mix_presentation_log(uint64_t idx, void* obu, char* log) {
   log += write_yaml_form(log, 0, "MixPresentationOBU_%llu:", idx);
   log += write_yaml_form(log, 0, "- mix_presentation_id: %llu",
                          mp_obu->mix_presentation_id);
-  log += write_yaml_form(log, 1, "mix_presentation_annotations:");
-  log += write_yaml_form(log, 2, "mix_presentation_friendly_label: \"%s\"",
-                         mp_obu->mix_presentation_friendly_label);
+  log += write_yaml_form(log, 1, "count_label: %llu", mp_obu->num_labels);
+  log += write_yaml_form(log, 1, "language_labels:");
+  for (uint64_t i = 0; i < mp_obu->num_labels; ++i) {
+    log += write_yaml_form(log, 1, "- \"%s\"", mp_obu->language[i]);
+  }
+  log += write_yaml_form(log, 1, "mix_presentation_annotations_array:");
+  for (uint64_t i = 0; i < mp_obu->num_labels; ++i) {
+    log += write_yaml_form(log, 1, "- mix_presentation_annotations:");
+    log += write_yaml_form(log, 2, "mix_presentation_friendly_label: \"%s\"",
+                           mp_obu->mix_presentation_friendly_label[i]);
+  }
   log += write_yaml_form(log, 1, "num_sub_mixes: %llu", mp_obu->num_sub_mixes);
   log += write_yaml_form(log, 1, "sub_mixes:");
   for (uint64_t i = 0; i < mp_obu->num_sub_mixes; ++i) {
@@ -449,9 +526,22 @@ static void write_mix_presentation_log(uint64_t idx, void* obu, char* log) {
       ElementMixRenderConf* conf_s = &submix->conf_s[j];
       log += write_yaml_form(log, 2, "- audio_element_id: %llu",
                              conf_s->element_id);
-      log += write_yaml_form(log, 3, "mix_presentation_element_annotations:");
-      log += write_yaml_form(log, 4, "audio_element_friendly_label: \"%s\"",
-                             conf_s->audio_element_friendly_label);
+#if 1
+      for (uint64_t k = 0; k < mp_obu->num_labels; ++k) {
+        log += write_yaml_form(log, 3, "mix_presentation_element_annotations:");
+        log += write_yaml_form(log, 4, "audio_element_friendly_label: \"%s\"",
+                               conf_s->audio_element_friendly_label[k]);
+      }
+#else
+      log += write_yaml_form(log, 3,
+                             "mix_presentation_element_annotations_array:");
+      for (uint64_t k = 0; k < mp_obu->num_labels; ++k) {
+        log +=
+            write_yaml_form(log, 3, "- mix_presentation_element_annotations:");
+        log += write_yaml_form(log, 4, "audio_element_friendly_label: \"%s\"",
+                               conf_s->audio_element_friendly_label[k]);
+      }
+#endif
 
       // log += write_yaml_form(log, 2, "- rendering_config:");
 
@@ -552,6 +642,29 @@ static void write_mix_presentation_log(uint64_t idx, void* obu, char* log) {
                              submix->loudness[j].integrated_loudness);
       log += write_yaml_form(log, 4, "digital_peak: %d",
                              submix->loudness[j].digital_peak);
+      if (submix->loudness[j].info_type & 1) {
+        log += write_yaml_form(log, 4, "true_peak: %d",
+                               submix->loudness[j].true_peak);
+      }
+
+      if (submix->loudness[j].info_type & 2) {
+        log += write_yaml_form(log, 4, "anchored_loudness:");
+        log += write_yaml_form(log, 5, "num_anchored_loudness: %u",
+                               submix->loudness[j].num_anchor_loudness);
+
+        if (submix->loudness[j].num_anchor_loudness) {
+          log += write_yaml_form(log, 5, "anchor_elements:");
+          for (uint8_t k = 0; k < submix->loudness[j].num_anchor_loudness;
+               ++k) {
+            anchor_loudness_t anchor_loudness_info =
+                submix->loudness[j].anchor_loudness[k];
+            log += write_yaml_form(log, 5, "- anchor_element: %u",
+                                   anchor_loudness_info.anchor_element);
+            log += write_yaml_form(log, 6, "anchored_loudness: %d",
+                                   anchor_loudness_info.anchored_loudness);
+          }
+        }
+      }
     }
   }
   write_postfix(LOG_OBU, log);
@@ -603,9 +716,54 @@ static void write_parameter_block_log(uint64_t idx, void* obu, char* log) {
                              mode->seg.segment_interval);
       log += write_yaml_form(log, 3, "dmixp_mode: %lu", mode->demixing_mode);
     } else if (para->type == IAMF_PARAMETER_TYPE_RECON_GAIN) {
-      log += write_yaml_form(log, 1, "- recon_gain_parameter_data:");
-      // log += write_yaml_form(log, 3, "subblock_duration: %llu",
-      // ->seg->segment_interval); KWON_TODO
+      ReconGainSegment* mode = (ReconGainSegment*)para->segments[i];
+      log += write_yaml_form(log, 1, "- recon_gain_info_parameter_data:");
+      for (uint64_t j = 0; j < mode->list.count; ++j) {
+        log += write_yaml_form(log, 3, "recon_gains_for_layer:");
+        ReconGain recon_gain = mode->list.recon[j];
+        int channels = bit1_count(recon_gain.flags);
+        if (channels > 0) {
+          // leb128
+          // read 2 bytes
+          uint8_t cur_channel = 0;
+
+          uint32_t recon_channel = recon_gain.flags & 0xFFFF;
+          if (recon_channel & 0x8000) {
+            uint32_t ch = ((recon_channel & 0xFF00) >> 8);
+            for (uint8_t k = 0; k < 7; ++k) {
+              if (ch & 0x01) {
+                log += write_yaml_form(log, 4, "recon_gain:");
+                log += write_yaml_form(log, 5, "key: %u", k);
+                log += write_yaml_form(log, 5, "value: %d",
+                                       recon_gain.recon_gain[cur_channel++]);
+              }
+              ch >>= 1;
+            }
+
+            ch = (recon_channel & 0x00FF);
+            for (uint8_t k = 7; k < 12; ++k) {
+              if (ch & 0x01) {
+                log += write_yaml_form(log, 4, "recon_gain:");
+                log += write_yaml_form(log, 5, "key: %u", k);
+                log += write_yaml_form(log, 5, "value: %d",
+                                       recon_gain.recon_gain[cur_channel++]);
+              }
+              ch >>= 1;
+            }
+          } else {
+            uint32_t ch = recon_channel & 0xFF;
+            for (uint8_t k = 0; k < 7; ++k) {
+              if (ch & 0x01) {
+                log += write_yaml_form(log, 4, "recon_gain:");
+                log += write_yaml_form(log, 5, "key: %u", k);
+                log += write_yaml_form(log, 5, "value: %d",
+                                       recon_gain.recon_gain[cur_channel++]);
+              }
+              ch >>= 1;
+            }
+          }
+        }
+      }
     }
   }
 
@@ -624,7 +782,7 @@ static void write_audio_frame_log(uint64_t idx, void* obu, char* log,
                          num_samples_to_trim_at_start);
   log += write_yaml_form(log, 1, "num_samples_to_trim_at_end: %llu",
                          num_samples_to_trim_at_end);
-  log += write_yaml_form(log, 1, "size_of(audio_frame): %u", af_obu->size);
+  log += write_yaml_form(log, 1, "size_of_audio_frame: %u", af_obu->size);
   write_postfix(LOG_OBU, log);
 }
 

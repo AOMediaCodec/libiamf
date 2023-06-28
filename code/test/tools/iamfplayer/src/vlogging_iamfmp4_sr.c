@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-//#include "IAMF_OBU.h"
+
 #include "vlogging_iamfmp4_sr.h"
 
 #ifndef _A2B_ENDIAN_H
@@ -184,7 +184,7 @@ static uint16_t queue_rb16(int index, void* data, int size) {
   return val;
 }
 
-static int queue_r8(int index, void* data, int size) {
+static uint8_t queue_rb8(int index, void* data, int size) {
   uint8_t val = 0;
   queue_rdata(index, data, 1, &val, 1);
   return val;
@@ -1125,6 +1125,108 @@ static void write_iamf_atom_log(char* log, void* atom_d, int size,
   write_postfix(LOG_MP4BOX, log);
 }
 
+/*
+class obu_header() {
+        unsigned int(5) obu_type;
+        unsigned int(1) obu_redundant_copy;
+        unsigned int(1) obu_trimming_status_flag;
+        unsigned int(1) obu_extension_flag;
+        leb128() obu_size;
+
+        if (obu_trimming_status_flag) {
+                leb128() num_samples_to_trim_at_end;
+                leb128() num_samples_to_trim_at_start;
+        }
+        if (obu_extension_flag == 1)
+                leb128() extension_header_size;
+}
+*/
+
+typedef struct _IAMF_OBU {
+  uint8_t* data;
+  uint64_t size;
+
+  uint8_t type;
+  uint8_t redundant;
+  uint8_t trimming;
+  uint8_t extension;
+
+  uint64_t trim_start;
+  uint64_t trim_end;
+
+  uint8_t* ext_header;
+  uint64_t ext_size;
+
+  uint8_t* payload;
+} IAMF_OBU_t;
+
+uint64_t read_leb128(const uint8_t* data, uint64_t* pret) {
+  uint64_t ret = 0;
+  uint32_t i;
+  uint8_t byte;
+
+  for (i = 0; i < 8; i++) {
+    byte = data[i];
+    ret |= (((uint64_t)byte & 0x7f) << (i * 7));
+    if (!(byte & 0x80)) {
+      break;
+    }
+  }
+  ++i;
+  *pret = ret;
+  return i;
+}
+
+#define IAMF_OBU_MIN_SIZE 2
+static uint32_t read_IAMF_OBU(const uint8_t* data, uint32_t size,
+                              IAMF_OBU_t* obu) {
+  uint64_t obu_end = 0;
+  int index = 0;
+  uint8_t val;
+
+  if (size < IAMF_OBU_MIN_SIZE) {
+    return 0;
+  }
+
+  memset(obu, 0, sizeof(IAMF_OBU_t));
+  val = data[index];
+
+  obu->type = (val & 0xF8) >> 3;
+  obu->redundant = (val & 0x04) >> 2;
+  obu->trimming = (val & 0x02) >> 1;
+  obu->extension = (val & 0x01);
+  index++;
+
+  index += read_leb128(data + index, &obu->size);
+  obu_end = index + obu->size;
+
+  if (index + obu->size > size) {
+    return 0;
+  }
+  obu->data = (uint8_t*)data + index;
+
+  if (obu->trimming) {
+    index += read_leb128(obu->data + index,
+                         &obu->trim_end);  // num_samples_to_trim_at_end;
+    index += read_leb128(obu->data + index,
+                         &obu->trim_start);  // num_samples_to_trim_at_start;
+  }
+
+  if (obu->extension) {
+    index += read_leb128(obu->data + index,
+                         &obu->ext_size);  // extension_header_size;
+    obu->ext_header = (uint8_t*)obu->data + index;
+    index += obu->ext_size;
+  }
+
+  obu->payload = (uint8_t*)data + index;
+  return obu_end;
+}
+
+#define OBU_IA_Codec_Config 0
+#define CODEC_ID(c1, c2, c3, c4) \
+  (((c1) << 24) + ((c2) << 16) + ((c3) << 8) + ((c4) << 0))
+
 static void write_iamd_atom_log(char* log, void* atom_d, int size,
                                 uint64_t atom_addr) {
   /*
@@ -1136,19 +1238,72 @@ static void write_iamd_atom_log(char* log, void* atom_d, int size,
   <ParserReadBytes Value="124"/>
   </iamd>
   */
-  int index = 0;
+  int index = 0, ret;
+  int x, val;
+  int codec_id;
+  IAMF_OBU_t obu;
+  uint64_t val64;
 
   log += write_prefix(LOG_MP4BOX, log);
   log += write_yaml_form(log, 0, "iamd_%016x:", atom_addr);
 
   /*
-  magic_code_obu() is the magic_code_obu() in this set of descriptor OBUs.
-  codec_config_obu() is the codec_config_obu() in this set of descriptor OBUs.
-  audio_element_obu() is the i-th audio_element_obu() in this set of descriptor
-  OBUs. mix_presentation_obu() is the j-th mix_presentation_obu() in this set of
-  descriptor OBUs. sync_obu() is the sync_obu() that immediately follows this
-  set of descriptor OBUs.
+  [ ] ia_sequence_header_obu() is the ia_sequence_header_obu() in this set of
+  descriptor OBUs. [o] codec_config_obu() is the codec_config_obu() in this set
+  of descriptor OBUs. [ ] audio_element_obu() is the i-th audio_element_obu() in
+  this set of descriptor OBUs. [ ] mix_presentation_obu() is the j-th
+  mix_presentation_obu() in this set of descriptor OBUs. : print only [o]
+  codec_config_obu()
   */
+
+  while (index < size) {
+    ret = read_IAMF_OBU((const uint8_t*)atom_d + index, size - index, &obu);
+    if (ret == 0) break;
+    index += ret;
+    if (obu.type == OBU_IA_Codec_Config) {
+      /*
+  class codec_config_obu() {
+     leb128() codec_config_id;
+     codec_config();
+  }
+
+  class codec_config() {
+     unsigned int(32) codec_id;
+     leb128() num_samples_per_frame;
+     signed int(16) audio_roll_distance;
+     decoder_config(codec_id);
+  }
+  */
+      x = 0;
+      x += read_leb128(obu.payload + x, &val64);
+      log += write_yaml_form(log, 0, "- codec_config_id: %u", (int)val64);
+
+      val = queue_rb32(x, obu.payload, obu.size - x);
+      x += 4;
+
+      switch (val) {
+        case CODEC_ID('O', 'p', 'u', 's'):
+          log += write_yaml_form(log, 0, "- codec_id: Opus");
+          break;
+        case CODEC_ID('m', 'p', '4', 'a'):
+          log += write_yaml_form(log, 0, "- codec_id: mp4a");
+          break;
+        case CODEC_ID('f', 'L', 'a', 'C'):
+          log += write_yaml_form(log, 0, "- codec_id: fLaC");
+          break;
+        case CODEC_ID('i', 'p', 'c', 'm'):
+          log += write_yaml_form(log, 0, "- codec_id: ipcm");
+          break;
+      }
+
+      x += read_leb128(obu.payload + x, &val64);
+      log += write_yaml_form(log, 0, "- num_samples_per_frame: %u", (int)val64);
+
+      val = queue_rb16(x, obu.payload, obu.size - x);
+      x += 2;
+      log += write_yaml_form(log, 0, "- audio_roll_distance: %d", (int16_t)val);
+    }
+  }
   write_postfix(LOG_MP4BOX, log);
 }
 
@@ -1376,11 +1531,141 @@ static void write_stco_atom_log(char** log, void* atom_d, int size,
   write_postfix(LOG_MP4BOX, *log + len);
 }
 
-static void write_sgpd_atom_log(char* log, void* atom_d, int size,
-                                uint64_t atom_addr) {}
+static void write_sgpd_atom_log(char** log, void* atom_d, int size,
+                                uint64_t atom_addr) {
+  /*
+  [sgpd: Sample Group Description Box]
+  position = 727
+  size = 26
+  version = 1
+  flags = 0x000000
+  grouping_type = roll
+  default_length = 2 (constant)
+  entry_count = 1
+  roll_distance[0] = -2
 
-static void write_sbgp_atom_log(char* log, void* atom_d, int size,
-                                uint64_t atom_addr) {}
+  aligned(8) class SampleGroupDescriptionBox (unsigned int(32) handler_type)
+  extends FullBox('sgpd', version, 0){
+  unsigned int(32) grouping_type;
+  if (version>=1) { unsigned int(32) default_length; }
+  if (version>=2) {
+  unsigned int(32) default_group_description_index;
+  }
+  unsigned int(32) entry_count;
+  int i;
+  for (i = 1 ; i <= entry_count ; i++){
+          if (version>=1) {
+                  if (default_length==0) {
+                          unsigned int(32) description_length;
+                  }
+          }
+          SampleGroupDescriptionEntry (grouping_type);
+          // an instance of a class derived from SampleGroupDescriptionEntry
+          //  that is appropriate and permitted for the media type
+  }
+  }
+
+  class AudioRollRecoveryEntry() extends AudioSampleGroupEntry ('roll')
+  {
+  signed int(16) roll_distance;
+  }
+  */
+  enum { BUFSIZE = 256, BUFSIZE2 = 40 };
+  char buf[BUFSIZE], buf2[BUFSIZE2], buf3[BUFSIZE * 5 + 1];
+  uint32_t val;
+  int index = 0;
+  int version, grouping_type;
+  int default_length, default_group_description_index;
+  int entry_count = 0;
+  int cnt, x;
+  int description_length, remaining, data_size;
+
+  int len = write_prefix(LOG_MP4BOX, *log);
+  len += write_yaml_form(*log + len, 0, "sgpd_%016x:", atom_addr);
+
+  // version/flags
+  val = queue_rb32(index, atom_d, size - index);
+  index += 4;
+  version = (val >> 24) & 0xff;
+  len += write_yaml_form(*log + len, 0, "- Version: %u", (val >> 24) & 0xff);
+  len += write_yaml_form(*log + len, 0, "- Flags: %u", val & 0xffffff);
+
+  // grouping_type
+  val = queue_rb32(index, atom_d, size - index);
+  index += 4;
+  grouping_type = val;
+  len += write_yaml_form(*log + len, 0, "- GroupingType: %u", val);
+
+  if (version >= 1) {  // default_length
+    val = queue_rb32(index, atom_d, size - index);
+    index += 4;
+    default_length = val;
+    len += write_yaml_form(*log + len, 0, "- DefaultLength: %u", val);
+  }
+  if (version >= 2) {  // default_group_description_index
+    val = queue_rb32(index, atom_d, size - index);
+    index += 4;
+    default_group_description_index = val;
+    len += write_yaml_form(*log + len, 0, "- DefaultGroupDescriptionIndex: %u",
+                           val);
+  }
+
+  // entry_count
+  val = queue_rb32(index, atom_d, size - index);
+  index += 4;
+  entry_count = val;
+  len += write_yaml_form(*log + len, 0, "- EntryCount: %u", val);
+
+  for (cnt = 0; cnt < entry_count; cnt++) {
+    if (version >= 1) {
+      if (default_length == 0) {
+        val = queue_rb32(index, atom_d, size - index);
+        index += 4;
+        description_length = val;
+        len += write_yaml_form(*log + len, 0, "- DescriptionLength_%d: %u", cnt,
+                               val);
+      } else {
+        if (default_length == 1) {
+          val = queue_rb8(index, atom_d, size - index);
+          index += 1;
+          len += write_yaml_form(*log + len, 0, "- GroupingEntryVal_%d: %d",
+                                 cnt, (int8_t)val);
+        } else if (default_length == 2) {
+          val = queue_rb16(index, atom_d, size - index);
+          index += 2;
+          len += write_yaml_form(*log + len, 0, "- GroupingEntryVal_%d: %d",
+                                 cnt, (int16_t)val);
+        } else if (default_length == 4) {
+          val = queue_rb32(index, atom_d, size - index);
+          index += 4;
+          len += write_yaml_form(*log + len, 0, "- GroupingEntryVal_%d: %d",
+                                 cnt, (int32_t)val);
+        } else {
+          remaining = default_length;
+          buf3[0] = 0;
+          while (remaining > 0) {
+            if (remaining > BUFSIZE) {
+              index += queue_rdata(0, atom_d, size, buf, BUFSIZE);
+              data_size = BUFSIZE;
+            } else {
+              data_size = remaining;
+            }
+
+            for (x = 0; x < data_size; x++) {
+              val = (uint32_t)(((uint8_t*)buf)[x]);
+              sprintf(buf2, "0x%02x ", val);
+              strcat(buf3, buf2);
+            }
+            log +=
+                write_yaml_form(log, 0, "- GroupingEntryVal_%d: %s", cnt, buf3);
+          }
+        }
+      }
+    }
+  }
+
+  write_postfix(LOG_MP4BOX, *log + len);
+}
 
 int vlog_atom(uint32_t atom_type, void* atom_d, int size, uint64_t atom_addr) {
   if (!is_vlog_file_open()) return -1;
@@ -1440,6 +1725,9 @@ int vlog_atom(uint32_t atom_type, void* atom_d, int size, uint64_t atom_addr) {
       break;
     case MP4BOX_STCO:
       write_stco_atom_log(&log, atom_d, size, atom_addr);
+      break;
+    case MP4BOX_SGPD:
+      write_sgpd_atom_log(&log, atom_d, size, atom_addr);
       break;
     case MP4BOX_MOOF:
       write_moof_atom_log(log, atom_d, size, atom_addr);

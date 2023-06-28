@@ -107,6 +107,8 @@ typedef struct MixFactors {
   int w_idx_offset;
 } MixFactors;
 
+typedef enum { IAMF_PROFILE_SIMPLE, IAMF_PROFILE_BASE } IAMF_Profile;
+
 #define U8_MASK 0xFF
 #define U16_MASK 0xFFFF
 

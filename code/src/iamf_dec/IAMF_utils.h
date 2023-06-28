@@ -57,6 +57,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 void iamf_freep(void **p);
 
+IAMF_CodecID iamf_codec_4cc_get_codecID(uint32_t id);
 int iamf_codec_check(IAMF_CodecID cid);
 const char *iamf_codec_name(IAMF_CodecID cid);
 

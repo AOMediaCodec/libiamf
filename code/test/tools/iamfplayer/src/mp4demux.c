@@ -47,8 +47,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "dmemory.h"
 #include "iamf_header.h"
 
-#define SR 0
-#if SR
+#ifndef SUPPORT_VERIFIER
+#define SUPPORT_VERIFIER 0
+#endif
+#if SUPPORT_VERIFIER
 #include "vlogging_iamfmp4_sr.h"
 #endif
 
@@ -82,7 +84,9 @@ static int mov_read_stts(mp4r_t *mp4r, int size);
 static int mov_read_stsc(mp4r_t *mp4r, int size);
 static int mov_read_stsz(mp4r_t *mp4r, int size);
 static int mov_read_stco(mp4r_t *mp4r, int size);
-
+#if SUPPORT_VERIFIER
+static int mov_read_sgpd(mp4r_t *mp4r, int size);
+#endif
 static avio_context atoms_tkhd[] = {
     {MOV_ATOM_NAME, "tkhd"}, {MOV_ATOM_DATA, mov_read_tkhd}, {0}};
 
@@ -112,7 +116,10 @@ static avio_context atoms_stsz[] = {
     {MOV_ATOM_NAME, "stsz"}, {MOV_ATOM_DATA, mov_read_stsz}, {0}};
 static avio_context atoms_stco[] = {
     {MOV_ATOM_NAME, "stco"}, {MOV_ATOM_DATA, mov_read_stco}, {0}};
-
+#if SUPPORT_VERIFIER
+static avio_context atoms_sgpd[] = {
+    {MOV_ATOM_NAME, "sgpd"}, {MOV_ATOM_DATA, mov_read_sgpd}, {0}};
+#endif
 static avio_context atoms_edts[] = {
     {MOV_ATOM_NAME, "edts"}, {MOV_ATOM_DATA, mov_read_edts}, {MOV_ATOM_DESCENT},
     {MOV_ATOM_NAME, "elst"}, {MOV_ATOM_DATA, mov_read_elst}, {0}};
@@ -180,7 +187,7 @@ static int mov_read_ftyp(mp4r_t *mp4r, int size) {
   char buf[BUFSIZE];
   uint32_t val;
 
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -221,7 +228,7 @@ static char *mp4time(time_t t) {
 }
 
 static int mov_read_mvhd(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -262,7 +269,7 @@ static int mov_read_mvhd(mp4r_t *mp4r, int size) {
 }
 
 int mov_read_mdhd(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -305,7 +312,7 @@ int atom_seek_parse(mp4r_t *mp4r, int64_t pos, int size, avio_context *atoms) {
 }
 
 int mov_read_trak(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -325,7 +332,7 @@ int mov_read_trak(mp4r_t *mp4r, int size) {
 }
 
 int mov_read_stbl(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -336,8 +343,17 @@ int mov_read_stbl(mp4r_t *mp4r, int size) {
 #endif
 
   int64_t apos = ftell(mp4r->fin);
-  avio_context *list[] = {atoms_stsd, atoms_stts, atoms_stsc, atoms_stsz,
-                          atoms_stco};
+  avio_context *list[] = {
+    atoms_stsd,
+    atoms_stts,
+    atoms_stsc,
+    atoms_stsz,
+    atoms_stco
+#if SUPPORT_VERIFIER
+    ,
+    atoms_sgpd
+#endif
+  };
   STASH_ATOM();
   for (int i = 0; i < sizeof(list) / sizeof(avio_context *); ++i)
     atom_seek_parse(mp4r, apos, size, list[i]);
@@ -346,7 +362,7 @@ int mov_read_stbl(mp4r_t *mp4r, int size) {
 }
 
 int mov_read_tkhd(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -402,7 +418,7 @@ int mov_read_tkhd(mp4r_t *mp4r, int size) {
 }
 
 int mov_read_stsd(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -428,7 +444,7 @@ int mov_read_stsd(mp4r_t *mp4r, int size) {
 }
 
 int mov_read_edts(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -441,7 +457,7 @@ int mov_read_edts(mp4r_t *mp4r, int size) {
 }
 
 int mov_read_elst(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -499,7 +515,7 @@ static uint32_t getsize_(mp4r_t *mp4r) {
 }
 
 int mov_read_iamf(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -549,7 +565,7 @@ int mov_read_iamf(mp4r_t *mp4r, int size) {
 }
 
 int mov_read_iamd(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -577,7 +593,7 @@ int mov_read_iamd(mp4r_t *mp4r, int size) {
 }
 
 int mov_read_stts(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -660,7 +676,7 @@ int mov_read_stts(mp4r_t *mp4r, int size) {
 }
 
 int mov_read_stsc(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -726,7 +742,7 @@ int mov_read_stsc(mp4r_t *mp4r, int size) {
 }
 
 int mov_read_stsz(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -790,7 +806,7 @@ int mov_read_stsz(mp4r_t *mp4r, int size) {
 }
 
 int mov_read_stco(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -848,8 +864,22 @@ int mov_read_stco(mp4r_t *mp4r, int size) {
   return size;
 }
 
+#if SUPPORT_VERIFIER
+int mov_read_sgpd(mp4r_t *mp4r, int size) {
+  char *atom_d = (char *)malloc(size);
+  int fpos;
+  fpos = ftell(mp4r->fin);
+  avio_rdata(mp4r->fin, atom_d, size);
+  fseek(mp4r->fin, fpos, SEEK_SET);
+  vlog_atom(MP4BOX_SGPD, atom_d, size, fpos - 8);
+  free(atom_d);
+
+  return size;
+}
+#endif
+
 static int mov_read_moof(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -880,7 +910,7 @@ static int mov_read_moof(mp4r_t *mp4r, int size) {
 }
 
 int mov_read_traf(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -893,7 +923,7 @@ int mov_read_traf(mp4r_t *mp4r, int size) {
 }
 
 static int mov_read_tfhd(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -946,7 +976,7 @@ static int mov_read_tfhd(mp4r_t *mp4r, int size) {
 }
 
 static int mov_read_trun(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -1143,7 +1173,7 @@ static avio_context g_trak[] = {
     {MOV_ATOM_NAME, "trak"}, {MOV_ATOM_DATA, mov_read_trak}, {0}};
 
 int mov_read_hdlr(mp4r_t *mp4r, int size) {
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
   int fpos;
   fpos = ftell(mp4r->fin);
@@ -1203,7 +1233,7 @@ int mov_read_moov(mp4r_t *mp4r, int sizemax) {
   int err, ret = sizemax;
   int ntrack = 0;
 
-#if SR
+#if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(sizemax);
   int fpos;
   fpos = ftell(mp4r->fin);
