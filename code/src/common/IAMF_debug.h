@@ -32,7 +32,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @date Created 03/03/2023
  **/
 
-
 #ifndef IAMF_DEBUG_H
 #define IAMF_DEBUG_H
 
@@ -66,12 +65,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifdef WIN32
-#define ia_log(level, slevel, fmt, ...)                                \
-  do {                                                                 \
-    if (level < IA_DBG_I) {                                        \
-      fprintf(stderr, "[%-9s:%s:%s(%d):%s]>" fmt "\n", IA_TAG, slevel, \
-              __MODULE__, __LINE__, __FUNCTION__, ##__VA_ARGS__);      \
-    }                                                                  \
+#define ia_log(level, slevel, fmt, ...)                                 \
+  do {                                                                  \
+    if (level < IA_DBG_I) {                                             \
+      fprintf(stderr, "[%-9s:%s:%s(%4d):%s]>" fmt "\n", IA_TAG, slevel, \
+              __MODULE__, __LINE__, __FUNCTION__, ##__VA_ARGS__);       \
+    }                                                                   \
   } while (0)
 
 #define ia_loge(fmt, ...) ia_log(IA_DBG_E, "ERROR", fmt, __VA_ARGS__)
@@ -80,12 +79,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define ia_logd(fmt, ...) ia_log(IA_DBG_D, "DEBUG", fmt, __VA_ARGS__)
 #define ia_logt(fmt, ...) ia_log(IA_DBG_T, "TRACE", fmt, __VA_ARGS__)
 #else
-#define ia_log(level, slevel, fmt, arg...)                             \
-  do {                                                                 \
-    if (IA_DBG_LEVEL & level) {                                        \
-      fprintf(stderr, "[%-9s:%s:%s(%d):%s]>" fmt "\n", IA_TAG, slevel, \
-              __MODULE__, __LINE__, __FUNCTION__, ##arg);              \
-    }                                                                  \
+#define ia_log(level, slevel, fmt, arg...)                              \
+  do {                                                                  \
+    if (IA_DBG_LEVEL & level) {                                         \
+      fprintf(stderr, "[%-9s:%s:%s(%4d):%s]>" fmt "\n", IA_TAG, slevel, \
+              __MODULE__, __LINE__, __FUNCTION__, ##arg);               \
+    }                                                                   \
   } while (0)
 
 #define ia_loge(fmt, arg...) ia_log(IA_DBG_E, "ERROR", fmt, ##arg)

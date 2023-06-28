@@ -609,29 +609,6 @@ static IAChannel iamf_output_gain_channel_map(IAChannelLayoutType type,
   return ch;
 }
 
-static IAMF_CodecID iamf_codec_4cc_get_codecID(uint32_t id) {
-#define TAG(a, b, c, d) ((a) | (b) << 8 | (c) << 16 | (d) << 24)
-
-  switch (id) {
-    case TAG('m', 'p', '4', 'a'):
-    case TAG('e', 's', 'd', 's'):
-      return IAMF_CODEC_AAC;
-
-    case TAG('O', 'p', 'u', 's'):
-    case TAG('d', 'O', 'p', 's'):
-      return IAMF_CODEC_OPUS;
-
-    case TAG('f', 'L', 'a', 'C'):
-      return IAMF_CODEC_FLAC;
-
-    case TAG('i', 'p', 'c', 'm'):
-      return IAMF_CODEC_PCM;
-
-    default:
-      return IAMF_CODEC_UNKNOWN;
-  }
-}
-
 /* ----------------------------- Internal Interfaces--------------- */
 
 static uint32_t iamf_decoder_internal_read_descriptors_OBUs(
@@ -2205,7 +2182,6 @@ static int iamf_stream_scale_decoder_update_recon_gain(
   ReconGain *src;
   IAMF_ReconGain *dst;
   int ret = 0;
-  int ri = 0;
   IAMF_Stream *stream = decoder->stream;
   ChannelLayerContext *ctx = (ChannelLayerContext *)stream->priv;
 
@@ -2214,10 +2190,9 @@ static int iamf_stream_scale_decoder_update_recon_gain(
   ia_logt("recon gain info : list %p, count %d, recons %p", list, list->count,
           list->recon);
   for (int i = 0; i < ctx->nb_layers; ++i) {
-    src = &list->recon[ri];
+    src = &list->recon[i];
     dst = ctx->conf_s[i].recon_gain;
     if (dst) {
-      ++ri;
       ia_logd("audio layer %d :", i);
       if (dst->flags ^ src->flags) {
         dst->flags = src->flags;
@@ -2236,14 +2211,6 @@ static int iamf_stream_scale_decoder_update_recon_gain(
     }
   }
   ia_logt("recon gain info .");
-
-  if (list->count != ri) {
-    ret = IAMF_ERR_INTERNAL;
-    ia_loge(
-        "%s : the count (%d) of recon gain doesn't match with static meta "
-        "(%d).",
-        ia_error_code_string(ret), list->count, ri);
-  }
 
   return ret;
 }

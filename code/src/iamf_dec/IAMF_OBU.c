@@ -40,8 +40,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "bitstream.h"
 #include "fixedp11_5.h"
 
-#define SR 0
-#if SR
+#ifndef SUPPORT_VERIFIER
+#define SUPPORT_VERIFIER 0
+#endif
+#if SUPPORT_VERIFIER
 #include "vlogging_tool_sr.h"
 #endif
 
@@ -125,7 +127,7 @@ uint32_t IAMF_OBU_split(const uint8_t *data, uint32_t size, IAMF_OBU *obu) {
   ia_logt("obu payload start at %u", bs_tell(&b));
   obu->payload = (uint8_t *)data + bs_tell(&b);
 
-#if SR
+#if SUPPORT_VERIFIER
   if (obu->type == IAMF_OBU_TEMPORAL_DELIMITER)
     vlog_obu(IAMF_OBU_TEMPORAL_DELIMITER, obu, 0, 0);
 #endif
@@ -248,6 +250,10 @@ uint32_t iamf_obu_get_payload_size(IAMF_OBU *obu) {
   return obu->size - (uint32_t)(obu->payload - obu->data);
 }
 
+static int _valid_profile(uint8_t profile) {
+  return profile == IAMF_PROFILE_SIMPLE || profile == IAMF_PROFILE_BASE;
+}
+
 IAMF_Version *iamf_version_new(IAMF_OBU *obu) {
   IAMF_Version *ver = 0;
   BitStream b;
@@ -255,7 +261,7 @@ IAMF_Version *iamf_version_new(IAMF_OBU *obu) {
   ver = IAMF_MALLOCZ(IAMF_Version, 1);
   if (!ver) {
     ia_loge("fail to allocate memory for Version Object.");
-    return ver;
+    goto version_fail;
   }
 
   bs(&b, obu->payload, iamf_obu_get_payload_size(obu));
@@ -268,11 +274,25 @@ IAMF_Version *iamf_version_new(IAMF_OBU *obu) {
   ia_logd("magic code object: %.4s, profile name 0x%x, profile compatible 0x%x",
           (char *)&ver->iamf_code, ver->profile_name, ver->profile_compatible);
 
-#if SR
+  if (!_valid_profile(ver->profile_name)) {
+    ia_loge("magic code object: Invalid profile %d",
+            ver->profile_name & U8_MASK);
+    goto version_fail;
+  }
+
+#if SUPPORT_VERIFIER
   vlog_obu(IAMF_OBU_SEQUENCE_HEADER, ver, 0, 0);
 #endif
 
   return ver;
+
+version_fail:
+  if (ver) free(ver);
+  return 0;
+}
+
+static int _valid_codec(uint32_t codec) {
+  return iamf_codec_check(iamf_codec_4cc_get_codecID(codec));
 }
 
 IAMF_CodecConf *iamf_codec_conf_new(IAMF_OBU *obu) {
@@ -308,15 +328,20 @@ IAMF_CodecConf *iamf_codec_conf_new(IAMF_OBU *obu) {
       conf->codec_conf_id, (char *)&conf->codec_id, conf->decoder_conf_size,
       conf->nb_samples_per_frame, conf->roll_distance);
 
-#if SR
+  if (!_valid_codec(conf->codec_id)) {
+    ia_loge("codec configure object: id %lu, invalid codec %.4s",
+            conf->codec_conf_id, (char *)&conf->codec_id);
+    goto codec_conf_fail;
+  }
+
+#if SUPPORT_VERIFIER
   vlog_obu(IAMF_OBU_CODEC_CONFIG, conf, 0, 0);
 #endif
+
   return conf;
 
 codec_conf_fail:
-  if (conf) {
-    iamf_codec_conf_free(conf);
-  }
+  if (conf) iamf_codec_conf_free(conf);
   return 0;
 }
 
@@ -351,6 +376,11 @@ static int iamf_parameter_base_init(ParameterBase *pb, IAMF_ParameterType type,
   }
 
   return IAMF_OK;
+}
+
+static int _valid_element_type(uint8_t type) {
+  return type == AUDIO_ELEMENT_TYPE_SCENE_BASED ||
+         type == AUDIO_ELEMENT_TYPE_CHANNEL_BASED;
 }
 
 IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
@@ -543,15 +573,19 @@ IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
     }
   }
 
-#if SR
+  if (!_valid_element_type(elem->element_type)) {
+    ia_loge("audio element object: id %lu, invalid type %d", elem->element_id,
+            elem->element_type & U8_MASK);
+    goto element_fail;
+  }
+
+#if SUPPORT_VERIFIER
   vlog_obu(IAMF_OBU_AUDIO_ELEMENT, elem, 0, 0);
 #endif
   return elem;
 
 element_fail:
-  if (elem) {
-    iamf_element_free(elem);
-  }
+  if (elem) iamf_element_free(elem);
   return 0;
 }
 
@@ -855,15 +889,13 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
     }
   }
 
-#if SR
+#if SUPPORT_VERIFIER
   vlog_obu(IAMF_OBU_MIX_PRESENTATION, mixp, 0, 0);
 #endif
   return mixp;
 
 mix_presentation_fail:
-  if (mixp) {
-    iamf_mix_presentation_free(mixp);
-  }
+  if (mixp) iamf_mix_presentation_free(mixp);
   return 0;
 }
 
@@ -937,14 +969,6 @@ IAMF_Parameter *iamf_parameter_new(IAMF_OBU *obu,
   uint64_t intervals;
   uint64_t segment_interval;
 
-  if (!objParam || !objParam->param_base) {
-    ia_loge("Invalid object parameters for Parameter Object.");
-    goto parameter_fail;
-  }
-
-  ia_logd("parameter obu arguments: parameter type %lu",
-          objParam->param_base->type);
-
   para = IAMF_MALLOCZ(IAMF_Parameter, 1);
   if (!para) {
     ia_loge("fail to allocate memory for Parameter Object.");
@@ -955,6 +979,18 @@ IAMF_Parameter *iamf_parameter_new(IAMF_OBU *obu,
 
   para->obj.type = IAMF_OBU_PARAMETER_BLOCK;
   para->id = bs_getAleb128(&b);
+
+  if (!objParam || !objParam->param_base) {
+    ia_loge(
+        "parameter object(%lu): Invalid object parameters for Parameter "
+        "Object.",
+        para->id);
+    goto parameter_fail;
+  }
+
+  ia_logd("parameter obu arguments: parameter type %lu",
+          objParam->param_base->type);
+
   if (!objParam->param_base->mode) {
     intervals = para->duration = objParam->param_base->duration;
     para->nb_segments = objParam->param_base->nb_segments;
@@ -1128,17 +1164,14 @@ IAMF_Parameter *iamf_parameter_new(IAMF_OBU *obu,
     }
   }
 
-#if SR
+#if SUPPORT_VERIFIER
   vlog_obu(IAMF_OBU_PARAMETER_BLOCK, para, 0, 0);
 #endif
 
   return para;
 
 parameter_fail:
-  if (para) {
-    iamf_parameter_free(para);
-  }
-
+  if (para) iamf_parameter_free(para);
   return 0;
 }
 
@@ -1175,7 +1208,7 @@ IAMF_Frame *iamf_frame_new(IAMF_OBU *obu) {
   pkt->data = obu->payload + bs_tell(&b);
   pkt->size = iamf_obu_get_payload_size(obu) - bs_tell(&b);
 
-#if SR
+#if SUPPORT_VERIFIER
   vlog_obu(IAMF_OBU_AUDIO_FRAME, pkt, obu->trim_start, obu->trim_end);
 #endif
   return pkt;

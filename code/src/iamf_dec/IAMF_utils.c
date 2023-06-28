@@ -41,6 +41,26 @@ void iamf_freep(void **p) {
   }
 }
 
+#define TAG(a, b, c, d) ((a) | (b) << 8 | (c) << 16 | (d) << 24)
+IAMF_CodecID iamf_codec_4cc_get_codecID(uint32_t id) {
+  switch (id) {
+    case TAG('m', 'p', '4', 'a'):
+      return IAMF_CODEC_AAC;
+
+    case TAG('O', 'p', 'u', 's'):
+      return IAMF_CODEC_OPUS;
+
+    case TAG('f', 'L', 'a', 'C'):
+      return IAMF_CODEC_FLAC;
+
+    case TAG('i', 'p', 'c', 'm'):
+      return IAMF_CODEC_PCM;
+
+    default:
+      return IAMF_CODEC_UNKNOWN;
+  }
+}
+
 int iamf_codec_check(IAMF_CodecID cid) {
   return cid >= IAMF_CODEC_OPUS && cid < IAMF_CODEC_COUNT;
 }
@@ -137,8 +157,7 @@ static const struct {
   int t;
 } gIACLC2Count[IA_CHANNEL_LAYOUT_COUNT] = {
     {1, 0, 0}, {2, 0, 0}, {5, 1, 0}, {5, 1, 2}, {5, 1, 4},
-    {7, 1, 0}, {7, 1, 2}, {7, 1, 4}, {3, 1, 2}, {2, 0, 0}
-};
+    {7, 1, 0}, {7, 1, 2}, {7, 1, 4}, {3, 1, 2}, {2, 0, 0}};
 
 int ia_channel_layout_get_category_channels_count(IAChannelLayoutType type,
                                                   uint32_t categorys) {
