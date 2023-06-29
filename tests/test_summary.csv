@@ -57,6 +57,7 @@
 "test_000064","test_000003","2.8/element_mix_config, 2.8.4/default_mix_gain",True,"A simple example of a stereo IAMF stream with non-zero default mix gain and no parameter blocks."
 "test_000065","test_000038","2.7.3/ambisonics_mono_config, 2.9.1/animation_type",True,"A first-order ambisonics IAMF stream encoded with a linear mix gain."
 "test_000066","test_000065","2.7.3/ambisonics_mono_config, 2.9.1/animation_type",True,"A first-order ambisonics IAMF stream encoded with the first frame using a bezier-animation mix gain and subsequnt frames using linear-animation."
+"test_000067","test_000005","3.7.3/rendering_config_extension_bytes",True,"A frame-aligned stereo IAMF stream with extra bytes in `rendering_config_extension`."
 "test_000100","test_000038","2.7.3/ambisonics_mono_config",True,"A zero-order ambisonics IAMF stream encoded using `ambisonics_mode` = `MONO`."
 "test_000101","test_000038","2.7.3/ambisonics_mono_config",True,"A first-order ambisonics IAMF stream encoded using `ambisonics_mode` = `MONO`."
 "test_000102","test_000038","2.7.3/ambisonics_mono_config",True,"A second-order ambisonics IAMF stream encoded using `ambisonics_mode` = `MONO`."

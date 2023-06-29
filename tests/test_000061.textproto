@@ -123,6 +123,9 @@ mix_presentation_metadata {
           audio_element_friendly_label: "test_sub_mix_0_audio_element_0"
         }
       ]
+      rendering_config {
+        headphones_rendering_mode: HEADPHONES_RENDERING_MODE_STEREO
+      }
       element_mix_config {
         mix_gain {
           param_definition {
@@ -157,8 +160,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -8008
-        digital_peak: -3905
+        integrated_loudness: -5273
+        digital_peak: -2197
       }
     }
     layouts {
@@ -171,8 +174,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -6222
-        digital_peak: -2838
+        integrated_loudness: -5886
+        digital_peak: -2845
       }
     }
   }

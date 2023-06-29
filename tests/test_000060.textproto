@@ -81,6 +81,9 @@ mix_presentation_metadata {
         }
       ]
 
+      rendering_config {
+        headphones_rendering_mode: HEADPHONES_RENDERING_MODE_STEREO
+      }
       element_mix_config {
         mix_gain {
           param_definition {

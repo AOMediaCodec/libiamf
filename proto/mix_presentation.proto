@@ -16,12 +16,25 @@ message ElementMixConfig {
   optional MixGainParamDefinition mix_gain = 1;
 }
 
+enum HeadPhonesRenderingMode {
+  HEADPHONES_RENDERING_MODE_INVALID = 0;
+  HEADPHONES_RENDERING_MODE_STEREO = 1;
+  HEADPHONES_RENDERING_MODE_BINAURAL = 2;
+}
+
+message RenderingConfig {
+  optional HeadPhonesRenderingMode headphones_rendering_mode = 1;
+  optional uint32 reserved = 2;
+  optional uint32 rendering_config_extension_size = 3;
+  optional bytes rendering_config_extension_bytes = 4;
+}
+
 message SubMixAudioElement {
   optional uint32 audio_element_id = 1;
   reserved 2;
   repeated MixPresentationElementAnnotations
       mix_presentation_element_annotations_array = 4;
-  // RenderingConfig has no payload.
+  optional RenderingConfig rendering_config = 5;
   optional ElementMixConfig element_mix_config = 3;
 }
 
