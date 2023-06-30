@@ -11,4 +11,5 @@ message TestVectorMetadata {
   repeated string primary_tested_spec_sections = 6;
   optional string base_test = 7;
   optional int32 ms_per_fragment = 8 [default = 10000];
+  optional bool override_computed_recon_gains = 9 [default = false];
 }
