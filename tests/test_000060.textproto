@@ -7,7 +7,7 @@ test_vector_metadata {
   is_valid: true
   mp4_fixed_timestamp: "2023-06-20 00:00:00"
   temporal_units_per_ia_sample: 1
-  primary_tested_spec_sections: ["2.8/count_label", "2.8/language_label", "2.8/mix_presentation_annotations"]
+  primary_tested_spec_sections: ["3.7/count_label", "3.7/language_label", "3.7/mix_presentation_annotations"]
   base_test: "test_000005"
 }
 

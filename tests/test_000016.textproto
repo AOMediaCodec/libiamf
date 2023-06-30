@@ -11,7 +11,7 @@ test_vector_metadata {
   is_valid: false
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
   temporal_units_per_ia_sample: 1
-  primary_tested_spec_sections: ["4.1.2"]
+  primary_tested_spec_sections: ["3.1.2"]
   base_test: "test_000005"
 }
 

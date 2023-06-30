@@ -9,7 +9,7 @@ test_vector_metadata {
   is_valid: false
   mp4_fixed_timestamp: "2023-06-20 00:00:00"
   temporal_units_per_ia_sample: 1
-  primary_tested_spec_sections: ["2.8.7/info_type", "2.8.7/num_anchored_loudness"]
+  primary_tested_spec_sections: ["3.7.7/info_type", "3.7.7/num_anchored_loudness"]
   base_test: "test_000062"
 }
 

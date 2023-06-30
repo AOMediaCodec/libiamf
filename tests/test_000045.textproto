@@ -9,7 +9,7 @@ test_vector_metadata {
   is_valid: true
   mp4_fixed_timestamp: "2023-05-12 00:00:00"
   temporal_units_per_ia_sample: 1
-  primary_tested_spec_sections: ["2.7.3/ambisonics_mono_config", "2.10", "2.12.1"]
+  primary_tested_spec_sections: ["3.6.3/ambisonics_mono_config", "3.9", "3.11.1"]
   base_test: "test_000038"
 }
 

@@ -9,7 +9,7 @@ test_vector_metadata {
   is_valid: true
   mp4_fixed_timestamp: "2023-06-27 00:00:00"
   temporal_units_per_ia_sample: 1
-  primary_tested_spec_sections: ["2.7.2", "2.9/recon_gain_info_parameter_data", "2.9.3", "6.2.3"]
+  primary_tested_spec_sections: ["3.6.2", "3.8/recon_gain_info_parameter_data", "3.8.3", "7.2.3"]
   base_test: "test_000224"
   override_computed_recon_gains: true
 }

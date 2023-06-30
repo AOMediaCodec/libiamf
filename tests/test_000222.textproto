@@ -9,7 +9,7 @@ test_vector_metadata {
   is_valid: true
   mp4_fixed_timestamp: "2023-06-23 00:00:00"
   temporal_units_per_ia_sample: 1
-  primary_tested_spec_sections: ["2.9/demixing_info_parameter_data", "2.9.2/dmixp_mode", "6.3.2.1"]
+  primary_tested_spec_sections: ["3.8/demixing_info_parameter_data", "3.8.2/dmixp_mode", "7.3.2.1"]
   base_test: "test_000221"
 }
 
