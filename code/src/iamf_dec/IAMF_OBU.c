@@ -31,8 +31,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @version 0.1
  * @date Created 03/03/2023
  **/
-
 #include "IAMF_OBU.h"
+
+#include <inttypes.h>
 
 #include "IAMF_debug.h"
 #include "IAMF_defines.h"
@@ -98,7 +99,7 @@ uint32_t IAMF_OBU_split(const uint8_t *data, uint32_t size, IAMF_OBU *obu) {
   ia_logt("===============================================");
   ia_logt(
       "obu header : %s (%d) type, redundant %d, trimming %d, extension %d, "
-      "payload size %lu, obu size %lu vs size %u",
+      "payload size %" PRIu64 ", obu size %" PRIu64 " vs size %u",
       IAMF_OBU_type_string(obu->type), obu->type, obu->redundant, obu->trimming,
       obu->extension, ret, bs_tell(&b) + ret, size);
 
@@ -113,15 +114,16 @@ uint32_t IAMF_OBU_split(const uint8_t *data, uint32_t size, IAMF_OBU *obu) {
   if (obu->trimming) {
     obu->trim_end = bs_getAleb128(&b);    // num_samples_to_trim_at_end;
     obu->trim_start = bs_getAleb128(&b);  // num_samples_to_trim_at_start;
-    ia_logt("trim samples at start %lu, at end %lu", obu->trim_start,
-            obu->trim_end);
+    ia_logt("trim samples at start %" PRIu64 ", at end %" PRIu64,
+            obu->trim_start, obu->trim_end);
   }
 
   if (obu->extension) {
     obu->ext_size = bs_getAleb128(&b);  // extension_header_size;
     obu->ext_header = (uint8_t *)obu->data + bs_tell(&b);
-    ia_logt("obu extension header at %u, size %lu", bs_tell(&b), obu->ext_size);
-    bs_skip(&b, obu->ext_size);  // skip extension header
+    ia_logt("obu extension header at %u, size %" PRIu64, bs_tell(&b),
+            obu->ext_size);
+    bs_skipABytes(&b, obu->ext_size);  // skip extension header
   }
 
   ia_logt("obu payload start at %u", bs_tell(&b));
@@ -157,21 +159,22 @@ uint64_t IAMF_OBU_get_object_id(IAMF_OBU *obu) {
 const char *IAMF_OBU_type_string(IAMF_OBU_Type type) {
   static const char *obu_type_string[] = {
       "Codec Config",     "Audio Element",      "Mix Presentation",
-      "Parameter Block",  "Temporal Delimiter", "Sync",
-      "Reserved",         "Reserved",           "Audio Frame",
+      "Parameter Block",  "Temporal Delimiter", "Audio Frame",
       "Audio Frame ID0",  "Audio Frame ID1",    "Audio Frame ID2",
       "Audio Frame ID3",  "Audio Frame ID4",    "Audio Frame ID5",
       "Audio Frame ID6",  "Audio Frame ID7",    "Audio Frame ID8",
       "Audio Frame ID9",  "Audio Frame ID10",   "Audio Frame ID11",
       "Audio Frame ID12", "Audio Frame ID13",   "Audio Frame ID14",
-      "Audio Frame ID15", "Audio Frame ID16",   "Audio Frame ID17",
-      "Audio Frame ID18", "Audio Frame ID19",   "Audio Frame ID20",
-      "Audio Frame ID21", "Magic Code"};
+      "Audio Frame ID15", "Audio Frame ID16",   "Audio Frame ID17"};
+  static const char *obu_ia_header_string = "IA Sequence Header";
+  static const char *obu_invalid_obu_type_string = "Invalid OBU Type";
 
-  if (type < IAMF_OBU_CODEC_CONFIG || type > IAMF_OBU_SEQUENCE_HEADER) {
-    return "Invalid OBU type.";
-  }
-  return obu_type_string[type];
+  if (type >= IAMF_OBU_CODEC_CONFIG && type <= IAMF_OBU_AUDIO_FRAME_ID17)
+    return obu_type_string[type];
+
+  if (type == IAMF_OBU_SEQUENCE_HEADER) return obu_ia_header_string;
+
+  return obu_invalid_obu_type_string;
 }
 
 IAMF_Object *IAMF_object_new(IAMF_OBU *obu, IAMF_ObjectParameter *param) {
@@ -196,15 +199,15 @@ IAMF_Object *IAMF_object_new(IAMF_OBU *obu, IAMF_ObjectParameter *param) {
     } break;
     default:
       if (obu->type >= IAMF_OBU_AUDIO_FRAME &&
-          obu->type < IAMF_OBU_SEQUENCE_HEADER) {
+          obu->type <= IAMF_OBU_AUDIO_FRAME_ID17) {
         obj = IAMF_OBJ(iamf_frame_new(obu));
+      } else if (obu->type != IAMF_OBU_TEMPORAL_DELIMITER) {
+        ia_logw("Reserved OBU type %u", obu->type);
       }
       break;
   }
 
-  if (obj) {
-    if (obu->redundant) obj->flags |= IAMF_OBU_FLAG_REDUNDANT;
-  }
+  if (obj && obu->redundant) obj->flags |= IAMF_OBU_FLAG_REDUNDANT;
 
   return obj;
 }
@@ -268,15 +271,17 @@ IAMF_Version *iamf_version_new(IAMF_OBU *obu) {
 
   ver->obj.type = IAMF_OBU_SEQUENCE_HEADER;
   bs_read(&b, (uint8_t *)&ver->iamf_code, 4);
-  ver->profile_name = bs_getA8b(&b);
-  ver->profile_compatible = bs_getA8b(&b);
+  ver->primary_profile = bs_getA8b(&b);
+  ver->additional_profile = bs_getA8b(&b);
 
-  ia_logd("magic code object: %.4s, profile name 0x%x, profile compatible 0x%x",
-          (char *)&ver->iamf_code, ver->profile_name, ver->profile_compatible);
+  ia_logd(
+      "ia sequence header object: %.4s, primary profile %u, additional profile "
+      "%u.",
+      (char *)&ver->iamf_code, ver->primary_profile, ver->additional_profile);
 
-  if (!_valid_profile(ver->profile_name)) {
-    ia_loge("magic code object: Invalid profile %d",
-            ver->profile_name & U8_MASK);
+  if (!_valid_profile(ver->primary_profile)) {
+    ia_loge("ia sequence header object: Invalid profile %u",
+            ver->primary_profile);
     goto version_fail;
   }
 
@@ -322,14 +327,14 @@ IAMF_CodecConf *iamf_codec_conf_new(IAMF_OBU *obu) {
     goto codec_conf_fail;
   }
   bs_read(&b, conf->decoder_conf, conf->decoder_conf_size);
-  ia_logd(
-      "codec configure object: id %lu, codec %.4s, decoder configure size %d, "
-      "samples per frame %lu, roll distance %d",
-      conf->codec_conf_id, (char *)&conf->codec_id, conf->decoder_conf_size,
-      conf->nb_samples_per_frame, conf->roll_distance);
+  ia_logd("codec configure object: id %" PRIu64
+          ", codec %.4s, decoder configure size %d, "
+          "samples per frame %" PRIu64 ", roll distance %d",
+          conf->codec_conf_id, (char *)&conf->codec_id, conf->decoder_conf_size,
+          conf->nb_samples_per_frame, conf->roll_distance);
 
   if (!_valid_codec(conf->codec_id)) {
-    ia_loge("codec configure object: id %lu, invalid codec %.4s",
+    ia_loge("codec configure object: id %" PRIu64 ", invalid codec %.4s",
             conf->codec_conf_id, (char *)&conf->codec_id);
     goto codec_conf_fail;
   }
@@ -356,31 +361,31 @@ static int iamf_parameter_base_init(ParameterBase *pb, IAMF_ParameterType type,
   pb->id = bs_getAleb128(b);
   pb->rate = bs_getAleb128(b);
   pb->mode = bs_get32b(b, 1);
-  ia_logd("Parameter Base: type %lu, id %lu, rate %lu, mode %u", pb->type,
-          pb->id, pb->rate, pb->mode);
+  ia_logd("Parameter Base: type %" PRIu64 ", id %" PRIu64 ", rate %" PRIu64
+          ", mode %u",
+          pb->type, pb->id, pb->rate, pb->mode);
   if (!pb->mode) {
     pb->duration = bs_getAleb128(b);
-    pb->nb_segments = bs_getAleb128(b);
     pb->constant_segment_interval = bs_getAleb128(b);
-    ia_logd(
-        "\tduration %lu, number of segment %lu, constant segment interval %lu",
-        pb->duration, pb->nb_segments, pb->constant_segment_interval);
+    ia_logd("\tduration %" PRIu64 ", constant segment interval %" PRIu64,
+            pb->duration, pb->constant_segment_interval);
     if (!pb->constant_segment_interval) {
+      pb->nb_segments = bs_getAleb128(b);
+      ia_logd("\tnumber of segment %" PRIu64, pb->nb_segments);
       pb->segments = IAMF_MALLOCZ(ParameterSegment, pb->nb_segments);
       if (!pb->segments) return IAMF_ERR_ALLOC_FAIL;
       for (int i = 0; i < pb->nb_segments; ++i) {
-        ia_logd("\tSegment %d: %lu", i, pb->segments[i].segment_interval);
+        ia_logd("\tSegment %d: %" PRIu64, i, pb->segments[i].segment_interval);
         pb->segments[i].segment_interval = bs_getAleb128(b);
       }
+    } else {
+      pb->nb_segments = (pb->duration + pb->constant_segment_interval - 1) /
+                        pb->constant_segment_interval;
+      ia_logd("\tnumber of segment %" PRIu64, pb->nb_segments);
     }
   }
 
   return IAMF_OK;
-}
-
-static int _valid_element_type(uint8_t type) {
-  return type == AUDIO_ELEMENT_TYPE_SCENE_BASED ||
-         type == AUDIO_ELEMENT_TYPE_CHANNEL_BASED;
 }
 
 IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
@@ -407,7 +412,8 @@ IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
 
   val = bs_getAleb128(&b);
   elem->nb_substreams = val;
-  ia_logd("element id %lu, type %d, codec config id %lu, sub-streams count %lu",
+  ia_logd("element id %" PRIu64 ", type %d, codec config id %" PRIu64
+          ", sub-streams count %" PRIu64,
           elem->element_id, elem->element_type, elem->codec_config_id,
           elem->nb_substreams);
   elem->substream_ids = IAMF_MALLOC(uint64_t, val);
@@ -418,7 +424,7 @@ IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
   }
   for (uint32_t i = 0; i < val; ++i) {
     elem->substream_ids[i] = bs_getAleb128(&b);
-    ia_logd("\t > sub-stream id %lu", elem->substream_ids[i]);
+    ia_logd("\t > sub-stream id %" PRIu64, elem->substream_ids[i]);
   }
 
   val = bs_getAleb128(&b);
@@ -431,7 +437,7 @@ IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
       goto element_fail;
     }
   }
-  ia_logd("element parameters count %lu", elem->nb_parameters);
+  ia_logd("element parameters count %" PRIu64, elem->nb_parameters);
   for (uint32_t i = 0; i < val; ++i) {
     type = bs_getAleb128(&b);
     p = 0;
@@ -442,8 +448,13 @@ IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
       ReconGainParameter *rgp = IAMF_MALLOCZ(ReconGainParameter, 1);
       p = PARAMETER_BASE(rgp);
     } else {
-      ia_loge("Invalid parameter type of Audio Element Object.");
-      goto element_fail;
+      uint64_t size = bs_getAleb128(&b);
+      bs_skipABytes(&b, size);
+      ia_loge("Don't support parameter type %" PRIu64
+              " in Audio Element, parameter "
+              "definition bytes %" PRIu64 ".",
+              type, size);
+      continue;
     }
 
     if (!p) {
@@ -570,13 +581,19 @@ IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
           conf->coupled_substream_count, conf->output_channel_count,
           conf->substream_count + conf->coupled_substream_count,
           conf->mapping_size);
+    } else {
+      ia_loge("audio element object: id %" PRIu64
+              ", invalid ambisonics mode %" PRIu64,
+              elem->element_id, conf->ambisonics_mode);
+      goto element_fail;
     }
-  }
-
-  if (!_valid_element_type(elem->element_type)) {
-    ia_loge("audio element object: id %lu, invalid type %d", elem->element_id,
-            elem->element_type & U8_MASK);
-    goto element_fail;
+  } else {
+    uint64_t size = bs_getAleb128(&b);
+    bs_skipABytes(&b, size);
+    ia_loge("audio element object: id %" PRIu64
+            ", Don't support type %u, element config "
+            "bytes %" PRIu64,
+            elem->element_id, elem->element_type, size);
   }
 
 #if SUPPORT_VERIFIER
@@ -625,8 +642,10 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
   IAMF_MixPresentation *mixp = 0;
   SubMixPresentation *sub = 0;
   OutputMixConf *output_mix_config;
+  ElementConf *conf_s;
   BitStream b;
   uint32_t val;
+  uint64_t size;
   int length = STRING_SIZE;
 
   mixp = IAMF_MALLOCZ(IAMF_MixPresentation, 1);
@@ -673,10 +692,19 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
     bs_readString(&b, mixp->mix_presentation_friendly_label[i], length);
 
   mixp->num_sub_mixes = bs_getAleb128(&b);
-  ia_logd(
-      "Mix Presentation Object : id %lu, number of label %lu, number of sub "
-      "mixes %lu.",
-      mixp->mix_presentation_id, mixp->num_labels, mixp->num_sub_mixes);
+  ia_logd("Mix Presentation Object : id %" PRIu64 ", number of label %" PRIu64
+          ", number of sub "
+          "mixes %" PRIu64 ".",
+          mixp->mix_presentation_id, mixp->num_labels, mixp->num_sub_mixes);
+
+  if (!mixp->num_sub_mixes) {
+    ia_loge("Mix Presentation Object: num_sub_mixes should not be set to 0.");
+    goto mix_presentation_fail;
+  } else if (mixp->num_sub_mixes > 1) {
+    ia_logw(
+        "Mix Presentation Object: Do not support num_sub_mixes more than 1.");
+    goto mix_presentation_fail;
+  }
 
   ia_logd("languages: ");
   for (int i = 0; i < mixp->num_labels; ++i) ia_logd("\t%s", mixp->language[i]);
@@ -686,7 +714,7 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
     ia_logd("\t%s", mixp->mix_presentation_friendly_label[i]);
 
   if (mixp->num_sub_mixes != 1) {
-    ia_loge("the total of sub mixes should be 1, not support %lu",
+    ia_loge("the total of sub mixes should be 1, not support %" PRIu64,
             mixp->num_sub_mixes);
     goto mix_presentation_fail;
   }
@@ -710,57 +738,72 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
 
     val = bs_getAleb128(&b);
     sub->nb_elements = val;
-    ia_logd("element count %lu", sub->nb_elements);
-    if (val) {
-      ElementMixRenderConf *conf_s = IAMF_MALLOCZ(ElementMixRenderConf, val);
-      if (!conf_s) {
+    ia_logd("element count %" PRIu64, sub->nb_elements);
+    if (!val) {
+      ia_loge(
+          "Mix Presentation Object: num_audio_elements should not be set to "
+          "0.");
+      goto mix_presentation_fail;
+    } else if (val > 2) {
+      ia_logw(
+          "Mix Presentation Object: Do not support num_audio_elements more "
+          "than 2.");
+      goto mix_presentation_fail;
+    }
+
+    conf_s = IAMF_MALLOCZ(ElementConf, val);
+    if (!conf_s) {
+      ia_loge(
+          "fail to allocate memory for mixing and rendering config of Mix "
+          "Presentation Object.");
+      goto mix_presentation_fail;
+    }
+    sub->conf_s = conf_s;
+    for (uint32_t i = 0; i < val; ++i) {
+      conf_s[i].element_id = bs_getAleb128(&b);
+      conf_s[i].audio_element_friendly_label =
+          IAMF_MALLOCZ(char *, mixp->num_labels);
+      if (!conf_s[i].audio_element_friendly_label) {
         ia_loge(
-            "fail to allocate memory for mixing and rendering config of Mix "
-            "Presentation Object.");
+            "fail to allocate memory for audio element labels of mixing and "
+            "rendering config.");
         goto mix_presentation_fail;
       }
-      sub->conf_s = conf_s;
-      for (uint32_t i = 0; i < val; ++i) {
-        conf_s[i].element_id = bs_getAleb128(&b);
-        conf_s[i].audio_element_friendly_label =
-            IAMF_MALLOCZ(char *, mixp->num_labels);
-        if (!conf_s[i].audio_element_friendly_label) {
+
+      for (int k = 0; k < mixp->num_labels; ++k) {
+        conf_s[i].audio_element_friendly_label[k] = IAMF_MALLOCZ(char, length);
+        if (!conf_s[i].audio_element_friendly_label[k]) {
           ia_loge(
-              "fail to allocate memory for audio element labels of mixing and "
+              "fail to allocate memory for audio element label of mixing and "
               "rendering config.");
           goto mix_presentation_fail;
         }
 
-        for (int k = 0; k < mixp->num_labels; ++k) {
-          conf_s[i].audio_element_friendly_label[k] =
-              IAMF_MALLOCZ(char, length);
-          if (!conf_s[i].audio_element_friendly_label[k]) {
-            ia_loge(
-                "fail to allocate memory for audio element label of mixing and "
-                "rendering config.");
-            goto mix_presentation_fail;
-          }
-
-          bs_readString(&b, conf_s[i].audio_element_friendly_label[k], length);
-        }
-        ia_logd(
-            "rendering info : element id %lu, audio element friendly labels:",
-            conf_s[i].element_id);
-
-        for (int k = 0; k < mixp->num_labels; ++k)
-          ia_logd("\t%s", conf_s[i].audio_element_friendly_label[k]);
-
-        // rendering_config
-
-        // element_mix_config
-        if (iamf_parameter_base_init(&conf_s[i].conf_m.gain.base,
-                                     IAMF_PARAMETER_TYPE_MIX_GAIN,
-                                     &b) != IAMF_OK)
-          goto mix_presentation_fail;
-        conf_s[i].conf_m.gain.mix_gain = (short)bs_getA16b(&b);
-        ia_logd("element mix info : element mix gain 0x%x",
-                conf_s[i].conf_m.gain.mix_gain & U16_MASK);
+        bs_readString(&b, conf_s[i].audio_element_friendly_label[k], length);
       }
+      ia_logd("rendering info : element id %" PRIu64
+              ", audio element friendly labels:",
+              conf_s[i].element_id);
+
+      for (int k = 0; k < mixp->num_labels; ++k)
+        ia_logd("\t%s", conf_s[i].audio_element_friendly_label[k]);
+
+      // rendering_config
+      conf_s[i].conf_r.headphones_rendering_mode = bs_get32b(&b, 2);
+      size = bs_getAleb128(&b);
+      bs_skipABytes(&b, size);
+      ia_logd(
+          "rendering config info: headphones rendering mode %u, extension size "
+          "%" PRIu64,
+          conf_s[i].conf_r.headphones_rendering_mode, size);
+
+      // element_mix_config
+      if (iamf_parameter_base_init(&conf_s[i].conf_m.gain.base,
+                                   IAMF_PARAMETER_TYPE_MIX_GAIN, &b) != IAMF_OK)
+        goto mix_presentation_fail;
+      conf_s[i].conf_m.gain.mix_gain = (short)bs_getA16b(&b);
+      ia_logd("element mix info : element mix gain 0x%x",
+              conf_s[i].conf_m.gain.mix_gain & U16_MASK);
     }
 
     // output_mix_config
@@ -772,11 +815,11 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
     output_mix_config->gain.mix_gain = bs_getA16b(&b);
 
     sub->num_layouts = bs_getAleb128(&b);
-    ia_logd(
-        "Output mix gain: id %lu, time base %lu, mix gain 0x%x, number layout "
-        "%lu",
-        output_mix_config->gain.base.id, output_mix_config->gain.base.rate,
-        output_mix_config->gain.mix_gain & U16_MASK, sub->num_layouts);
+    ia_logd("Output mix gain: id %" PRIu64 ", time base %" PRIu64
+            ", mix gain 0x%x, number layout "
+            "%" PRIu64,
+            output_mix_config->gain.base.id, output_mix_config->gain.base.rate,
+            output_mix_config->gain.mix_gain & U16_MASK, sub->num_layouts);
     if (sub->num_layouts > 0) {
       TargetLayout **layouts = IAMF_MALLOCZ(TargetLayout *, sub->num_layouts);
       IAMF_LoudnessInfo *loudness =
@@ -855,13 +898,19 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
             i, loudness[i].info_type & U8_MASK,
             loudness[i].integrated_loudness & U16_MASK,
             loudness[i].digital_peak & U16_MASK);
-        if (loudness[i].info_type & 1) {
+
+#define LOUDNESS_INFO_TYPE_TRUE_PEAK 1
+#define LOUDNESS_INFO_TYPE_ANCHORED 2
+#define LOUDNESS_INFO_TYPE_ALL \
+  (LOUDNESS_INFO_TYPE_TRUE_PEAK | LOUDNESS_INFO_TYPE_ANCHORED)
+
+        if (loudness[i].info_type & LOUDNESS_INFO_TYPE_TRUE_PEAK) {
           loudness[i].true_peak = bs_getA16b(&b);
           ia_logd("\tloudness > %d > true peak 0x%x", i,
                   loudness[i].true_peak & U16_MASK);
         }
 
-        if (loudness[i].info_type & 2) {
+        if (loudness[i].info_type & LOUDNESS_INFO_TYPE_ANCHORED) {
           loudness[i].num_anchor_loudness = bs_getA8b(&b);
           if (loudness[i].num_anchor_loudness > 0) {
             loudness[i].anchor_loudness = IAMF_MALLOCZ(
@@ -877,13 +926,19 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
             for (int k = 0; k < loudness[i].num_anchor_loudness; ++k) {
               loudness[i].anchor_loudness[k].anchor_element = bs_getA8b(&b);
               loudness[i].anchor_loudness[k].anchored_loudness = bs_getA16b(&b);
-              ia_logd("\t\tanchor loudness > %d > anchor element %d", k,
-                      loudness[i].anchor_loudness[k].anchor_element & U8_MASK);
+              ia_logd("\t\tanchor loudness > %d > anchor element %u", k,
+                      loudness[i].anchor_loudness[k].anchor_element);
               ia_logd(
                   "\t\tanchor loudness > %d > anchored loudness 0x%x", k,
                   loudness[i].anchor_loudness[k].anchored_loudness & U16_MASK);
             }
           }
+        }
+
+        if (loudness[i].info_type & ~LOUDNESS_INFO_TYPE_ALL) {
+          size = bs_getAleb128(&b);
+          bs_skipABytes(&b, size);
+          ia_logd("extension loudness info size %" PRIu64, size);
         }
       }
     }
@@ -981,14 +1036,14 @@ IAMF_Parameter *iamf_parameter_new(IAMF_OBU *obu,
   para->id = bs_getAleb128(&b);
 
   if (!objParam || !objParam->param_base) {
-    ia_loge(
-        "parameter object(%lu): Invalid object parameters for Parameter "
-        "Object.",
-        para->id);
+    ia_loge("parameter object(%" PRIu64
+            "): Invalid object parameters for Parameter "
+            "Object.",
+            para->id);
     goto parameter_fail;
   }
 
-  ia_logd("parameter obu arguments: parameter type %lu",
+  ia_logd("parameter obu arguments: parameter type %" PRIu64,
           objParam->param_base->type);
 
   if (!objParam->param_base->mode) {
@@ -996,19 +1051,25 @@ IAMF_Parameter *iamf_parameter_new(IAMF_OBU *obu,
     para->nb_segments = objParam->param_base->nb_segments;
     para->constant_segment_interval =
         objParam->param_base->constant_segment_interval;
-    para->type = objParam->param_base->type;
   } else {
     intervals = para->duration = bs_getAleb128(&b);
-    para->nb_segments = bs_getAleb128(&b);
     para->constant_segment_interval = bs_getAleb128(&b);
-    para->type = objParam->param_base->type;
+    if (!para->constant_segment_interval) {
+      para->nb_segments = bs_getAleb128(&b);
+    } else {
+      para->nb_segments =
+          (para->duration + para->constant_segment_interval - 1) /
+          para->constant_segment_interval;
+    }
   }
+  para->type = objParam->param_base->type;
 
-  ia_logd(
-      "parameter id %lu, duration %lu, segment count %lu, const segment "
-      "interval %lu, type %lu",
-      para->id, para->duration, para->nb_segments,
-      para->constant_segment_interval, para->type);
+  ia_logd("parameter id %" PRIu64 ", duration %" PRIu64
+          ", segment count %" PRIu64
+          ", const segment "
+          "interval %" PRIu64 ", type %" PRIu64,
+          para->id, para->duration, para->nb_segments,
+          para->constant_segment_interval, para->type);
 
   para->segments = IAMF_MALLOCZ(ParameterSegment *, para->nb_segments);
   if (!para->segments) {
@@ -1020,12 +1081,12 @@ IAMF_Parameter *iamf_parameter_new(IAMF_OBU *obu,
     if (!objParam->param_base->mode) {
       if (!para->constant_segment_interval) {
         interval = objParam->param_base->segments[i].segment_interval;
-        ia_logd("parameter base segment interval %lu", interval);
+        ia_logd("parameter base segment interval %" PRIu64, interval);
       }
     } else {
       if (!para->constant_segment_interval) {
         interval = bs_getAleb128(&b);
-        ia_logd("segment interval %lu", interval);
+        ia_logd("segment interval %" PRIu64, interval);
       }
     }
 
@@ -1048,26 +1109,26 @@ IAMF_Parameter *iamf_parameter_new(IAMF_OBU *obu,
         seg->segment_interval = segment_interval;
         mg->mix_gain_f.animated_type = mg->mix_gain.animated_type =
             bs_getAleb128(&b);
-        mg->mix_gain.start = bs_getA16b(&b);
+        mg->mix_gain.start = (short)bs_getA16b(&b);
         gain_db = q_to_float(mg->mix_gain.start, 8);
         mg->mix_gain_f.start = db2lin(gain_db);
         if (mg->mix_gain.animated_type == PARAMETER_ANIMATED_TYPE_STEP) {
-          ia_logd(
-              "\t mix gain seg %d: interval %lu, step, start %f(%fdb, "
-              "<0x%02x>)",
-              i, seg->segment_interval, mg->mix_gain_f.start, gain_db,
-              mg->mix_gain.start & U16_MASK);
+          ia_logd("\t mix gain seg %d: interval %" PRIu64
+                  ", step, start %f(%fdb, "
+                  "<0x%02x>)",
+                  i, seg->segment_interval, mg->mix_gain_f.start, gain_db,
+                  mg->mix_gain.start & U16_MASK);
         } else {
-          mg->mix_gain.end = bs_getA16b(&b);
+          mg->mix_gain.end = (short)bs_getA16b(&b);
           gain2_db = q_to_float(mg->mix_gain.end, 8);
           mg->mix_gain_f.end = db2lin(gain2_db);
           if (mg->mix_gain.animated_type == PARAMETER_ANIMATED_TYPE_LINEAR) {
-            ia_logd(
-                "\t mix gain seg %d: interval %lu, linear, start %f(%fdb, "
-                "<0x%02x>), end %f(%fdb, <0x%02x>)",
-                i, seg->segment_interval, mg->mix_gain_f.start, gain_db,
-                mg->mix_gain.start & U16_MASK, mg->mix_gain_f.end, gain2_db,
-                mg->mix_gain.end & U16_MASK);
+            ia_logd("\t mix gain seg %d: interval %" PRIu64
+                    ", linear, start %f(%fdb, "
+                    "<0x%02x>), end %f(%fdb, <0x%02x>)",
+                    i, seg->segment_interval, mg->mix_gain_f.start, gain_db,
+                    mg->mix_gain.start & U16_MASK, mg->mix_gain_f.end, gain2_db,
+                    mg->mix_gain.end & U16_MASK);
           } else if (mg->mix_gain.animated_type ==
                      PARAMETER_ANIMATED_TYPE_BEZIER) {
             mg->mix_gain.control = bs_getA16b(&b);
@@ -1076,16 +1137,16 @@ IAMF_Parameter *iamf_parameter_new(IAMF_OBU *obu,
             mg->mix_gain.control_relative_time = bs_getA8b(&b);
             mg->mix_gain_f.control_relative_time =
                 qf_to_float(mg->mix_gain.control_relative_time, 8);
-            ia_logd(
-                "\t mix gain seg %d: interval %lu, bezier, start %f (%fdb "
-                "<0x%02x>), end %f (%fdb <0x%02x>), control %f (%fdb "
-                "<0x%02x>), control relative time %f (0x%x)",
-                i, seg->segment_interval, mg->mix_gain_f.start, gain_db,
-                mg->mix_gain.start & U16_MASK, mg->mix_gain_f.end, gain2_db,
-                mg->mix_gain.end & U16_MASK, mg->mix_gain_f.control, gain1_db,
-                mg->mix_gain.control & U16_MASK,
-                mg->mix_gain_f.control_relative_time,
-                mg->mix_gain.control_relative_time & U8_MASK);
+            ia_logd("\t mix gain seg %d: interval %" PRIu64
+                    ", bezier, start %f (%fdb "
+                    "<0x%02x>), end %f (%fdb <0x%02x>), control %f (%fdb "
+                    "<0x%02x>), control relative time %f (0x%x)",
+                    i, seg->segment_interval, mg->mix_gain_f.start, gain_db,
+                    mg->mix_gain.start & U16_MASK, mg->mix_gain_f.end, gain2_db,
+                    mg->mix_gain.end & U16_MASK, mg->mix_gain_f.control,
+                    gain1_db, mg->mix_gain.control & U16_MASK,
+                    mg->mix_gain_f.control_relative_time,
+                    mg->mix_gain.control_relative_time & U8_MASK);
           }
         }
       } break;
@@ -1100,7 +1161,7 @@ IAMF_Parameter *iamf_parameter_new(IAMF_OBU *obu,
         para->segments[i] = seg;
         seg->segment_interval = segment_interval;
         mode->demixing_mode = bs_get32b(&b, 3);
-        ia_logd("segment interval %lu, demixing mode : %d",
+        ia_logd("segment interval %" PRIu64 ", demixing mode : %d",
                 seg->segment_interval, mode->demixing_mode);
       } break;
       case IAMF_PARAMETER_TYPE_RECON_GAIN: {
@@ -1135,6 +1196,7 @@ IAMF_Parameter *iamf_parameter_new(IAMF_OBU *obu,
             goto parameter_fail;
           }
           for (int k = 0; k < list->count; ++k) {
+            if (~objParam->recon_gain_present_flags & RSHIFT(k)) continue;
             recon[k].flags = bs_getAleb128(&b);
             channels = bit1_count(recon[k].flags);
             if (channels > 0) {
@@ -1158,9 +1220,14 @@ IAMF_Parameter *iamf_parameter_new(IAMF_OBU *obu,
           }
         }
       } break;
-      default:
-        ia_loge("Invalid parameter type for Parameter Object.");
-        break;
+      default: {
+        uint64_t size = bs_getAleb128(&b);
+        bs_skipABytes(&b, size);
+        ia_logw("parameter %" PRIu64 ", don't support extension type %" PRIu64
+                ", and parameter "
+                "data bytes %" PRIu64 " .",
+                para->id, para->type, size);
+      } break;
     }
   }
 

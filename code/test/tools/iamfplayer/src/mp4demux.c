@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "mp4demux.h"
 
 #include <assert.h>
+#include <inttypes.h>
 #include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -493,7 +494,7 @@ int mov_read_elst(mp4r_t *mp4r, int size) {
 
   if (!atr[sel_a_trak].start && start > 0) {
     atr[sel_a_trak].start = start;
-    /* printf("get media time %ld\n", start); */
+    /* printf("get media time %" PRId64"\n", start); */
   }
   return size;
 }
@@ -546,8 +547,7 @@ int mov_read_iamf(mp4r_t *mp4r, int size) {
   atr[sel_a_trak].bits = sample_size;  // bitdepth
   avio_rb16();                         // predefined
   avio_rb16();                         // reserved
-  uint32_t sample_rate = avio_rb32() >> 16;
-  atr[sel_a_trak].samplerate = sample_rate;
+  avio_rb32();                         // sample_rate
 
   csc = atr[sel_a_trak].csc;
   atr[sel_a_trak].csc = _drealloc(
@@ -905,7 +905,8 @@ static int mov_read_moof(mp4r_t *mp4r, int size) {
     }
   }
 
-  /* fprintf(stderr, "moof pos %ld, size %d\n", mp4r->moof_position, size); */
+  /* fprintf(stderr, "moof pos %" PRId64", size %d\n", mp4r->moof_position,
+   * size); */
   return size;
 }
 
@@ -1069,7 +1070,7 @@ int parse(mp4r_t *mp4r, uint32_t *sizemax) {
 
     apos = ftell(mp4r->fin);
     if (apos >= (aposmax - 8)) {
-      /* fprintf(stderr, "parse error: atom '%s' not found, at %lu\n", */
+      /* fprintf(stderr, "parse error: atom '%s' not found, at %" PRIu64"\n", */
       /* (char *)mp4r->atom->opaque, apos); */
       return ERR_FAIL;
     }
@@ -1101,7 +1102,7 @@ int parse(mp4r_t *mp4r, uint32_t *sizemax) {
   }
   *sizemax = size;
   mp4r->atom++;
-  /* fprintf(stderr, "parse: pos %ld\n", apos); */
+  /* fprintf(stderr, "parse: pos %" PRId64"\n", apos); */
   if (mp4r->atom->atom_type == MOV_ATOM_DATA) {
     int err = ((int (*)(mp4r_t *, int))mp4r->atom->opaque)(mp4r, size - 8);
     if (err < ERR_OK) {
@@ -1130,7 +1131,7 @@ int parse(mp4r_t *mp4r, uint32_t *sizemax) {
     // fprintf(stderr, "ascent\n");
   }
 
-  /* fprintf(stderr, "parse: pos+size %ld\n", apos + size); */
+  /* fprintf(stderr, "parse: pos+size %" PRId64"\n", apos + size); */
   fseek(mp4r->fin, apos + size, SEEK_SET);
 
   return ERR_OK;
@@ -1216,13 +1217,13 @@ int mov_read_hdlr(mp4r_t *mp4r, int size) {
 
 int mov_moov_probe(mp4r_t *mp4r, int sizemax) {
   mp4r->next_moov = ftell(mp4r->fin);
-  /* fprintf(stderr, "find moov box at %ld.\n", mp4r->next_moov); */
+  /* fprintf(stderr, "find moov box at %" PRId64".\n", mp4r->next_moov); */
   return ERR_OK;
 }
 
 int mov_moof_probe(mp4r_t *mp4r, int sizemax) {
   mp4r->next_moof = ftell(mp4r->fin);
-  /* fprintf(stderr, "find moof box at %ld.\n", mp4r->next_moof); */
+  /* fprintf(stderr, "find moof box at %" PRId64".\n", mp4r->next_moof); */
   return ERR_OK;
 }
 
@@ -1324,7 +1325,8 @@ int mp4demux_parse(mp4r_t *mp4r, int trak) {
     size = ftell(mp4r->fin);
     if (pos == size) return ERR_FAIL;
 
-    fprintf(stderr, "Warning: pos %lu, file size %lu\n", pos, size);
+    fprintf(stderr, "Warning: pos %" PRIu64 ", file size %" PRIu64 "\n", pos,
+            size);
     fseek(mp4r->fin, pos, SEEK_SET);
 
 #if 0

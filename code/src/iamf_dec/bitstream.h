@@ -52,6 +52,7 @@ int32_t bs(BitStream *b, const uint8_t *data, int size);
 uint32_t bs_get32b(BitStream *b, int n);
 int32_t bs_skip(BitStream *b, int n);
 void bs_align(BitStream *b);
+int32_t bs_skipABytes(BitStream *b, int n);
 uint32_t bs_getA8b(BitStream *b);
 uint32_t bs_getA16b(BitStream *b);
 uint32_t bs_getA32b(BitStream *b);

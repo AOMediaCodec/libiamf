@@ -51,9 +51,9 @@ typedef enum IAMF_OBU_Type {
   IAMF_OBU_MIX_PRESENTATION,
   IAMF_OBU_PARAMETER_BLOCK,
   IAMF_OBU_TEMPORAL_DELIMITER,
-  IAMF_OBU_AUDIO_FRAME = 8,
-  IAMF_OBU_AUDIO_FRAME_ID0 = 9,
-  IAMF_OBU_AUDIO_FRAME_ID21 = 30,
+  IAMF_OBU_AUDIO_FRAME,
+  IAMF_OBU_AUDIO_FRAME_ID0,
+  IAMF_OBU_AUDIO_FRAME_ID17 = 23,
   IAMF_OBU_SEQUENCE_HEADER = 31
 } IAMF_OBU_Type;
 
@@ -120,6 +120,7 @@ typedef struct IAMF_ParameterParam {
   IAMF_ObjectParameter base;
   ParameterBase *param_base;
   int nb_layers;
+  uint32_t recon_gain_present_flags;
 } IAMF_ParameterParam;
 
 /**
@@ -130,8 +131,8 @@ typedef struct IAMF_Version {
   IAMF_Object obj;
 
   uint32_t iamf_code;
-  uint8_t profile_name;
-  uint8_t profile_compatible;
+  uint8_t primary_profile;
+  uint8_t additional_profile;
 } IAMF_Version;
 
 /**
@@ -283,15 +284,20 @@ typedef struct MixGainParameter {
   short mix_gain;
 } MixGainParameter;
 
+typedef struct ElementRenderingConf {
+  uint8_t headphones_rendering_mode;
+} ElementRenderingConf;
+
 typedef struct ElementMixConf {
   MixGainParameter gain;
 } ElementMixConf;
 
-typedef struct ElementMixRenderConf {
+typedef struct ElementConf {
   uint64_t element_id;
   char **audio_element_friendly_label;
+  ElementRenderingConf conf_r;
   ElementMixConf conf_m;
-} ElementMixRenderConf;
+} ElementConf;
 
 typedef struct OutputMixConf {
   MixGainParameter gain;
@@ -299,7 +305,7 @@ typedef struct OutputMixConf {
 
 struct SubMixPresentation {
   uint64_t nb_elements;
-  ElementMixRenderConf *conf_s;
+  ElementConf *conf_s;
 
   OutputMixConf output_mix_config;
 

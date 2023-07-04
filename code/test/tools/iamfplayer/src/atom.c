@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "atom.h"
 
+#include <inttypes.h>
 #include <memory.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -356,7 +357,7 @@ int atom_dump(FILE *fp, uint64_t apos, uint32_t tmp) {
     case ATOM_TYPE_MOOF:
       if (print_header == 0)
         if (_logger) {
-          fprintf(_logger, "[%.*s %lu]\n", 4, (char *)&atom.type,
+          fprintf(_logger, "[%.*s %" PRIu64 "]\n", 4, (char *)&atom.type,
                   atom.data_end - atom.data);
         }
       if (_logger) {

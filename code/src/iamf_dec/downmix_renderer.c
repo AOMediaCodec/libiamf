@@ -129,10 +129,11 @@ static float _downmix_channel_data(DMRenderer *thisp, IAChannel c, int i) {
 
 DMRenderer *DMRenderer_open(IAChannelLayoutType in, IAChannelLayoutType out) {
   DMRenderer *thisp = 0;
-  ia_logd("%s downmix to %s", ia_channel_layout_name(in),
-          ia_channel_layout_name(out));
   if (in == out || !_valid_channel_layout(in) || !_valid_channel_layout(out))
     return 0;
+
+  ia_logd("%s downmix to %s", ia_channel_layout_name(in),
+          ia_channel_layout_name(out));
 
   if (!_valid_downmix(in, out)) return 0;
 
@@ -213,22 +214,25 @@ int DMRenderer_set_mode_weight(DMRenderer *thisp, int mode, int w_idx) {
   return IAMF_OK;
 }
 
-int DMRenderer_downmix(DMRenderer *thisp, float *in, float *out,
-                       uint32_t size) {
-  int off;
-  if (!thisp || !in || !out || !size) return IAMF_ERR_BAD_ARG;
+int DMRenderer_downmix(DMRenderer *thisp, float *in, float *out, uint32_t s,
+                       uint32_t duration, uint32_t size) {
+  int off, e;
+  if (!thisp || !in || !out || !size || s >= size) return IAMF_ERR_BAD_ARG;
 
   memset(thisp->chs_data, 0, IA_CH_COUNT * sizeof(float));
   for (int i = 0; i < thisp->chs_icount; ++i) {
     thisp->chs_data[thisp->chs_in[i]] = in + size * i;
   }
 
+  e = s + duration;
+  if (e > size) e = size;
+
   for (int i = 0; i < thisp->chs_ocount; ++i) {
     ia_logd("channel %s(%d) checking...", ia_channel_name(thisp->chs_out[i]),
             thisp->chs_out[i]);
     _downmix_dump(thisp, thisp->chs_out[i]);
     off = size * i;
-    for (int j = 0; j < size; ++j) {
+    for (int j = s; j < e; ++j) {
       out[off + j] = _downmix_channel_data(thisp, thisp->chs_out[i], j);
     }
   }

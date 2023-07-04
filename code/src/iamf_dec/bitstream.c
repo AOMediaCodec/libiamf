@@ -109,6 +109,13 @@ void bs_align(BitStream *b) {
   }
 }
 
+int32_t bs_skipABytes(BitStream *b, int n) {
+  bs_align(b);
+  b->b8sp += n;
+  return 0;
+}
+
+
 uint32_t bs_getA8b(BitStream *b) {
   uint32_t ret;
 
