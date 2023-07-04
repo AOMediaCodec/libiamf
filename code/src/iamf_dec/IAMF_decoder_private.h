@@ -276,6 +276,7 @@ typedef struct IAMF_StreamDecoder {
 typedef struct IAMF_StreamRenderer {
   IAMF_Stream *stream;
   DMRenderer *downmixer;
+  uint32_t offset;
 } IAMF_StreamRenderer;
 
 typedef struct IAMF_Mixer {

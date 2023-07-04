@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
 
 #include <errno.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -456,7 +457,8 @@ static int bs_input_wav_output(PlayerArgs *pas) {
     }
 
     frsize += ret;
-    /* fprintf(stdout, "Read FILE ========== read %d and count %lu\n", ret, */
+    /* fprintf(stdout, "Read FILE ========== read %d and count %" PRIu64"\n",
+     * ret, */
     /* frsize); */
     size = used + ret;
     used = 0;
@@ -473,7 +475,7 @@ static int bs_input_wav_output(PlayerArgs *pas) {
       } else if (ret != IAMF_ERR_BUFFER_TOO_SMALL) {
         fprintf(stderr, "errno: %d, fail to configure decoder.\n", ret);
         break;
-      } else if (!rsize){
+      } else if (!rsize) {
         fprintf(stderr, "errno: %d, buffer is too small.\n", ret);
         break;
       }
@@ -530,7 +532,8 @@ static int bs_input_wav_output(PlayerArgs *pas) {
 
   if (fsize != frsize)
     fprintf(stderr,
-            "file is read %lu (vs %lu), not completely. return value %d\n",
+            "file is read %" PRIu64 " (vs %" PRIu64
+            "), not completely. return value %d\n",
             frsize, fsize, ret);
 
 end:
@@ -642,7 +645,6 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
 
     fprintf(stdout, "Sound system %s has %d channels\n", letter[layout->ss],
             channels);
-
   } else if (layout->type == 3) {
     IAMF_decoder_output_layout_set_binaural(dec);
     channels = IAMF_layout_binaural_channels_count();
@@ -689,8 +691,8 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
   else {
     double r = header->skip * 90000;
     st = r / header->timescale + 0.5f;
-    printf("skip %d/%d pts is %ld/90000\n", header->skip, header->timescale,
-           st);
+    printf("skip %d/%d pts is %" PRId64 "/90000\n", header->skip,
+           header->timescale, st);
   }
   IAMF_decoder_set_pts(dec, st * -1, 90000);
 
@@ -737,7 +739,8 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
     if (ret > 0) {
       ++count;
       /* fprintf(stderr, */
-      /* "===================== Get %d frame and size %d, offset %ld\n", */
+      /* "===================== Get %d frame and size %d, offset %" PRId64"\n",
+       */
       /* count, ret, sample_offs); */
       dep_wav_write_data(wav_f, (unsigned char *)pcm,
                          (bit_depth / 8) * ret * channels);
@@ -846,7 +849,7 @@ int main(int argc, char *argv[]) {
         fprintf(stdout, "sampling rate : %u\n", pas.rate);
       } else if (!strcmp(argv[args], "-mp")) {
         pas.mix_presentation_id = strtoull(argv[++args], NULL, 10);
-        fprintf(stdout, "select mix presentation id %ld",
+        fprintf(stdout, "select mix presentation id %" PRId64,
                 pas.mix_presentation_id);
       }
     } else {

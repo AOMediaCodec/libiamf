@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "config.h"
 #endif
 
+#include <inttypes.h>
 #include <math.h>
 
 #include "IAMF_OBU.h"
@@ -49,7 +50,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "fixedp11_5.h"
 #include "speex_resampler.h"
 
-#define RSHIFT(a) (1 << (a))
 #define INVALID_VALUE -1
 #define INVALID_ID (uint64_t)(-1)
 #define INVALID_TIMESTAMP 0xFFFFFFFF
@@ -645,15 +645,8 @@ static void mix_gain_unit_free(MixGainUnit *u) {
 
 static int mix_gain_bezier_linear(float s, float e, int d, int o, uint32_t l,
                                   float *g) {
-  //  float n = d;
-  //  float a, go;
   int oe = o + l;
-
-  for (int i = o, k = 0; i < oe; ++i, ++k) {
-    //    a = i / n;
-    //    go = (1.0f - a) * s + a * e;
-    g[k] = s + (e - s) * i / d;
-  }
+  for (int i = o, k = 0; i < oe; ++i, ++k) g[k] = s + (e - s) * i / d;
 
   return IAMF_OK;
 }
@@ -661,20 +654,16 @@ static int mix_gain_bezier_linear(float s, float e, int d, int o, uint32_t l,
 static int mix_gain_bezier_quad(float s, float e, int d, float c, int ct, int o,
                                 uint32_t l, float *g) {
   int oe = o + l;
-  int64_t alpha, beta, beta_s;
-  float a;
-  //  float go, ao;
-  //  int64_t gamma;
-
-  alpha = d - 2 * ct;
-  beta = 2 * ct;
-  beta_s = 4 * pow(ct, 2);
+  int64_t alpha = d - 2 * ct;
+  float a = 1.0f;
 
   for (int i = o, k = 0; i < oe; ++i, ++k) {
-    //    gamma = - i;
-    //    ao = (sqrt(pow(beta, 2) - 4 * alpha * gamma) - beta) / (2 * alpha);
-    //    go = pow(1 - a, 2) * s + 2 * (1 - a) * a * c + pow(a, 2) * e;
-    a = (sqrt(beta_s + 4 * alpha * i) - beta) / (2 * alpha);
+    if (alpha) {
+      a = (sqrt(pow(ct, 2) + alpha * i) - ct) / alpha;
+    } else {
+      a = i;
+      a /= (2 * ct);
+    }
     g[k] = (s + e - 2 * c) * pow(a, 2) + 2 * a * (c - s) + s;
   }
 
@@ -820,8 +809,9 @@ static int iamf_database_parameter_check_timestamp(IAMF_DataBase *db,
       iamf_database_parameter_viewer_get_item(&db->pViewer, pid);
   if (!pi) return 0;
   if (pts > pi->timestamp && pts <= pi->timestamp + pi->duration) return 1;
-  ia_logw("pid %lu: request pts %lu vs parameter pts %lu, duration %lu", pid,
-          pts, pi->timestamp, pi->duration);
+  ia_logw("pid %" PRIu64 ": request pts %" PRIu64 " vs parameter pts %" PRIu64
+          ", duration %" PRIu64,
+          pid, pts, pi->timestamp, pi->duration);
   return 0;
 }
 
@@ -836,7 +826,8 @@ static ParameterSegment *iamf_database_parameter_get_segment(IAMF_DataBase *db,
 
   if (!pi) return 0;
   if (!iamf_database_parameter_check_timestamp(db, pi->id, pts)) {
-    ia_logw("Don't receive parameter %lu at %lu, current parameter at %lu",
+    ia_logw("Don't receive parameter %" PRIu64 " at %" PRIu64
+            ", current parameter at %" PRIu64,
             pi->id, pts, pi->timestamp);
     return 0;
   } else
@@ -881,13 +872,14 @@ static MixGainUnit *iamf_database_parameter_get_mix_gain_unit(
   pi = iamf_database_parameter_viewer_get_item(&db->pViewer, pid);
   if (!pi) return 0;
 
-  ia_logd("pts %lu, parameter id %lu, pts %lu, duration %ld", pt, pid,
-          pi->timestamp, pi->duration);
+  ia_logd("pts %" PRIu64 ", parameter id %" PRIu64 ", pts %" PRIu64
+          ", duration %" PRId64,
+          pt, pid, pi->timestamp, pi->duration);
   if (pt < pi->timestamp) {
-    ia_logw(
-        "Don't receive mix gain parameter %lu at %lu, current parameter at "
-        "%lu",
-        pi->id, pt, pi->timestamp);
+    ia_logw("Don't receive mix gain parameter %" PRIu64 " at %" PRIu64
+            ", current parameter at "
+            "%" PRIu64,
+            pi->id, pt, pi->timestamp);
     use_default = 1;
   } else
     start = pt - pi->timestamp;
@@ -922,7 +914,8 @@ static MixGainUnit *iamf_database_parameter_get_mix_gain_unit(
       minterval = seg->seg.segment_interval * ratio;
       sgd += minterval;
       if (start < sgd) {
-        ia_logd("find segment %d, s(%lu) ~ e(%lu)", i, sgd - minterval, sgd);
+        ia_logd("find segment %d, s(%" PRIu64 ") ~ e(%" PRIu64 ")", i,
+                sgd - minterval, sgd);
         if (seg->mix_gain.animated_type == PARAMETER_ANIMATED_TYPE_STEP) {
           if (!mgu->count && start + duration <= sgd) {
             mgu->constant_gain = seg->mix_gain_f.start;
@@ -1011,7 +1004,7 @@ static int iamf_database_parameter_add_item(IAMF_DataBase *db,
   pi = iamf_database_parameter_viewer_get_item(pv, pid);
 
   if (pi) {
-    ia_logd("parameter %lu is already in database.", pid);
+    ia_logd("parameter %" PRIu64 " is already in database.", pid);
     return IAMF_OK;
   }
 
@@ -1033,7 +1026,7 @@ static int iamf_database_parameter_add_item(IAMF_DataBase *db,
   if (type == IAMF_PARAMETER_TYPE_MIX_GAIN) pi->value.mix_gain.use_default = 1;
 
   pis[pv->count++] = pi;
-  ia_logd("add parameter item %p, its id %lu, and count is %d", pi, pid,
+  ia_logd("add parameter item %p, its id %" PRIu64 ", and count is %d", pi, pid,
           pv->count);
 
   pi->id = pid;
@@ -1061,7 +1054,7 @@ static int iamf_database_parameter_add(IAMF_DataBase *db, IAMF_Object *obj) {
   pi = iamf_database_parameter_viewer_get_item(pv, p->id);
   if (pi) {
     if (obj->flags & IAMF_OBU_FLAG_REDUNDANT && pi->duration > 0) {
-      ia_logd("Ignore redundant parameter obu with id %lu.", p->id);
+      ia_logd("Ignore redundant parameter obu with id %" PRIu64 ".", p->id);
       return IAMF_OK;
     }
 
@@ -1075,10 +1068,10 @@ static int iamf_database_parameter_add(IAMF_DataBase *db, IAMF_Object *obj) {
       pi->duration += p->segments[i]->segment_interval;
       p->segments[i] = 0;
     }
-    ia_logd("New p(%lu)ts(s:%lu, e: %lu).", pi->id, pi->timestamp,
-            pi->timestamp + pi->duration);
+    ia_logd("New p(%" PRIu64 ")ts(s:%" PRIu64 ", e: %" PRIu64 ").", pi->id,
+            pi->timestamp, pi->timestamp + pi->duration);
   } else {
-    ia_logw("Can not find parameter item for paramter (%lu)", p->id);
+    ia_logw("Can not find parameter item for paramter (%" PRIu64 ")", p->id);
   }
 
   return IAMF_OK;
@@ -1108,8 +1101,9 @@ static int iamf_database_parameters_time_elapse(IAMF_DataBase *db,
 
   for (int i = 0; i < pv->count; ++i) {
     pi = (ParameterItem *)pv->items[i];
-    ia_logd("S: pid %lu pts %lu, duration %lu, elapsed %lu, elapse %lu", pi->id,
-            pi->timestamp, pi->duration, pi->elapse, duration);
+    ia_logd("S: pid %" PRIu64 " pts %" PRIu64 ", duration %" PRIu64
+            ", elapsed %" PRIu64 ", elapse %" PRIu64,
+            pi->id, pi->timestamp, pi->duration, pi->elapse, duration);
 
     if (pi->value.params) {
       pi->elapse += duration;
@@ -1120,12 +1114,13 @@ static int iamf_database_parameters_time_elapse(IAMF_DataBase *db,
           pi->timestamp += seg->segment_interval;
           pi->duration -= seg->segment_interval;
           pi->elapse -= seg->segment_interval;
-          ia_logd("pi %p, pid %lu, pop segment %p", pi, pi->id, seg);
+          // ia_logd("pi %p, pid %" PRIu64", pop segment %p", pi, pi->id, seg);
           queue_pop(pi->value.params);
           IAMF_parameter_segment_free(seg);
         } else {
-          ia_logd("E: pid %lu pts %lu, duration %lu, elapsed %lu", pi->id,
-                  pi->timestamp, pi->duration, pi->elapse);
+          ia_logd("E: pid %" PRIu64 " pts %" PRIu64 ", duration %" PRIu64
+                  ", elapsed %" PRIu64,
+                  pi->id, pi->timestamp, pi->duration, pi->elapse);
           break;
         }
       }
@@ -1144,7 +1139,7 @@ static int iamf_database_element_add(IAMF_DataBase *db, IAMF_Object *obj) {
 
   ei = iamf_database_element_get_item(db, e->element_id);
   if (ei) {
-    ia_logd("element %lu is already in database.", e->element_id);
+    ia_logd("element %" PRIu64 " is already in database.", e->element_id);
     return IAMF_OK;
   }
 
@@ -1405,7 +1400,7 @@ static int iamf_frame_gain(Frame *f, MixGainUnit *gain) {
     return IAMF_OK;
   }
 
-  ia_logd("use gains");
+  ia_logd("use gains %f -> %f", gain->gains[0], gain->gains[gain->count - 1]);
   for (int c = 0; c < f->channels; ++c) {
     soff = c * f->samples;
     for (int i = 0; i < f->samples; ++i) f->data[soff + i] *= gain->gains[i];
@@ -1526,7 +1521,7 @@ static int iamf_presentation_reuse_stream(IAMF_Presentation *dst,
   dst->decoders[dst->nb_streams] = decoder;
   dst->renderers[dst->nb_streams] = renderer;
   ++dst->nb_streams;
-  ia_logd("reuse stream with element id %lu", eid);
+  ia_logd("reuse stream with element id %" PRIu64, eid);
 
   return 0;
 }
@@ -1618,7 +1613,7 @@ static IAMF_Stream *iamf_stream_new(IAMF_Element *elem, IAMF_CodecConf *conf,
   stream->sampling_rate = iamf_codec_conf_get_sampling_rate(conf);
   stream->nb_substreams = elem->nb_substreams;
 
-  ia_logd("codec conf id %lu, codec id 0x%x (%s), sampling rate is %u",
+  ia_logd("codec conf id %" PRIu64 ", codec id 0x%x (%s), sampling rate is %u",
           conf->codec_conf_id, conf->codec_id,
           iamf_codec_name(stream->codec_id), stream->sampling_rate);
   if (stream->scheme == AUDIO_ELEMENT_TYPE_CHANNEL_BASED) {
@@ -1729,7 +1724,6 @@ static IAMF_Stream *iamf_stream_new(IAMF_Element *elem, IAMF_CodecConf *conf,
     ia_logi("initialized layer %d, layout %s (%d), layout channel count %d.",
             ctx->layer, ia_channel_layout_name(ctx->layout), ctx->layout,
             ctx->channels);
-
   } else {
     AmbisonicsConf *aconf = elem->ambisonics_conf;
     AmbisonicsContext *ctx;
@@ -1818,10 +1812,10 @@ static int iamf_stream_enable(IAMF_DecoderHandle handle, IAMF_Element *elem) {
   IAMF_StreamRenderer **renderers;
   int ret = IAMF_ERR_ALLOC_FAIL;
 
-  ia_logd("enable element id %lu", elem->element_id);
+  ia_logd("enable element id %" PRIu64, elem->element_id);
   element_id = elem->element_id;
   conf = iamf_database_element_get_codec_conf(db, element_id);
-  ia_logd("codec conf id %lu", conf->codec_conf_id);
+  ia_logd("codec conf id %" PRIu64, conf->codec_conf_id);
 
   stream = iamf_stream_new(elem, conf, ctx->output_layout);
   if (!stream) goto stream_enable_fail;
@@ -2117,7 +2111,7 @@ static int iamf_stream_decoder_decode(IAMF_StreamDecoder *decoder, float *pcm) {
   if (stream->trimming_start != decoder->frame_size && decoder->delay < 0) {
     iamf_stream_decoder_update_delay(decoder);
     stream->trimming_start += decoder->delay;
-    ia_logi("decoder delay is %d, trimming start is %lu", decoder->delay,
+    ia_logi("decoder delay is %d, trimming start is %" PRIu64, decoder->delay,
             stream->trimming_start);
 
     if (stream->scheme == AUDIO_ELEMENT_TYPE_CHANNEL_BASED) {
@@ -2160,7 +2154,7 @@ int iamf_stream_scale_decoder_set_default_recon_gain(
   if (ctx->layer > 0) {
     uint8_t layout = ctx->conf_s[0].layout;
     rg.flags = iamf_recon_channels_get_flags(layout, ctx->layout);
-    ia_logd("first layer %d, target layout %d", layout & U8_MASK, ctx->layout);
+    ia_logd("first layer %d, target layout %d", layout, ctx->layout);
     ia_logd("default recon gain flags 0x%04x", rg.flags);
     rg.nb_channels = bit1_count(rg.flags);
     ia_logd("default channel count %d", rg.nb_channels);
@@ -2441,10 +2435,16 @@ static int iamf_stream_render(IAMF_StreamRenderer *renderer, float *in,
   if (stream->scheme == AUDIO_ELEMENT_TYPE_CHANNEL_BASED) {
     if (renderer->downmixer) {
       ChannelLayerContext *ctx = (ChannelLayerContext *)stream->priv;
+      ia_logd("rendering: offset %u", renderer->offset);
+      if (renderer->offset)
+        DMRenderer_downmix(renderer->downmixer, in, out, 0, renderer->offset,
+                           frame_size);
       if (ctx->dmx_mode > INVALID_VALUE)
         DMRenderer_set_mode_weight(renderer->downmixer, ctx->dmx_mode,
                                    INVALID_VALUE);
-      DMRenderer_downmix(renderer->downmixer, in, out, frame_size);
+      if (frame_size > renderer->offset)
+        DMRenderer_downmix(renderer->downmixer, in, out, renderer->offset,
+                           frame_size - renderer->offset, frame_size);
     } else {
       ChannelLayerContext *ctx = (ChannelLayerContext *)stream->priv;
       struct m2m_rdr_t m2m;
@@ -2554,7 +2554,8 @@ static int iamf_mixer_mix(IAMF_Mixer *mixer, Frame *f) {
 
   for (int i = 1; i < mixer->nb_elements; ++i) {
     if (s != mixer->frames[i]->samples || pts != mixer->frames[i]->pts) {
-      ia_loge("Frame ( 0, %d) has different samples (%d, %d) or pts (%ld, %ld)",
+      ia_loge("Frame ( 0, %d) has different samples (%d, %d) or pts (%" PRId64
+              ", %" PRId64 ")",
               i, s, mixer->frames[i]->samples, pts, mixer->frames[i]->pts);
       return 0;
     }
@@ -2563,7 +2564,7 @@ static int iamf_mixer_mix(IAMF_Mixer *mixer, Frame *f) {
   f->pts = pts;
   f->samples = s;
   f->strim = mixer->frames[0]->strim;
-  ia_logd("mixed frame pts %ld, samples %d", f->pts, s);
+  ia_logd("mixed frame pts %" PRId64 ", samples %d", f->pts, s);
   memset(f->data, 0, sizeof(float) * s * chs);
 
   for (int e = 0; e < mixer->nb_elements; ++e) {
@@ -2736,8 +2737,14 @@ uint32_t iamf_decoder_internal_parse_OBUs(IAMF_DecoderHandle handle,
             iamf_database_get_element_by_parameterID(&handle->ctx.db, pid));
         if (e) {
           if (e->element_type == AUDIO_ELEMENT_TYPE_CHANNEL_BASED &&
-              e->channels_conf) {
-            ext.nb_layers = e->channels_conf->nb_layers;
+              e->channels_conf && e->channels_conf->layer_conf_s) {
+            ScalableChannelLayoutConf *conf = e->channels_conf;
+            ext.nb_layers = conf->nb_layers;
+
+            for (int i = 0; i < ext.nb_layers; ++i) {
+              if (conf->layer_conf_s[i].recon_gain_flag)
+                ext.recon_gain_present_flags |= RSHIFT(i);
+            }
           }
         }
         obj = IAMF_object_new(&obu, param);
@@ -2800,8 +2807,8 @@ int iamf_decoder_internal_deliver(IAMF_DecoderHandle handle, IAMF_Frame *obj) {
     decoder = pst->decoders[i];
 
     if (idx == 0) {
-      ia_logd("frame id %lu and its stream (%d) id %lu", obj->id, i,
-              pst->streams[i]->element_id);
+      ia_logd("frame id %" PRIu64 " and its stream (%d) id %" PRIu64, obj->id,
+              i, pst->streams[i]->element_id);
 
       if (obj->trim_start != stream->trimming_start) {
         stream->trimming_start = obj->trim_start;
@@ -2811,8 +2818,9 @@ int iamf_decoder_internal_deliver(IAMF_DecoderHandle handle, IAMF_Frame *obj) {
         stream->trimming_end = obj->trim_end;
       }
 
-      if (obj->trim_start > 0) ia_logd("trimming start %lu ", obj->trim_start);
-      if (obj->trim_end > 0) ia_logd("trimming end %lu", obj->trim_end);
+      if (obj->trim_start > 0)
+        ia_logd("trimming start %" PRIu64 " ", obj->trim_start);
+      if (obj->trim_end > 0) ia_logd("trimming end %" PRIu64, obj->trim_end);
 
 #if 0
       if (decoder->packet.sub_packets[idx]) {
@@ -2965,8 +2973,8 @@ static int iamf_decoder_enable_mix_presentation(IAMF_DecoderHandle handle,
   pst->output_gain_id = INVALID_ID;
   ctx->presentation = pst;
 
-  ia_logd("enable mix presentation id %lu, %p", mixp->mix_presentation_id,
-          mixp);
+  ia_logd("enable mix presentation id %" PRIu64 ", %p",
+          mixp->mix_presentation_id, mixp);
 
   // There is only one sub mix in the mix presentation for simple and base
   // profiles. so the sub mix is selected the first.
@@ -2984,7 +2992,7 @@ static int iamf_decoder_enable_mix_presentation(IAMF_DecoderHandle handle,
       pi = iamf_database_parameter_get_item(db, pid);
       gain_db = q_to_float(sub->conf_s[i].conf_m.gain.mix_gain, 8);
       pi->value.mix_gain.default_mix_gain = db2lin(gain_db);
-      ia_logi("element %lu : mix gain %f (%f db) <- 0x%x",
+      ia_logi("element %" PRIu64 " : mix gain %f (%f db) <- 0x%x",
               sub->conf_s[i].element_id, pi->value.mix_gain.default_mix_gain,
               gain_db, sub->conf_s[i].conf_m.gain.mix_gain & U16_MASK);
     }
@@ -3173,8 +3181,9 @@ static int iamf_decoder_internal_decode(IAMF_DecoderHandle handle,
           decoder->delay = 0;
         }
 
-        ia_logd("strim %lu, frame size %u, delay size %d", f->strim,
+        ia_logd("strim %" PRIu64 ", frame size %u, delay size %d", f->strim,
                 decoder->frame_size, decoder->delay);
+        renderer->offset = decoder->delay > 0 ? decoder->delay : 0;
         if (f->strim == decoder->frame_size ||
             f->etrim == decoder->frame_size) {
           ret = 0;
@@ -3182,6 +3191,8 @@ static int iamf_decoder_internal_decode(IAMF_DecoderHandle handle,
         } else if ((f->strim && f->strim < decoder->frame_size) ||
                    (f->etrim && f->etrim < decoder->frame_size) ||
                    stream->trimming_start) {
+          if (stream->trimming_start) renderer->offset = 0;
+
           if (f->etrim > 0 && decoder->delay > 0) {
             if (decoder->delay > f->etrim) {
               decoder->delay -= f->etrim;
@@ -3199,10 +3210,10 @@ static int iamf_decoder_internal_decode(IAMF_DecoderHandle handle,
       }
 
       if (!s && f->strim > 0) {
-        ia_logd("external pts is %ld", ctx->pts);
+        ia_logd("external pts is %" PRId64, ctx->pts);
         ctx->pts +=
             time_transform(f->strim, stream->sampling_rate, ctx->pts_time_base);
-        ia_logd("external pts changes to %ld", ctx->pts);
+        ia_logd("external pts changes to %" PRId64, ctx->pts);
       }
 
       if (ret <= 0) {
@@ -3266,7 +3277,7 @@ static int iamf_decoder_internal_decode(IAMF_DecoderHandle handle,
     f = &pst->frame;
     real_frame_size = iamf_mixer_mix(mixer, f);
 
-    ia_logd("frame pts %lu, id %lu", f->pts, pst->output_gain_id);
+    ia_logd("frame pts %" PRIu64 ", id %" PRIu64, f->pts, pst->output_gain_id);
 
     u = iamf_database_parameter_get_mix_gain_unit(
         db, pst->output_gain_id, f->pts, f->samples, ctx->sampling_rate);
@@ -3628,7 +3639,7 @@ int iamf_decoder_internal_configure(IAMF_DecoderHandle handle,
 
   if (ret == IAMF_OK) {
     IAMF_MixPresentation *mixp = iamf_decoder_get_best_mix_presentation(handle);
-    ia_logi("get mix presentation id %ld",
+    ia_logi("get mix presentation id %" PRId64,
             mixp ? mixp->mix_presentation_id : INVALID_ID);
     if (mixp) {
       ret = iamf_decoder_enable_mix_presentation(handle, mixp);
@@ -3722,7 +3733,7 @@ int IAMF_decoder_set_mix_presentation_id(IAMF_DecoderHandle handle,
 
   ctx->mix_presentation_id = id;
   ctx->need_configure |= IAMF_DECODER_CONFIG_MIX_PRESENTATION;
-  ia_logd("set new mix presentation id %lu.", id);
+  ia_logd("set new mix presentation id %" PRIu64 ".", id);
   return IAMF_OK;
 }
 
@@ -3849,7 +3860,7 @@ int IAMF_decoder_set_pts(IAMF_DecoderHandle handle, int64_t pts,
   ctx->pts = pts;
   ctx->pts_time_base = time_base;
   ctx->duration = 0;
-  ia_logd("set pts %ld/%u", pts, time_base);
+  ia_logd("set pts %" PRId64 "/%u", pts, time_base);
 
   return IAMF_OK;
 }
@@ -3864,7 +3875,7 @@ int IAMF_decoder_get_last_metadata(IAMF_DecoderHandle handle, int64_t *pts,
   d = time_transform(ctx->duration - ctx->last_frame_size, ctx->time_precision,
                      ctx->pts_time_base);
   *pts = ctx->pts + d;
-  ia_logd("pts %ld/%u, last duration %u/%u", *pts, ctx->pts_time_base,
+  ia_logd("pts %" PRId64 "/%u, last duration %u/%u", *pts, ctx->pts_time_base,
           ctx->duration - ctx->last_frame_size, ctx->time_precision);
 
   iamf_extra_data_copy(metadata, &ctx->metadata);

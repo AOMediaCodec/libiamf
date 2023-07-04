@@ -67,7 +67,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef WIN32
 #define ia_log(level, slevel, fmt, ...)                                 \
   do {                                                                  \
-    if (level < IA_DBG_I) {                                             \
+    if (IA_DBG_LEVEL & level) {                                             \
       fprintf(stderr, "[%-9s:%s:%s(%4d):%s]>" fmt "\n", IA_TAG, slevel, \
               __MODULE__, __LINE__, __FUNCTION__, ##__VA_ARGS__);       \
     }                                                                   \

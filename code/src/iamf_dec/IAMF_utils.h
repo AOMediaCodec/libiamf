@@ -42,10 +42,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "IAMF_defines.h"
 #include "IAMF_types.h"
 
-#define IA_CH_CATE_SURROUND 0x100
-#define IA_CH_CATE_WEIGHT 0X200
-#define IA_CH_CATE_TOP 0X400
-
 #define IAMF_MALLOC(type, n) ((type *)malloc(sizeof(type) * (n)))
 #define IAMF_REALLOC(type, p, n) ((type *)realloc(p, sizeof(type) * (n)))
 #define IAMF_MALLOCZ(type, n) ((type *)calloc(n, sizeof(type)))
@@ -54,6 +50,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     if (p) free(p);  \
   }
 #define IAMF_FREEP(p) iamf_freep((void **)p)
+
+#define RSHIFT(a) (1 << (a))
 
 void iamf_freep(void **p);
 

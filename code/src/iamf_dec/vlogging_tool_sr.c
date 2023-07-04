@@ -298,9 +298,10 @@ static void write_sequence_header_log(uint64_t idx, void* obu, char* log) {
   log += write_yaml_form(log, 0, "IaSequenceHeaderOBU_%llu:", idx);
   log += write_yaml_form(log, 0, "- ia_code: %u",
                          swapByteOrder(mc_obu->iamf_code));
-  log += write_yaml_form(log, 1, "profile_name: %u", mc_obu->profile_name);
-  log += write_yaml_form(log, 1, "profile_compatible: %u",
-                         mc_obu->profile_compatible);
+  log +=
+      write_yaml_form(log, 1, "primary_profile: %u", mc_obu->primary_profile);
+  log += write_yaml_form(log, 1, "additional_profile: %u",
+                         mc_obu->additional_profile);
   write_postfix(LOG_OBU, log);
 }
 
@@ -523,7 +524,7 @@ static void write_mix_presentation_log(uint64_t idx, void* obu, char* log) {
                            submix->nb_elements);
     log += write_yaml_form(log, 2, "audio_elements:");
     for (uint64_t j = 0; j < submix->nb_elements; ++j) {
-      ElementMixRenderConf* conf_s = &submix->conf_s[j];
+      ElementConf* conf_s = &submix->conf_s[j];
       log += write_yaml_form(log, 2, "- audio_element_id: %llu",
                              conf_s->element_id);
 #if 1
@@ -855,7 +856,7 @@ int vlog_obu(uint32_t obu_type, void* obu,
       break;
     default:
       if (obu_type >= IAMF_OBU_AUDIO_FRAME &&
-          obu_type <= IAMF_OBU_AUDIO_FRAME_ID21) {
+          obu_type <= IAMF_OBU_AUDIO_FRAME_ID17) {
         write_audio_frame_log(obu_count++, obu, log,
                               num_samples_to_trim_at_start,
                               num_samples_to_trim_at_end);

@@ -45,6 +45,7 @@ DMRenderer *DMRenderer_open(IAChannelLayoutType in, IAChannelLayoutType out);
 void DMRenderer_close(DMRenderer *);
 
 int DMRenderer_set_mode_weight(DMRenderer *, int, int);
-int DMRenderer_downmix(DMRenderer *, float *, float *, uint32_t);
+int DMRenderer_downmix(DMRenderer *, float *, float *, uint32_t, uint32_t,
+                       uint32_t);
 
 #endif /* __DOWNMIX_RENDERER_H_ */
