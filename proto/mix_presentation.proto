@@ -112,6 +112,8 @@ message LoudnessInfo {
   optional int32 digital_peak = 3;
   optional int32 true_peak = 4;
   optional AnchoredLoudness anchored_loudness = 5;
+  optional uint32 info_type_size = 6;
+  optional bytes info_type_bytes = 7;
 }
 
 message MixPresentationLayout {

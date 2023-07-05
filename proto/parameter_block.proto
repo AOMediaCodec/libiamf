@@ -4,12 +4,18 @@ package libiamf_proto;
 
 import "parameter_data.proto";
 
+message ParameterDataExtension {
+  optional uint32 parameter_data_size = 1;
+  optional bytes parameter_data_bytes = 2;
+}
+
 message ParameterSubblock {
   optional uint32 subblock_duration = 1;
   oneof parameter_data {
     MixGainParameterData mix_gain_parameter_data = 2;
     DemixingInfoParameterData demixing_info_parameter_data = 3;
     ReconGainInfoParameterData recon_gain_info_parameter_data = 4;
+    ParameterDataExtension parameter_data_extension = 5;
   }
 }
 
