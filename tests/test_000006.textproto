@@ -8,7 +8,6 @@ test_vector_metadata {
   file_name_prefix: "test_000006"
   is_valid: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
-  temporal_units_per_ia_sample: 1
   primary_tested_spec_sections: ["3.10", "4.2/temporal_delimiter_obu"]
   base_test: "test_000005"
 }

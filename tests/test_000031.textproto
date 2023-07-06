@@ -6,7 +6,6 @@ test_vector_metadata {
   file_name_prefix: "test_000031"
   is_valid: true
   mp4_fixed_timestamp: "2023-05-05 00:00:00"
-  temporal_units_per_ia_sample: 1
   primary_tested_spec_sections: ["3.9", "3.11.4/sample_size"]
   base_test: "test_000029"
 }

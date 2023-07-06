@@ -8,7 +8,6 @@ test_vector_metadata {
   file_name_prefix: "test_000408"
   is_valid: true
   mp4_fixed_timestamp: "2023-06-27 00:00:00"
-  temporal_units_per_ia_sample: 1
   primary_tested_spec_sections: ["3.6.1", "3.8/num_subblocks", "3.8/mix_gain_parameter_data", "3.8.1/animation_type"]
   base_test: "test_000400"
 }
