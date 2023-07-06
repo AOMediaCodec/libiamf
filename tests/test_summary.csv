@@ -61,6 +61,7 @@
 "test_000068","test_000065","3.6.3/ambisonics_mono_config, 3.8.1/animation_type, 3.8/constant_subblock_duration",True,"A first-order ambisonics IAMF stream encoded with a linear mix gain with 2 different duration subblocks with `constant_subblock_duration != 0`. The last subblock duration is calculated implicitly."
 "test_000069","test_000204","3.6.2/loudspeaker_layout",True,"A simple example of a 5.1.2 IAMF stream and no parameter blocks, where the loudness is measured in Stereo, 3.1.2, and 5.1.2."
 "test_000070","test_000209","3.6/demixing_info, 3.6/default_demixing_info_parameter_data, 3.6/default_w, 7.3.2.1",True,"A 7.1.4 IAMF stream using `default_demixing_info_parameter_data`, where the loudness is measured in Stereo, 7.1.2, and 7.1.4."
+"test_000071","test_000005","3.6.1/param_definition_mode",True,"A stereo IAMF stream with two mix gain parameters with different `param_definition_modes`."
 "test_000100","test_000038","3.6.3/ambisonics_mono_config",True,"A zero-order ambisonics IAMF stream encoded using `ambisonics_mode` = `MONO`."
 "test_000101","test_000038","3.6.3/ambisonics_mono_config",True,"A first-order ambisonics IAMF stream encoded using `ambisonics_mode` = `MONO`."
 "test_000102","test_000038","3.6.3/ambisonics_mono_config",True,"A second-order ambisonics IAMF stream encoded using `ambisonics_mode` = `MONO`."
