@@ -5,7 +5,7 @@ test_vector_metadata {
   human_readable_description:
     "A simple example of a 5.1 + stereo base profile IAMF "
     "stream."
-  file_name_prefix: "test_000402"
+  file_name_prefix: "test_000405"
   is_valid: true
   mp4_fixed_timestamp: "2023-06-20 00:00:00"
   temporal_units_per_ia_sample: 1
@@ -169,8 +169,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -5441
-        digital_peak: -1715
+        integrated_loudness: -5693
+        digital_peak: -2013
       }
     }
     layouts {
@@ -183,8 +183,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -5477
-        digital_peak: -1777
+        integrated_loudness: -5734
+        digital_peak: -2552
       }
     }
   }

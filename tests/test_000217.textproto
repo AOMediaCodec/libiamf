@@ -99,6 +99,7 @@ mix_presentation_metadata {
       }
     }
     output_mix_config {
+
       output_mix_gain {
         param_definition {
           parameter_id: 998  # Non-existent; default will be used
@@ -120,8 +121,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -5129
-        digital_peak: -1009
+        integrated_loudness: -3799
+        digital_peak: 0
       }
     }
     layouts {
