@@ -109,12 +109,7 @@ void bs_align(BitStream *b) {
   }
 }
 
-int32_t bs_skipABytes(BitStream *b, int n) {
-  bs_align(b);
-  b->b8sp += n;
-  return 0;
-}
-
+int32_t bs_skipABytes(BitStream *b, int n) { return bs_read(b, 0, n); }
 
 uint32_t bs_getA8b(BitStream *b) {
   uint32_t ret;
@@ -161,31 +156,9 @@ uint64_t bs_getAleb128(BitStream *b) {
   return ret;
 }
 
-int64_t bs_getAsleb128(BitStream *b) {
-  int64_t ret = 0, val = 0;
-  int i = 0;
-  uint8_t byte = 0;
-
-  bs_align(b);
-  if (b->b8sp >= b->size) return 0;
-
-  for (; i < 8; i++) {
-    if (b->b8sp + i >= b->size) break;
-    byte = b->data[b->b8sp + i];
-    ret |= ((byte & 0x7f) << (i * 7));
-    if (!(byte & 0x80)) {
-      val = ret << (57 - i * 7) >> (57 - i * 7);
-      break;
-    }
-  }
-  ++i;
-  b->b8sp += i;
-  return val;
-}
-
 int32_t bs_read(BitStream *b, uint8_t *data, int n) {
   bs_align(b);
-  memcpy(data, &b->data[b->b8sp], n);
+  if (data) memcpy(data, &b->data[b->b8sp], n);
   b->b8sp += n;
   return n;
 }

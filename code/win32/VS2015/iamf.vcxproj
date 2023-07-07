@@ -81,7 +81,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\include\;..\..\src\common\;..\..\dep_codecs\include\;..\..\src\iamf_enc\dmpd\asc\include\;..\..\src\iamf_enc\dmpd\heq\include\;..\..\src\iamf_dec\;..\..\src\iamf_enc\;..\..\dep_external\include\</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;CONFIG_OPUS_CODEC;CONFIG_AAC_CODEC;CONFIG_FLAC_CODEC;FLAC__NO_DLL</PreprocessorDefinitions>
-      <AdditionalOptions>%(AdditionalOptions) -O3 /D"IAMF_PROFILE"=001</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) -O3</AdditionalOptions>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
@@ -94,7 +94,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\include\;..\..\src\common\;..\..\dep_codecs\include\;..\..\src\iamf_enc\dmpd\asc\include\;..\..\src\iamf_enc\dmpd\heq\include\;..\..\src\iamf_dec\;..\..\src\iamf_enc\;..\..\dep_external\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\include\;..\..\src\common\;..\..\dep_codecs\include\;..\..\src\iamf_enc\dmpd\asc\include\;..\..\src\iamf_enc\dmpd\heq\include\;..\..\src\iamf_dec\;..\..\dep_external\include\</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;CONFIG_OPUS_CODEC;CONFIG_AAC_CODEC;CONFIG_FLAC_CODEC;FLAC__NO_DLL</PreprocessorDefinitions>
     </ClCompile>
     <Link>

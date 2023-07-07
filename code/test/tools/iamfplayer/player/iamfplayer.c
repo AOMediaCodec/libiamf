@@ -471,7 +471,9 @@ static int bs_input_wav_output(PlayerArgs *pas) {
       ret = IAMF_decoder_configure(dec, block + used, size - used, &rsize);
       if (ret == IAMF_OK) {
         state = 1;
-        if (!pcm) pcm = (void *)malloc(sizeof(int16_t) * 3840 * channels);
+        IAMF_StreamInfo *info = IAMF_decoder_get_stream_info(dec);
+        if (!pcm)
+          pcm = (void *)malloc(bit_depth / 8 * info->max_frame_size * channels);
       } else if (ret != IAMF_ERR_BUFFER_TOO_SMALL) {
         fprintf(stderr, "errno: %d, fail to configure decoder.\n", ret);
         break;
@@ -670,13 +672,6 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
     goto end;
   }
 
-  pcm = (void *)malloc(sizeof(int16_t) * 3840 * channels);
-  if (!pcm) {
-    ret = errno;
-    fprintf(stderr, "error no(%d):fail to malloc memory for pcm.", ret);
-    goto end;
-  }
-
   mp4_iamf_parser_init(&mp4par);
   mp4_iamf_parser_set_logger(&mp4par, 0);
   ret = mp4_iamf_parser_open_audio_track(&mp4par, path, &header);
@@ -715,6 +710,13 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
   if (pas->mix_presentation_id != UINT64_MAX)
     IAMF_decoder_set_mix_presentation_id(dec, pas->mix_presentation_id);
   ret = IAMF_decoder_configure(dec, block, ret, 0);
+  IAMF_StreamInfo *info = IAMF_decoder_get_stream_info(dec);
+  pcm = (void *)malloc(bit_depth / 8 * info->max_frame_size * channels);
+  if (!pcm) {
+    ret = errno;
+    fprintf(stderr, "error no(%d):fail to malloc memory for pcm.", ret);
+    goto end;
+  }
   if (block) free(block);
   if (ret != IAMF_OK) {
     fprintf(stderr, "errno: %d, fail to configure decoder.\n", ret);

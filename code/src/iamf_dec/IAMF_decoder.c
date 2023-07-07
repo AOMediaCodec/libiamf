@@ -617,6 +617,7 @@ static int32_t iamf_decoder_internal_add_descrptor_OBU(
     IAMF_DecoderHandle handle, IAMF_OBU *obu);
 static IAMF_StreamDecoder *iamf_stream_decoder_open(IAMF_Stream *stream,
                                                     IAMF_CodecConf *conf);
+static uint32_t iamf_set_stream_info(IAMF_DecoderHandle handle);
 static int iamf_decoder_internal_deliver(IAMF_DecoderHandle handle,
                                          IAMF_Frame *obj);
 static int iamf_stream_scale_decoder_decode(IAMF_StreamDecoder *decoder,
@@ -1612,6 +1613,9 @@ static IAMF_Stream *iamf_stream_new(IAMF_Element *elem, IAMF_CodecConf *conf,
   stream->codec_id = iamf_codec_4cc_get_codecID(conf->codec_id);
   stream->sampling_rate = iamf_codec_conf_get_sampling_rate(conf);
   stream->nb_substreams = elem->nb_substreams;
+  stream->max_frame_size = AAC_FRAME_SIZE < conf->nb_samples_per_frame
+                               ? conf->nb_samples_per_frame * 6
+                               : MAX_FRAME_SIZE;
 
   ia_logd("codec conf id %" PRIu64 ", codec id 0x%x (%s), sampling rate is %u",
           conf->codec_conf_id, conf->codec_id,
@@ -1873,7 +1877,7 @@ SpeexResamplerState *iamf_stream_resampler_open(IAMF_Stream *stream,
   ia_logi("in sample rate %u, out sample rate %u", in_rate, out_rate);
   if (err != RESAMPLER_ERR_SUCCESS) goto open_fail;
   speex_resampler_skip_zeros(resampler);
-  resampler->buffer = IAMF_MALLOCZ(float, MAX_FRAME_SIZE *channels);
+  resampler->buffer = IAMF_MALLOCZ(float, stream->max_frame_size *channels);
   if (!resampler->buffer) goto open_fail;
   return resampler;
 open_fail:
@@ -1956,6 +1960,35 @@ void iamf_stream_decoder_close(IAMF_StreamDecoder *d) {
   }
 }
 
+static uint32_t iamf_set_stream_info(IAMF_DecoderHandle handle) {
+  IAMF_DecoderContext *ctx = &handle->ctx;
+  IAMF_Presentation *pst = ctx->presentation;
+  IAMF_StreamDecoder *decoder = 0;
+  IAMF_Stream *stream = 0;
+  uint32_t cur = 0;
+  for (int i = 0; i < pst->nb_streams; i++) {
+    cur = pst->streams[i]->max_frame_size;
+    if (cur > ctx->info.max_frame_size) ctx->info.max_frame_size = cur;
+  }
+  for (int i = 0; i < pst->nb_streams; i++) {
+    decoder = pst->decoders[i];
+    stream = pst->streams[i];
+    if (ctx->info.max_frame_size > stream->max_frame_size) {
+      for (int n = 0; i < DEC_BUF_CNT; ++n) {
+        float *buffer =
+            IAMF_REALLOC(float, decoder->buffers[n],
+                         ctx->info.max_frame_size * stream->nb_channels);
+        if (!buffer) goto fail;
+        decoder->buffers[n] = buffer;
+      }
+    }
+  }
+  return 0;
+fail:
+  if (decoder) iamf_stream_decoder_close(decoder);
+  return 0;
+}
+
 IAMF_StreamDecoder *iamf_stream_decoder_open(IAMF_Stream *stream,
                                              IAMF_CodecConf *conf) {
   IAMF_StreamDecoder *decoder;
@@ -1983,8 +2016,9 @@ IAMF_StreamDecoder *iamf_stream_decoder_open(IAMF_Stream *stream,
   if (channels < stream->nb_channels) {
     channels = stream->nb_channels;
   }
+
   for (int i = 0; i < DEC_BUF_CNT; ++i) {
-    decoder->buffers[i] = IAMF_MALLOCZ(float, MAX_FRAME_SIZE *channels);
+    decoder->buffers[i] = IAMF_MALLOCZ(float, stream->max_frame_size *channels);
     if (!decoder->buffers[i]) goto open_fail;
   }
   decoder->frame.id = stream->element_id;
@@ -2758,7 +2792,7 @@ uint32_t iamf_decoder_internal_parse_OBUs(IAMF_DecoderHandle handle,
       iamf_decoder_internal_deliver(handle, o);
       IAMF_object_free(obj);
       iamf_decoder_internal_update_statue(handle);
-    } else if (obu.type == IAMF_OBU_SEQUENCE_HEADER) {
+    } else if (obu.type == IAMF_OBU_SEQUENCE_HEADER && !obu.redundant) {
       ia_logi("*********** FOUND NEW MAGIC CODE **********");
       handle->ctx.status = IAMF_DECODER_STATUS_RECONFIGURE;
       break;
@@ -3011,6 +3045,7 @@ static int iamf_decoder_enable_mix_presentation(IAMF_DecoderHandle handle,
     if (ret != IAMF_OK) return ret;
   }
 
+  iamf_set_stream_info(handle);
   iamf_mixer_init(handle);
 
   pid = sub->output_mix_config.gain.base.id;
@@ -3097,7 +3132,7 @@ static int iamf_delay_buffer_handle(IAMF_DecoderHandle handle, void *pcm) {
   SpeexResamplerState *resampler = pst->resampler;
   AudioEffectPeakLimiter *limiter = handle->limiter;
   int frame_size = limiter->delaySize;
-  int buffer_size = MAX_FRAME_SIZE * ctx->output_layout->channels;
+  int buffer_size = ctx->info.max_frame_size * ctx->output_layout->channels;
   float *in, *out;
   in = IAMF_MALLOCZ(float, buffer_size);
   out = IAMF_MALLOCZ(float, buffer_size);
@@ -3770,7 +3805,9 @@ static int append_codec_string(char *buffer, int codec_index) {
       return 0;
   }
   strcat(buffer, "iamf.");
-  strcat(buffer, STR(IAMF_PROFILE));
+  strcat(buffer, STR(IAMF_RIMARY_PROFILE));
+  strcat(buffer, ".");
+  strcat(buffer, STR(IAMF_ADDITIONAL_PROFILE));
   strcat(buffer, ".");
   strcat(buffer, codec);
   return 0;
@@ -3849,6 +3886,10 @@ int IAMF_decoder_set_sampling_rate(IAMF_DecoderHandle handle, uint32_t rate) {
     }
   }
   return ret;
+}
+
+IAMF_StreamInfo *IAMF_decoder_get_stream_info(IAMF_DecoderHandle handle) {
+  return &handle->ctx.info;
 }
 
 int IAMF_decoder_set_pts(IAMF_DecoderHandle handle, int64_t pts,

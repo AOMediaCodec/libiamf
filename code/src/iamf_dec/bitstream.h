@@ -57,7 +57,6 @@ uint32_t bs_getA8b(BitStream *b);
 uint32_t bs_getA16b(BitStream *b);
 uint32_t bs_getA32b(BitStream *b);
 uint64_t bs_getAleb128(BitStream *b);
-int64_t bs_getAsleb128(BitStream *b);
 int32_t bs_read(BitStream *b, uint8_t *data, int n);
 int32_t bs_readString(BitStream *b, char *data, int n);
 uint32_t bs_tell(BitStream *b);
