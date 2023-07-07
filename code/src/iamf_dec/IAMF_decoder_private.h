@@ -222,6 +222,7 @@ typedef struct IAMF_Stream {
   uint64_t trimming_start;
   uint64_t trimming_end;
 
+  uint32_t max_frame_size;
 } IAMF_Stream;
 
 typedef struct ScalableChannelDecoder {
@@ -313,6 +314,7 @@ typedef struct IAMF_DecoderContext {
   float normalization_loudness;
   uint32_t bit_depth;
   float threshold_db;
+  IAMF_StreamInfo info;
 
   uint32_t need_configure;
 

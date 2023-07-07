@@ -73,7 +73,6 @@ enum MOV_ATOM_TYPE {
 
 static int mov_read_trak(mp4r_t *mp4r, int size);
 static int mov_read_iamf(mp4r_t *mp4r, int size);
-static int mov_read_iamd(mp4r_t *mp4r, int size);
 static int mov_read_edts(mp4r_t *mp4r, int size);
 static int mov_read_elst(mp4r_t *mp4r, int size);
 static int mov_read_tkhd(mp4r_t *mp4r, int size);
@@ -125,13 +124,8 @@ static avio_context atoms_edts[] = {
     {MOV_ATOM_NAME, "edts"}, {MOV_ATOM_DATA, mov_read_edts}, {MOV_ATOM_DESCENT},
     {MOV_ATOM_NAME, "elst"}, {MOV_ATOM_DATA, mov_read_elst}, {0}};
 
-static avio_context atoms_iamf[] = {{MOV_ATOM_NAME, "iamf"},
-                                    {MOV_ATOM_DATA, mov_read_iamf},
-                                    {MOV_ATOM_DESCENT},
-                                    {MOV_ATOM_NAME, "iamd"},
-                                    {MOV_ATOM_DATA, mov_read_iamd},
-                                    {MOV_ATOM_ASCENT},
-                                    {0}};
+static avio_context atoms_iamf[] = {
+    {MOV_ATOM_NAME, "iamf"}, {MOV_ATOM_DATA, mov_read_iamf}, {0}};
 
 static int parse(mp4r_t *mp4r, uint32_t *sizemax);
 
@@ -561,34 +555,21 @@ int mov_read_iamf(mp4r_t *mp4r, int size) {
   } else
     atr[sel_a_trak].csc = csc;
 
-  return size;
-}
-
-int mov_read_iamd(mp4r_t *mp4r, int size) {
-#if SUPPORT_VERIFIER
-  char *atom_d = (char *)malloc(size);
-  int fpos;
-  fpos = ftell(mp4r->fin);
-  avio_rdata(mp4r->fin, atom_d, size);
-  fseek(mp4r->fin, fpos, SEEK_SET);
-  vlog_atom(MP4BOX_IAMD, atom_d, size, fpos - 8);
-  free(atom_d);
-#endif
-
-  int sel_a_trak = mp4r->sel_a_trak;
-  audio_rtr_t *atr = mp4r->a_trak;
-  IAMFHeader *header = (IAMFHeader *)atr[sel_a_trak].csc;
+  header = (IAMFHeader *)atr[sel_a_trak].csc;
   int idx = atr[sel_a_trak].csc_count - 1;
 
-  header[idx].description_length = size;
+  int codec_size = size - 28;
+  header[idx].description_length = codec_size;
   header[idx].description =
       _dmalloc(header->description_length, __FILE__, __LINE__);
   avio_rdata(mp4r->fin, header[idx].description,
              header[idx].description_length);
 
-  if (size > atr[sel_a_trak].csc_maxsize) atr[sel_a_trak].csc_maxsize = size;
+  if (codec_size > atr[sel_a_trak].csc_maxsize)
+    atr[sel_a_trak].csc_maxsize = codec_size;
   /* fprintf(stderr, "* IAMF description %d length %d\n", idx, */
   /* header[idx].description_length); */
+
   return size;
 }
 
