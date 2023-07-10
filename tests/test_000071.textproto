@@ -8,7 +8,13 @@ test_vector_metadata {
   file_name_prefix: "test_000071"
   is_valid: true
   mp4_fixed_timestamp: "2023-07-06 00:00:00"
-  primary_tested_spec_sections: ["3.6.1/param_definition_mode"]
+  primary_tested_spec_sections: [
+    "3.6.1/param_definition_mode",
+    "3.6.1/constant_subblock_duration",
+    "3.6.1/num_subblocks",
+    "3.7.4",
+    "3.8.1/animation_type == STEP"
+  ]
   base_test: "test_000005"
   partition_mix_gain_parameter_blocks: false
 }
@@ -528,4 +534,8 @@ parameter_block_metadata {
       }
     }
   ]
+}
+
+temporal_delimiter_metadata {
+  enable_temporal_delimiters: false
 }

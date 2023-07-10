@@ -8,7 +8,14 @@ test_vector_metadata {
   file_name_prefix: "test_000304"
   is_valid: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
-  primary_tested_spec_sections: ["3.7.4/default_mix_gain", "4.2", "8.5.1"]
+  primary_tested_spec_sections: [
+    "3.6.2/loudspeaker_layout == Stereo",
+    "3.6.3/ambisonics_mono_config",
+    "3.7.4/default_mix_gain",
+    "3.11.1",
+    "4.2",
+    "8.5.1"
+  ]
   base_test: "test_000110"
 }
 

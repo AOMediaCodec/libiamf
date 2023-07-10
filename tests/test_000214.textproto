@@ -3,12 +3,18 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A simple example of a 3.1.2 IAMF stream and no parameter "
+    "A simple example of an Opus 3.1.2 IAMF stream and no parameter "
     "blocks."
   file_name_prefix: "test_000214"
   is_valid: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
-  primary_tested_spec_sections: ["3.6.2/loudspeaker_layout"]
+  primary_tested_spec_sections: [
+    "3.2/num_samples_to_trim_at_end",
+    "3.2/num_samples_to_trim_at_start",
+    "3.6.2/loudspeaker_layout == 3.1.2",
+    "3.11.1",
+    "3.11.1/pre_skip"
+  ]
   base_test: "test_000202"
 }
 

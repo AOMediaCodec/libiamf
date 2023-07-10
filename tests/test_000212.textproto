@@ -3,12 +3,18 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A simple example of a mono IAMF stream with 1 substream and no "
+    "A simple example of an Opus mono IAMF stream with 1 substream and no "
     "parameter blocks."
   file_name_prefix: "test_000212"
   is_valid: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
-  primary_tested_spec_sections: ["3.6.2/loudspeaker_layout"]
+  primary_tested_spec_sections: [
+    "3.2/num_samples_to_trim_at_end",
+    "3.2/num_samples_to_trim_at_start",
+    "3.6.2/loudspeaker_layout == Mono",
+    "3.11.1",
+    "3.11.1/pre_skip"
+  ]
   base_test: "test_000200"
 }
 

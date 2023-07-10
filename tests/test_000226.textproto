@@ -8,7 +8,11 @@ test_vector_metadata {
   file_name_prefix: "test_000226"
   is_valid: true
   mp4_fixed_timestamp: "2023-06-23 00:00:00"
-  primary_tested_spec_sections: ["3.6.2/channel_audio_layer_config"]
+  primary_tested_spec_sections: [
+    "3.6.2/channel_audio_layer_config",
+    "3.6.2/loudspeaker_layout == 5.1.2",
+    "3.6.2/loudspeaker_layout == 7.1.4"
+  ]
   base_test: "test_000225"
 }
 

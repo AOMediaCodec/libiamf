@@ -8,7 +8,15 @@ test_vector_metadata {
   file_name_prefix: "test_000066"
   is_valid: true
   mp4_fixed_timestamp: "2023-06-21 00:00:00"
-  primary_tested_spec_sections: ["3.6.3/ambisonics_mono_config", "3.8.1/animation_type"]
+  primary_tested_spec_sections: [
+    "3.6.1/param_definition_mode",
+    "3.6.3/ambisonics_mono_config",
+    "3.8/duration",
+    "3.8/num_subblocks",
+    "3.8/subblock_duration",
+    "3.8.1/animation_type == LINEAR",
+    "3.8.1/animation_type == BEZIER"
+  ]
   base_test: "test_000065"
 }
 

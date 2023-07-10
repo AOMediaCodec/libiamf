@@ -8,7 +8,13 @@ test_vector_metadata {
   file_name_prefix: "test_000220"
   is_valid: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
-  primary_tested_spec_sections: ["3.6.2/loudspeaker_layout"]
+  primary_tested_spec_sections: [
+    "3.2/num_samples_to_trim_at_end",
+    "3.2/num_samples_to_trim_at_start",
+    "3.6.2/loudspeaker_layout == 7.1.4",
+    "3.11.1",
+    "3.11.1/pre_skip"
+  ]
   base_test: "test_000208"
 }
 

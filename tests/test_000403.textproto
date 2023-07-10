@@ -4,11 +4,17 @@
 test_vector_metadata {
   human_readable_description:
     "A simple example of a stereo + stereo base profile IAMF "
-    "stream."
+    "stream encoded using Opus."
   file_name_prefix: "test_000403"
   is_valid: true
   mp4_fixed_timestamp: "2023-06-20 00:00:00"
-  primary_tested_spec_sections: ["3.7.4/default_mix_gain", "4.2", "8.5.1"]
+  primary_tested_spec_sections: [
+    "3.6.2/loudspeaker_layout == Stereo",
+    "3.7.4/default_mix_gain",
+    "3.11.1",
+    "4.2",
+    "8.5.1"
+  ]
   base_test: "test_000303"
 }
 
