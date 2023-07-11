@@ -62,6 +62,7 @@
 "test_000069","test_000204","3.6.2/loudspeaker_layout == 5.1.2, 3.7/loudness_layout == Stereo, 3.7/loudness_layout == 3.1.2, 3.7/loudness_layout == 5.1.2",True,"A simple example of a 5.1.2 IAMF stream and no parameter blocks, where the loudness is measured in Stereo, 3.1.2, and 5.1.2."
 "test_000070","test_000209","3.6/demixing_info, 3.6/default_demixing_info_parameter_data, 3.6/default_w, 3.6.2/loudspeaker_layout == 7.1.4, 3.7/loudness_layout == Stereo, 3.7/loudness_layout == 7.1.2, 3.7/loudness_layout == 7.1.4, 7.3.2.1",True,"A 7.1.4 IAMF stream using `default_demixing_info_parameter_data`, where the loudness is measured in Stereo, 7.1.2, and 7.1.4."
 "test_000071","test_000005","3.6.1/param_definition_mode, 3.6.1/constant_subblock_duration, 3.6.1/num_subblocks, 3.7.4, 3.8.1/animation_type == STEP",True,"A stereo IAMF stream with two mix gain parameters with different `param_definition_modes`."
+"test_000072","test_000005","3.5, 3.11.3",True,"A frame-aligned stereo IAMF stream encoded with FLAC."
 "test_000100","test_000038","3.6.3/ambisonics_mono_config",True,"A zero-order ambisonics IAMF stream encoded using `ambisonics_mode` = `MONO`."
 "test_000101","test_000038","3.6.3/ambisonics_mono_config",True,"A first-order ambisonics IAMF stream encoded using `ambisonics_mode` = `MONO`."
 "test_000102","test_000038","3.6.3/ambisonics_mono_config",True,"A second-order ambisonics IAMF stream encoded using `ambisonics_mode` = `MONO`."
