@@ -3,8 +3,8 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A 7.1.4 IAMF stream with demixing parameter "
-    "blocks."
+    "A 7.1.4 IAMF stream with demixing parameter blocks which means the "
+    "`default_w` is ignored."
   file_name_prefix: "test_000210"
   is_valid: true
   mp4_fixed_timestamp: "2023-06-23 00:00:00"

@@ -4,11 +4,12 @@
 test_vector_metadata {
   human_readable_description:
     "A 4-layer IAMF stream encoded using Opus with the last layer "
-    "being 7.1.4."
+    "being 7.1.4 and `default_w == 0`."
   file_name_prefix: "test_000050"
   is_valid: true
   mp4_fixed_timestamp: "2023-05-12 00:00:00"
   primary_tested_spec_sections: [
+    "3.6/default_w",
     "3.6.2/channel_audio_layer_config",
     "3.6.2/loudspeaker_layout == Stereo",
     "3.6.2/loudspeaker_layout == 3.1.2",
