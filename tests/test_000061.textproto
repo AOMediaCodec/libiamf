@@ -8,7 +8,13 @@ test_vector_metadata {
   file_name_prefix: "test_000061"
   is_valid: true
   mp4_fixed_timestamp: "2023-06-20 00:00:00"
-  primary_tested_spec_sections: ["3.6.1/param_definition_mode", "3.6.2/channel_audio_layer_config", "3.8/demixing_info_parameter_data", "3.8.2"]
+  primary_tested_spec_sections: [
+    "3.6.1/param_definition_mode",
+    "3.6.1/parameter_rate",
+    "3.6.2/channel_audio_layer_config",
+    "3.8/demixing_info_parameter_data",
+    "3.8.2"
+  ]
   base_test: "test_000056"
 }
 

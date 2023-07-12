@@ -13,6 +13,7 @@ test_vector_metadata {
     "3.6.2/loudspeaker_layout == 3.1.2",
     "3.7.4/default_mix_gain",
     "4.2",
+    "5.1.2",
     "8.5.1"
   ]
   base_test: "test_000400"

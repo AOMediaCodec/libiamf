@@ -9,6 +9,8 @@ test_vector_metadata {
   is_valid: true
   mp4_fixed_timestamp: "2023-06-27 00:00:00"
   primary_tested_spec_sections: [
+    "3.6/num_parameters",
+    "3.6/param_definition_type",
     "3.6.2",
     "3.6.2/loudspeaker_layout == Mono",
     "3.6.2/loudspeaker_layout == Stereo",

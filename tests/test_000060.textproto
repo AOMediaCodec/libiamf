@@ -6,7 +6,13 @@ test_vector_metadata {
   file_name_prefix: "test_000060"
   is_valid: true
   mp4_fixed_timestamp: "2023-06-20 00:00:00"
-  primary_tested_spec_sections: ["3.7/count_label", "3.7/language_label", "3.7/mix_presentation_annotations"]
+  primary_tested_spec_sections: [
+    "3.7/count_label",
+    "3.7/language_label",
+    "3.7/mix_presentation_annotations",
+    "3.7.1",
+    "3.7.2"
+  ]
   base_test: "test_000005"
 }
 

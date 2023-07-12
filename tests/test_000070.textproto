@@ -12,10 +12,12 @@ test_vector_metadata {
     "3.6/demixing_info",
     "3.6/default_demixing_info_parameter_data",
     "3.6/default_w",
+    "3.6/num_parameters",
     "3.6.2/loudspeaker_layout == 7.1.4",
     "3.7/loudness_layout == Stereo",
     "3.7/loudness_layout == 7.1.2",
     "3.7/loudness_layout == 7.1.4",
+    "3.7.6",
     "7.3.2.1"
   ]
   base_test: "test_000209"

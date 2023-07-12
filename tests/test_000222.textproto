@@ -11,7 +11,7 @@ test_vector_metadata {
   primary_tested_spec_sections: [
     "3.6.2/loudspeaker_layout == 7.1.4",
     "3.8/demixing_info_parameter_data",
-    "3.8.2/dmixp_mode",
+    "3.8.2",
     "7.3.2.1"
   ]
   base_test: "test_000221"

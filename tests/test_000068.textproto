@@ -13,9 +13,9 @@ test_vector_metadata {
   primary_tested_spec_sections: [
     "3.6.1/param_definition_mode",
     "3.6.3/ambisonics_mono_config",
-    "3.8/duration",
-    "3.8/num_subblocks",
-    "3.8/constant_subblock_duration",
+    "3.6/duration",
+    "3.6/num_subblocks",
+    "3.6/constant_subblock_duration",
     "3.8.1/animation_type == LINEAR"
   ]
   base_test: "test_000065"
