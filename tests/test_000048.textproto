@@ -4,12 +4,16 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A variant of `test_000042.textproto` that encodes in a projection mode "
-    "with Opus as coupled stereo channels."
+    "A first-order ambisonics IAMF stream encoded using "
+    "`ambisonics_mode` = `PROJECTION` and Opus with coupled stereo channels"
   file_name_prefix: "test_000048"
   is_valid: true
   mp4_fixed_timestamp: "2023-05-12 00:00:00"
-  primary_tested_spec_sections: ["3.6.3/ambisonics_projection_config"]
+  primary_tested_spec_sections: [
+    "3.6.3/ambisonics_projection_config",
+    "7.3.2",
+    "7.3.2.2"
+  ]
   base_test: "test_000042"
 }
 

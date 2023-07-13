@@ -8,7 +8,10 @@ test_vector_metadata {
   file_name_prefix: "test_000409"
   is_valid: true
   mp4_fixed_timestamp: "2023-06-20 00:00:00"
-  primary_tested_spec_sections: ["7.3.1"]
+  primary_tested_spec_sections: [
+    "7.3",
+    "7.3.1"
+  ]
   base_test: "test_000400"
 }
 

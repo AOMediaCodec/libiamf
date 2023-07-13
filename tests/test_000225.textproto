@@ -12,7 +12,10 @@ test_vector_metadata {
     "3.6.2/channel_audio_layer_config",
     "3.6.2/loudspeaker_layout == 3.1.2",
     "3.6.2/loudspeaker_layout == 5.1.2",
-    "3.6.2/loudspeaker_layout == 7.1.4"
+    "3.6.2/loudspeaker_layout == 7.1.4",
+    "7.2.2",
+    "7.3.2",
+    "7.3.2.1"
   ]
   base_test: "test_0000211"
 }
