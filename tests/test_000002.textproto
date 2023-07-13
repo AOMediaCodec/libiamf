@@ -8,7 +8,19 @@ test_vector_metadata {
   file_name_prefix: "test_000002"
   is_valid: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
-  primary_tested_spec_sections: ["3.8", "3.8.1/animation_type == STEP"]
+  primary_tested_spec_sections: [
+    "3.8",
+    "3.8.1/animation_type == STEP",
+    "6.1/FileTypeBox",
+    "6.1/IASampleEntry",
+    "6.2.1",
+    "6.2.2/stts",
+    "6.2.2/trun",
+    "6.2.3/IASampleEntry",
+    "6.2.3/channelcount",
+    "6.2.3/samplerate",
+    "6.2.4"
+  ]
   base_test: "test_000000_3"
 }
 

@@ -13,7 +13,8 @@ test_vector_metadata {
     "3.10",
     "4.2/temporal_delimiter_obu",
     "5.1",
-    "5.1.2"
+    "5.1.2",
+    "6.2.4/temporal_delimiter_obu"
   ]
   base_test: "test_000005"
 }

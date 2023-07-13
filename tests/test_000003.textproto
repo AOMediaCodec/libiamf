@@ -17,7 +17,11 @@ test_vector_metadata {
     "4.1",
     "5.1",
     "5.1.1",
-    "5.1.2"
+    "5.1.2",
+    "6.2.2/edst",
+    "6.2.2/elst",
+    "6.2.2/stts",
+    "6.2.2/trun"
   ]
   base_test: "None"
 }
