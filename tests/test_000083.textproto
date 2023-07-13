@@ -4,15 +4,15 @@
 test_vector_metadata {
   human_readable_description:
     "A first-order ambisonics IAMF stream encoded using "
-    "`ambisonics_mode` = `MONO` with`headphones_rendering_mode == 0`."
-  file_name_prefix: "test_000038"
+    "`ambisonics_mode` = `MONO` with `headphones_rendering_mode == 1`."
+  file_name_prefix: "test_000083"
   is_valid: true
-  mp4_fixed_timestamp: "2023-05-12 00:00:00"
+  mp4_fixed_timestamp: "2023-07-12 00:00:00"
   primary_tested_spec_sections: [
     "3.6.3/ambisonics_mono_config",
-    "3.7.3/headphondes_rendering_mode == 0"
+    "3.7.3/headphondes_rendering_mode == 1"
   ]
-  base_test: "test_000005"
+  base_test: "test_000038"
 }
 
 ia_sequence_header_metadata {
@@ -73,7 +73,7 @@ mix_presentation_metadata {
         }
       ]
       rendering_config {
-        headphones_rendering_mode: HEADPHONES_RENDERING_MODE_STEREO
+        headphones_rendering_mode: HEADPHONES_RENDERING_MODE_BINAURAL
       }
       element_mix_config {
         mix_gain {
