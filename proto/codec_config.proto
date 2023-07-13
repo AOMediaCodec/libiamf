@@ -39,7 +39,50 @@ message DecoderConfigOpus {
   optional OpusEncoderMetadata opus_encoder_metadata = 7;
 }
 
-message DecoderConfigAac {}
+enum AacSampleFrequencyIndex {
+  AAC_SAMPLE_FREQUENCY_INDEX_INVALID = 0;
+  AAC_SAMPLE_FREQUENCY_INDEX_96000 = 1;
+  AAC_SAMPLE_FREQUENCY_INDEX_88200 = 2;
+  AAC_SAMPLE_FREQUENCY_INDEX_64000 = 3;
+  AAC_SAMPLE_FREQUENCY_INDEX_48000 = 4;
+  AAC_SAMPLE_FREQUENCY_INDEX_44100 = 5;
+  AAC_SAMPLE_FREQUENCY_INDEX_32000 = 6;
+  AAC_SAMPLE_FREQUENCY_INDEX_23000 = 7;
+  AAC_SAMPLE_FREQUENCY_INDEX_22050 = 8;
+  AAC_SAMPLE_FREQUENCY_INDEX_16000 = 9;
+  AAC_SAMPLE_FREQUENCY_INDEX_12000 = 10;
+  AAC_SAMPLE_FREQUENCY_INDEX_11025 = 11;
+  AAC_SAMPLE_FREQUENCY_INDEX_8000 = 12;
+  AAC_SAMPLE_FREQUENCY_INDEX_7350 = 13;
+  AAC_SAMPLE_FREQUENCY_INDEX_RESERVED_A = 14;
+  AAC_SAMPLE_FREQUENCY_INDEX_RESERVED_B = 15;
+  AAC_SAMPLE_FREQUENCY_INDEX_ESCAPE_VALUE = 16;
+}
+
+message AacDecoderSpecificInfo {
+  optional uint32 audio_object_type = 1;
+  optional AacSampleFrequencyIndex sample_frequency_index = 2;
+  optional uint32 sampling_frequency = 3;
+  optional uint32 channel_configuration = 4;
+}
+
+message AacGaSpecificConfig {
+  optional bool frame_length_flag = 1;
+  optional bool depends_on_core_coder = 2;
+  optional bool extension_flag = 3;
+}
+
+message DecoderConfigAac {
+  optional uint32 object_type_indication = 1;
+  optional uint32 stream_type = 2;
+  optional bool upstream = 3;
+  optional bool reserved = 4;
+  optional uint32 buffer_size_db = 5;
+  optional uint32 max_bitrate = 6;
+  optional uint32 average_bit_rate = 7;
+  optional AacDecoderSpecificInfo decoder_specific_info = 8;
+  optional AacGaSpecificConfig ga_specific_config = 9;
+}
 
 enum FlacBlockType {
   FLAC_BLOCK_TYPE_INVALID = 0;
