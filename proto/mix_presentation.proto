@@ -38,11 +38,6 @@ message SubMixAudioElement {
   optional ElementMixConfig element_mix_config = 3;
 }
 
-message LoudspeakersSPLabelLayout {
-  optional uint32 num_loudspeakers = 1;
-  repeated uint32 sp_label = 2 [packed = true];
-}
-
 message OutputMixConfig {
   optional MixGainParamDefinition output_mix_gain = 1;
 }
@@ -69,23 +64,23 @@ message LoudspeakersSsConventionLayout {
   optional uint32 reserved = 2;
 }
 
-message LoudspeakersNotDefOrBinauralLayout {
+message LoudspeakersReservedOrBinauralLayout {
   optional uint32 reserved = 1;
 }
 
 enum LayoutType {
-  LAYOUT_TYPE_NOT_DEFINED = 0;
-  LAYOUT_TYPE_LOUDSPEAKERS_SP_LABEL = 1;
+  LAYOUT_TYPE_RESERVED_0 = 0;
+  LAYOUT_TYPE_RESERVED_1 = 1;
   LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION = 2;
   LAYOUT_TYPE_BINAURAL = 3;
 }
 
 message Layout {
   optional LayoutType layout_type = 1;
+  reserved 2;
   oneof specific_layout {
-    LoudspeakersSPLabelLayout sp_layout = 2;
     LoudspeakersSsConventionLayout ss_layout = 3;
-    LoudspeakersNotDefOrBinauralLayout not_def_binaural_layout = 4;
+    LoudspeakersReservedOrBinauralLayout reserved_or_binaural_layout = 4;
   }
 }
 
