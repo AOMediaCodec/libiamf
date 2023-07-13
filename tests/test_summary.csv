@@ -8,7 +8,7 @@
 "test_000012","test_000005","3.2/num_samples_to_trim_at_end",True,"A stereo IAMF stream. Additional samples are trimmed from the end of input wav file to make it shorter."
 "test_000013","test_000002","3.1, 3.6.1/param_definition_mode, 3.6.1/parameter_id",False,"A stereo IAMF stream with inconsistent values for `param_definition_mode` being used for the same parameter_id, which should fail."
 "test_000014","test_000005","3.9, 3.11.1/pre_skip",False,"A stereo IAMF stream with no trimming encoded using Opus. It is invalid because `pre_skip` is incorrectly set to 0."
-"test_000015","test_000005","3.8",False,"A stereo IAMF stream that includes an extra parameter block which is not used by any audio element."
+"test_000015","test_000005","3.8/parameter_id",True,"A stereo IAMF stream that includes an extra parameter block which is not used by any audio element."
 "test_000016","test_000005","3.5/num_samples_per_frame, 3.6.1/param_definition_mode, 3.8/duration, 3.8/constant_subblock_duration, 3.9",False,"A stereo IAMF stream. It has a parameter block not aligned with the audio frames, ending 100 samples earlier. This is invalid because parameter blocks should cover the whole duration of the audio frames that use the parameter."
 "test_000017","test_000005","3.2/num_samples_to_trim_at_end, 3.5/num_samples_per_frame",False,"A stereo IAMF stream. It is invalid because it has more than one frame of samples trimmed off the end."
 "test_000018","test_000005","3.1/obu_type, 3.9/explicit_audio_substream_id",True,"A stereo IAMF stream. The substream has an ID larger than 21 which requires the ID to be explicitly listed in the OBU."
