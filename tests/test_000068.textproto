@@ -16,7 +16,8 @@ test_vector_metadata {
     "3.6/duration",
     "3.6/num_subblocks",
     "3.6/constant_subblock_duration",
-    "3.8.1/animation_type == LINEAR"
+    "3.8.1/animation_type == LINEAR",
+    "7.4/animation_type == LINEAR"
   ]
   base_test: "test_000065"
 }

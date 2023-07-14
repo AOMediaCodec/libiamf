@@ -15,7 +15,9 @@ test_vector_metadata {
     "3.8/num_subblocks",
     "3.8/subblock_duration",
     "3.8.1/animation_type == LINEAR",
-    "3.8.1/animation_type == BEZIER"
+    "3.8.1/animation_type == BEZIER",
+    "7.4/animation_type == LINEAR"
+    "7.4/animation_type == BEZIER"
   ]
   base_test: "test_000065"
 }
