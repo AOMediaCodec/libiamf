@@ -129,7 +129,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\test\tools\iamfplayer\player\iamfplayer.c" />
-    <ClCompile Include="..\..\..\test\tools\iamfplayer\src\atom.c" />
     <ClCompile Include="..\..\..\test\tools\iamfplayer\src\dmemory.c" />
     <ClCompile Include="..\..\..\test\tools\iamfplayer\src\iamf_header.c" />
     <ClCompile Include="..\..\..\test\tools\iamfplayer\src\mp4demux.c" />

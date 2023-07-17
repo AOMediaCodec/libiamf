@@ -43,9 +43,7 @@ typedef struct {
   FILE *m_logger;
 } MP4IAMFParser;
 
-MP4IAMFParser *mp4_iamf_parser_create();
 void mp4_iamf_parser_init(MP4IAMFParser *);
-void mp4_iamf_parser_destroy(MP4IAMFParser *);
 int mp4_iamf_parser_open_audio_track(MP4IAMFParser *, const char *mp4file,
                                      IAMFHeader **header);
 int mp4_iamf_parser_get_audio_track_header(MP4IAMFParser *,

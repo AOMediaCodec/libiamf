@@ -18,9 +18,6 @@
     <ClCompile Include="..\..\..\test\tools\iamfplayer\player\iamfplayer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\test\tools\iamfplayer\src\atom.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\test\tools\iamfplayer\src\dmemory.c">
       <Filter>Source Files</Filter>
     </ClCompile>

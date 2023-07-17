@@ -40,19 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "atom.h"
 
-MP4IAMFParser *mp4_iamf_parser_create() {
-  MP4IAMFParser *ths;
-  ths = (MP4IAMFParser *)malloc(sizeof(MP4IAMFParser));
-  return ths;
-}
-
 void mp4_iamf_parser_init(MP4IAMFParser *ths) {
-  ths->m_mp4r = NULL;
-  ths->m_logger = stderr;
-}
-
-void mp4_iamf_parser_destroy(MP4IAMFParser *ths) {
-  mp4_iamf_parser_close(ths);
   ths->m_mp4r = NULL;
   ths->m_logger = stderr;
 }
