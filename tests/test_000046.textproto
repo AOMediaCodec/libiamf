@@ -4,11 +4,15 @@
 test_vector_metadata {
   human_readable_description:
     "A third-order ambisonics IAMF stream encoded using Opus and "
-    "`ambisonics_mode` = `PROJECTION` with an (almost) identity demixing matrix."
+    "`ambisonics_mode` = `MONO` with an (almost) identity demixing matrix."
   file_name_prefix: "test_000046"
   is_valid: true
   mp4_fixed_timestamp: "2023-05-12 00:00:00"
-  primary_tested_spec_sections: ["3.6.3/ambisonics_mono_config", "3.9", "3.11.1"]
+  primary_tested_spec_sections: [
+    "3.6.3/ambisonics_mono_config",
+    "3.9",
+    "3.11.1"
+  ]
   base_test: "test_000043"
 }
 
