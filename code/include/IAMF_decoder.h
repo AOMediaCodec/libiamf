@@ -161,6 +161,16 @@ int IAMF_decoder_set_normalization_loudness(IAMF_DecoderHandle handle,
 int IAMF_decoder_set_bit_depth(IAMF_DecoderHandle handle, uint32_t bit_depth);
 
 /**
+ * @brief     Enable peak limiter. In the decoder, the peak limiter is enabled
+ *            by default.
+ * @param     [in] handle : iamf decoder handle.
+ * @param     [in] enable : 1 indicates enabled, and 0 indicates disable.
+ * @return    @ref IAErrCode.
+ */
+int IAMF_decoder_peak_limiter_enable(IAMF_DecoderHandle handle,
+                                     uint32_t enable);
+
+/**
  * @brief     Set peak threshold value to limiter.
  * @param     [in] handle : iamf decoder handle.
  * @param     [in] db : peak threshold in dB.

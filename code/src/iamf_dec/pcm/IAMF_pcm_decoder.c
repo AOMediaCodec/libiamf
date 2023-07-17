@@ -147,7 +147,7 @@ static int iamf_pcm_decode(IAMF_CodecContext *ths, uint8_t *buf[],
           ctx->func(buf[c], s * sample_size_bytes) / ctx->scale_i2f;
     }
   }
-  return frame_size;
+  return samples;
 }
 
 static int iamf_pcm_close(IAMF_CodecContext *ths) { return IAMF_OK; }

@@ -61,6 +61,8 @@ options:
 -d [bit]     : Bit depth of pcm output.
 -mp [id]     : Set mix presentation id.
 -m           : Generate a metadata file with the suffix .met.
+-disable_limiter
+             : Disable peak limiter.
 
 Example:  ./iamfplayer -o2 -s9 simple_profile.iamf
           ./iamfplayer -i1 -o2 -s9 simple_profile.mp4

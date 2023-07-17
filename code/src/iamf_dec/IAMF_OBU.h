@@ -245,7 +245,6 @@ struct AmbisonicsConf {
 typedef struct SubMixPresentation SubMixPresentation;
 
 #define TARGET_LAYOUT(a) ((TargetLayout *)(a))
-#define SP_LABEL_LAYOUT(a) ((SP_Label_Layout *)(a))
 #define SOUND_SYSTEM_LAYOUT(a) ((SoundSystemLayout *)(a))
 
 typedef struct IAMF_MixPresentation {
@@ -264,12 +263,6 @@ typedef struct TargetLayout {
   uint32_t type;
 } TargetLayout;
 
-typedef struct SP_Label_Layout {
-  TargetLayout base;
-  uint32_t nb_loudspeakers;
-  uint32_t *sp_labels;
-} SP_Label_Layout;
-
 typedef struct SoundSystemLayout {
   TargetLayout base;
   uint32_t sound_system;
@@ -286,6 +279,7 @@ typedef struct MixGainParameter {
 
 typedef struct ElementRenderingConf {
   uint8_t headphones_rendering_mode;
+  uint32_t rendering_config_extension_size;
 } ElementRenderingConf;
 
 typedef struct ElementMixConf {

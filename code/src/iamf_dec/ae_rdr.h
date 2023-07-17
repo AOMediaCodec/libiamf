@@ -35,6 +35,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef AE_RDR_H_
 #define AE_RDR_H_
 
+#include <stdint.h>
+
 typedef enum {
   BS2051_A = 0x020,        // 2ch output
   BS2051_B = 0x050,        // 6ch output
@@ -57,6 +59,31 @@ typedef enum {
   IAMF_312 = 0x312,        // 6ch input, AOM only
   IAMF_BINAURAL = 0x1020,  // binaural input/output AOM only
 } IAMF_SOUND_SYSTEM;
+
+#ifndef DISABLE_BINAURALIZER
+#define DISABLE_BINAURALIZER 1
+#endif
+
+#if DISABLE_BINAURALIZER == 0
+#define N_SOURCE_ELM \
+  2  // maximum number of audio element == maximum source id array size
+typedef struct {
+  // *yj_son
+  int m2b_init;
+  void *m2b_api;
+  int m2b_elm_id[N_SOURCE_ELM];
+  int m2b_source_id[N_SOURCE_ELM];
+  // yj_son**
+
+  //**cb_im
+  int h2b_init;
+  void *h2b_api;
+  int h2b_elm_id[N_SOURCE_ELM];
+  int h2b_amb_id[N_SOURCE_ELM];
+  int h2b_inchs[N_SOURCE_ELM];
+  // cb_im**
+} binaural_filter_t;
+#endif
 
 typedef struct {
   int init;
@@ -81,6 +108,11 @@ typedef struct {
     IAMF_CUSTOM_SP_LAYOUT *custom_sp;
   } sp_layout;
   lfe_filter_t lfe_f;  // for H2M lfe
+#if DISABLE_BINAURALIZER == 0
+  //**cb_im
+  binaural_filter_t binaural_f;
+  //**cb_im
+#endif
 } IAMF_SP_LAYOUT;
 
 typedef enum {
@@ -125,6 +157,10 @@ int IAMF_element_renderer_render_M2M(struct m2m_rdr_t *m2mMatrix, float *in[],
                                      float *out[], int nsamples);
 
 // HOA to Multichannel
+//**cb_im
+void lfefilter_init(lfe_filter_t *lfe_f, float cutoff_freq,
+                    float sampling_rate);
+//**cb_im
 int IAMF_element_renderer_get_H2M_matrix(IAMF_HOA_LAYOUT *in,
                                          IAMF_PREDEFINED_SP_LAYOUT *out,
                                          struct h2m_rdr_t *outMatrix);
@@ -134,4 +170,31 @@ int IAMF_element_renderer_get_H2M_custom_matrix(
 int IAMF_element_renderer_render_H2M(struct h2m_rdr_t *h2mMatrix, float *in[],
                                      float *out[], int nsamples,
                                      lfe_filter_t *lfe);
+
+#if DISABLE_BINAURALIZER == 0
+// ys_son**
+// Multichannel to Binaural
+void IAMF_element_renderer_init_M2B(IAMF_SP_LAYOUT *m2b_s,
+                                    uint32_t stream_layout, uint64_t elm_id,
+                                    int frame_size, int sample_rate);
+void IAMF_element_renderer_deinit_M2B(binaural_filter_t *binaural_f,
+                                      uint64_t elm_id);
+int IAMF_element_renderer_render_M2B(binaural_filter_t *binaural_f,
+                                     uint64_t elm_id, float *in[], float *out[],
+                                     int nsamples);
+// ys_son**
+
+//**cb_im
+// HOA to Binaural
+void IAMF_element_renderer_init_H2B(IAMF_SP_LAYOUT *h2b_s, int channels,
+                                    uint64_t elm_id, int frame_size,
+                                    int sample_rate);
+void IAMF_element_renderer_deinit_H2B(binaural_filter_t *binaural_f,
+                                      uint64_t elm_id);
+int IAMF_element_renderer_render_H2B(binaural_filter_t *binaural_f,
+                                     uint64_t elm_id, float *in[], float *out[],
+                                     int nsamples);
+// cb_im**
+#endif
+
 #endif

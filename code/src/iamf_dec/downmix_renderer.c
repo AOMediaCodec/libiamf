@@ -86,6 +86,7 @@ static int _valid_downmix(IAChannelLayoutType in, IAChannelLayoutType out) {
   t1 = ia_channel_layout_get_category_channels_count(in, IA_CH_CATE_TOP);
   t2 = ia_channel_layout_get_category_channels_count(out, IA_CH_CATE_TOP);
 
+  if (t1 && !t2) return 0;
   return !(s1 < s2 || t1 < t2);
 }
 

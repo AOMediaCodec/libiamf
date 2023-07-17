@@ -544,7 +544,11 @@ static void write_mix_presentation_log(uint64_t idx, void* obu, char* log) {
       }
 #endif
 
-      // log += write_yaml_form(log, 2, "- rendering_config:");
+      log += write_yaml_form(log, 3, "rendering_config:");
+      log += write_yaml_form(log, 4, "headphones_rendering_mode: %u",
+                             conf_s->conf_r.headphones_rendering_mode);
+      log += write_yaml_form(log, 4, "rendering_config_extension_size: %u",
+                             conf_s->conf_r.rendering_config_extension_size);
 
       log += write_yaml_form(log, 3, "element_mix_config:");
       log += write_yaml_form(log, 4, "mix_gain:");
@@ -617,18 +621,7 @@ static void write_mix_presentation_log(uint64_t idx, void* obu, char* log) {
       uint32_t layout_type = submix->layouts[j]->type;
       log += write_yaml_form(log, 4, "layout_type: %lu", layout_type);
 
-      if (layout_type == IAMF_LAYOUT_TYPE_LOUDSPEAKERS_SP_LABEL) {
-        log += write_yaml_form(log, 4, "sp_layout:");
-
-        SP_Label_Layout* sp = SP_LABEL_LAYOUT(submix->layouts[j]);
-        log += write_yaml_form(log, 5, "num_loudspeakers: %lu",
-                               sp->nb_loudspeakers);
-        log += write_yaml_form(log, 5, "sp_labels:");
-        for (uint8_t k = 0; k < sp->nb_loudspeakers; ++k) {
-          log += write_yaml_form(log, 5, "- %u", sp->sp_labels[k]);
-        }
-        // __KWON_TODO
-      } else if (layout_type == IAMF_LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION) {
+      if (layout_type == IAMF_LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION) {
         log += write_yaml_form(log, 4, "ss_layout:");
 
         SoundSystemLayout* ss = SOUND_SYSTEM_LAYOUT(submix->layouts[j]);

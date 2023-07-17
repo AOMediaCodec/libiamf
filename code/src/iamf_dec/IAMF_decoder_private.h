@@ -270,6 +270,7 @@ typedef struct IAMF_StreamDecoder {
   Frame frame;
 
   uint32_t frame_size;
+  int frame_padding;
   int delay;
 
 } IAMF_StreamDecoder;
@@ -278,6 +279,15 @@ typedef struct IAMF_StreamRenderer {
   IAMF_Stream *stream;
   DMRenderer *downmixer;
   uint32_t offset;
+  uint32_t frame_size;
+  uint8_t headphones_rendering_mode;
+  struct {
+    IAMF_SP_LAYOUT *layout;
+    union {
+      struct m2m_rdr_t mr;
+      struct h2m_rdr_t hr;
+    };
+  } renderer;
 } IAMF_StreamRenderer;
 
 typedef struct IAMF_Mixer {
