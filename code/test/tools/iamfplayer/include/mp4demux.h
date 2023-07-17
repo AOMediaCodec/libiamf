@@ -182,7 +182,6 @@ int mp4demux_seek(mp4r_t *mp4r, int trak, int framenum);
 int mp4demux_audio(mp4r_t *mp4r, int trak, int *delta);
 int mp4demux_parse(mp4r_t *mp4r, int trak);
 int mp4demux_close(mp4r_t *mp4r);
-int mp4demux_gettag(mp4r_t *mp4r, const char *name, char *data, int size);
 #ifdef __cplusplus
 }
 #endif

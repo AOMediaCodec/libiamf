@@ -209,6 +209,7 @@ static int mov_read_ftyp(mp4r_t *mp4r, int size) {
 
 enum { SECSINDAY = 24 * 60 * 60 };
 
+#if 0
 static char *mp4time(time_t t) {
   int y;
 
@@ -221,6 +222,7 @@ static char *mp4time(time_t t) {
   }
   return ctime(&t);
 }
+#endif
 
 static int mov_read_mvhd(mp4r_t *mp4r, int size) {
 #if SUPPORT_VERIFIER
@@ -489,22 +491,6 @@ int mov_read_elst(mp4r_t *mp4r, int size) {
   if (!atr[sel_a_trak].start && start > 0) {
     atr[sel_a_trak].start = start;
     /* printf("get media time %" PRId64"\n", start); */
-  }
-  return size;
-}
-
-#define getsize() getsize_(mp4r)
-static uint32_t getsize_(mp4r_t *mp4r) {
-  int cnt;
-  uint32_t size = 0;
-  for (cnt = 0; cnt < 4; cnt++) {
-    int tmp = avio_r8();
-
-    size <<= 7;
-    size |= (tmp & 0x7f);
-    if (!(tmp & 0x80)) {
-      break;
-    }
   }
   return size;
 }
@@ -1377,40 +1363,7 @@ int mp4demux_seek(mp4r_t *mp4r, int trakn, int framenum) {
   return ERR_OK;
 }
 
-int mp4demux_getframenum(mp4r_t *mp4r, int trakn, uint32_t offs) {
-  audio_rtr_t *atr = mp4r->a_trak;
-  int ents = atr[trakn].frame.ents;
-  int m, l, r;
-  uint32_t m_offs, l_offs, r_offs;
-
-  m = ents / 2;
-  l = 0;
-  r = ents;
-  while (0 < m && m < ents) {
-    m_offs = atr[trakn].frame.offs[m];
-    /* l_offs = atr[trakn].frame.offs[l]; */
-    /* r_offs = (r == ents) ? (0xffffffff) : (atr[trakn].frame.offs[r] + */
-    /* atr[trakn].frame.sizes[r] - 1); */
-    if (l != m && m != r) {
-      if (offs < m_offs) {
-        r = m;
-        m = m / 2;
-        continue;
-      }
-      if (m_offs < offs) {
-        l = m;
-        m = m + (r - m) / 2;
-        continue;
-      }
-    }
-    if (l == m || m == r || m_offs == offs) {
-      break;
-    }
-  }
-
-  return (m);
-}
-
+#if 0
 void mp4demux_info(mp4r_t *mp4r, int trakn, int print) {
   audio_rtr_t *atr = mp4r->a_trak;
   fprintf(stderr, "Modification Time:\t\t%s\n", mp4time(mp4r->mtime));
@@ -1429,6 +1382,7 @@ void mp4demux_info(mp4r_t *mp4r, int trakn, int print) {
     }
   }
 }
+#endif
 
 #define FREE_FUN(x, f, c) \
   if (x) {                \
@@ -1547,15 +1501,4 @@ err:
     mp4demux_close(mp4r);
   }
   return NULL;
-}
-
-int mp4demux_gettag(mp4r_t *mp4r, const char *name, char *data, int size) {
-  for (int i = 0; i < mp4r->tag.extnum; i++) {
-    if (strcmp(mp4r->tag.ext[i].name, name) == 0) {
-      strncpy(data, mp4r->tag.ext[i].data, size);
-      data[size - 1] = 0;
-      return ERR_OK;
-    }
-  }
-  return ERR_FAIL;
 }
