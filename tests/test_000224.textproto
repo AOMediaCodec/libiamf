@@ -11,7 +11,15 @@ test_vector_metadata {
   primary_tested_spec_sections: [
     "3.6.2/channel_audio_layer_config",
     "3.6.2/loudspeaker_layout == 3.1.2",
-    "3.6.2/loudspeaker_layout == 5.1.2"
+    "3.6.2/loudspeaker_layout == 5.1.2",
+    "3.6.2/output_gain_is_present_flag",
+    "3.6.2/output_gain_flags",
+    "3.6.2/output_gain",
+    "7.2.1",
+    "7.6.1",
+    "10.2.2",
+    "10.2.3",
+    "10.2.5"
   ]
   base_test: "test_000204"
 }

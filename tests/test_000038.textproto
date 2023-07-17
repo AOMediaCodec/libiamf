@@ -11,6 +11,7 @@ test_vector_metadata {
   primary_tested_spec_sections: [
     "3.6.3/ambisonics_mono_config",
     "3.7.3/headphones_rendering_mode == 0",
+    "7",
     "7.1/channel_mapping",
     "7.3",
     "7.3.2",

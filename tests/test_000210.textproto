@@ -12,6 +12,7 @@ test_vector_metadata {
     "3.6/num_parameters",
     "3.8/demixing_info_parameter_data",
     "3.8.2",
+    "7",
     "7.3.2.1"
   ]
   base_test: "test_000209"

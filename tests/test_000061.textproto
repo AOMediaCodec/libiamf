@@ -14,6 +14,7 @@ test_vector_metadata {
     "3.6.2/channel_audio_layer_config",
     "3.8/demixing_info_parameter_data",
     "3.8.2",
+    "7",
     "7.2/demixing",
     "7.2.2",
     "7.3.2",

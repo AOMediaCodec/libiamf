@@ -23,6 +23,7 @@ test_vector_metadata {
     "3.8.1/animation_type == BEZIER",
     "5.1",
     "5.1.2",
+    "7",
     "7.4/animation_type == STEP"
   ]
   base_test: "test_000071"
@@ -289,7 +290,7 @@ parameter_block_metadata {
       mix_gain_parameter_data {
         animation_type: ANIMATE_LINEAR
         param_data {
-          linear:  {
+          linear: {
             start_point_value: 30
             end_point_value: 35
           }
@@ -319,7 +320,7 @@ parameter_block_metadata {
       mix_gain_parameter_data {
         animation_type: ANIMATE_BEZIER
         param_data {
-          bezier:  {
+          bezier: {
             start_point_value: 25
             end_point_value: 35
             control_point_relative_time: 20

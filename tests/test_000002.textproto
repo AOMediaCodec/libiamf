@@ -20,6 +20,7 @@ test_vector_metadata {
     "6.2.3/channelcount",
     "6.2.3/samplerate",
     "6.2.4",
+    "7",
     "7.4/animation_type == STEP"
   ]
   base_test: "test_000000_3"

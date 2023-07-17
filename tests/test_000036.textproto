@@ -13,6 +13,7 @@ test_vector_metadata {
     "3.6.2/loudspeaker_layout == Stereo",
     "3.6.2/loudspeaker_layout == 5.1",
     "3.6.2/num_layers",
+    "7",
     "7.2/non-scalable",
     "7.2.2"
   ]

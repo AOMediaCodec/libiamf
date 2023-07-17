@@ -8,7 +8,12 @@ test_vector_metadata {
   file_name_prefix: "test_000058"
   is_valid: true
   mp4_fixed_timestamp: "2023-06-20 00:00:00"
-  primary_tested_spec_sections: ["3.7/num_audio_elements", "4.2", "7.3.3"]
+  primary_tested_spec_sections: [
+    "3.7/num_audio_elements",
+    "4.2",
+    "7",
+    "7.3.3"
+  ]
   base_test: "test_000005"
 }
 

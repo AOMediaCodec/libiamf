@@ -14,9 +14,19 @@ test_vector_metadata {
     "3.6.2/loudspeaker_layout == 3.1.2",
     "3.6.2/loudspeaker_layout == 5.1.2",
     "3.6.2/loudspeaker_layout == 7.1.4",
+    "3.6.2/output_gain_is_present_flag",
+    "3.6.2/output_gain_flags",
+    "3.6.2/output_gain",
     "3.8/recon_gain_info_parameter_data",
     "3.8.3",
-    "7.2.3"
+    "7",
+    "7.2.1",
+    "7.2.3",
+    "7.6.1",
+    "10.2.2",
+    "10.2.3",
+    "10.2.4",
+    "10.2.5"
   ]
   base_test: "test_000225"
   override_computed_recon_gains: true

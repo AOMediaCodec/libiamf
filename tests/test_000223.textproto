@@ -10,7 +10,8 @@ test_vector_metadata {
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
   primary_tested_spec_sections: [
     "3.6.2/loudspeaker_layout == 7.1.4",
-    "7.3.2.1/Rendering_a_channel-based_audio_element_to_loudspeakers"
+    "7",
+    "7.3.2.1"
   ]
   base_test: "test_000223"
 }

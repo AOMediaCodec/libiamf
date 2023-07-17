@@ -12,7 +12,8 @@ test_vector_metadata {
     "3.6.2/channel_audio_layer_config",
     "3.9",
     "3.11.1",
-    "7.2/scalable"
+    "7",
+    "7.2/scalable",
     "7.2/demixing",
     "7.2/recon_gain",
     "7.2.3",

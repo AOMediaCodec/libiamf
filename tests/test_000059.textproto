@@ -12,6 +12,7 @@ test_vector_metadata {
     "3.6/default_w",
     "3.6.2",
     "3.8.3",
+    "7",
     "7.2/recon_gain",
     "7.2.3",
     "7.3.2",
