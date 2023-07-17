@@ -43,7 +43,6 @@ codec_config_metadata {
           number_of_channels: 1  # Flac interprets this as 2 channels.
           bits_per_sample: 15  # Flac interprets this as 16 bits.
           total_samples_in_stream: 24000
-          # TODO(b/290631492): Set the `md5_signature` to the correct value.
           md5_signature: "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         }
       }
