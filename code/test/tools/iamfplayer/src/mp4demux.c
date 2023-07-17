@@ -1487,7 +1487,6 @@ mp4r_t *mp4demux_open(const char *name, FILE *logger) {
   }
   mp4r->fin = fin;
   mp4r->logger = logger;
-  atom_set_logger(logger);
 
   if (mp4r->logger) {
     fprintf(mp4r->logger, "**** MP4 header ****\n");

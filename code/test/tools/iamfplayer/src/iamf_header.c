@@ -73,59 +73,6 @@ typedef struct {
   int pos;
 } ROPacket;
 
-static int read_uint32(ROPacket *p, uint32_t *val) {
-  if (p->pos > p->maxlen - 4) {
-    return 0;
-  }
-  *val = (uint32_t)p->data[p->pos];
-  *val = *val << 8 | (uint32_t)p->data[p->pos + 1];
-  *val = *val << 8 | (uint32_t)p->data[p->pos + 2];
-  *val = *val << 8 | (uint32_t)p->data[p->pos + 3];
-  p->pos += 4;
-  return 1;
-}
-
-static int read_uint16(ROPacket *p, uint16_t *val) {
-  if (p->pos > p->maxlen - 2) {
-    return 0;
-  }
-  *val = (uint16_t)p->data[p->pos];
-  *val = *val << 8 | (uint16_t)p->data[p->pos + 1];
-  p->pos += 2;
-  return 1;
-}
-
-static int read_chars(ROPacket *p, unsigned char *str, int nb_chars) {
-  int i;
-  if (p->pos > p->maxlen - nb_chars) {
-    return 0;
-  }
-  if (!str)
-    p->pos += nb_chars;
-  else {
-    for (i = 0; i < nb_chars; i++) {
-      str[i] = p->data[p->pos++];
-    }
-  }
-  return 1;
-}
-
-static uint32_t read_tag_size(ROPacket *p) {
-  uint8_t ch = 0;
-  uint32_t size = 0;
-
-  for (int cnt = 0; cnt < 4; cnt++) {
-    read_chars(p, &ch, 1);
-
-    size <<= 7;
-    size |= (ch & 0x7f);
-    if (!(ch & 0x80)) {
-      break;
-    }
-  }
-  return size;
-}
-
 int iamf_header_read_description_OBUs(IAMFHeader *h, uint8_t **dst,
                                       uint32_t *size) {
   uint8_t *dsc = 0;
