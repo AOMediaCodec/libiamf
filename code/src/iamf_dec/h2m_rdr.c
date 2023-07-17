@@ -1081,8 +1081,6 @@ int IAMF_element_renderer_get_H2M_matrix(IAMF_HOA_LAYOUT *in,
 }
 
 static float lfefilter_update(lfe_filter_t *lfe_f, float input);
-static void lfefilter_init(lfe_filter_t *lfe_f, float cutoff_freq,
-                           float delta_time);
 
 // HOA to Multichannel Renderer
 int IAMF_element_renderer_render_H2M(struct h2m_rdr_t *h2mMatrix, float *in[],
@@ -1174,10 +1172,10 @@ int IAMF_element_renderer_render_H2M(struct h2m_rdr_t *h2mMatrix, float *in[],
   return (0);
 }
 
-#define DEFAULT_SAMPLERATE 48000.0f
-static void lfefilter_init(lfe_filter_t *lfe_f, float cutoff_freq,
-                           float delta_time) {
+//**cb_im
+void lfefilter_init(lfe_filter_t *lfe_f, float cutoff_freq, float sample_rate) {
   lfe_f->init = 1;
+  float delta_time = 1 / sample_rate + 1.0e-10;
   if (cutoff_freq <= 0) {
     // Warning: A LowPassFilter instance has been configured with 0 Hz as
     // cut-off frequency.
@@ -1196,11 +1194,12 @@ static void lfefilter_init(lfe_filter_t *lfe_f, float cutoff_freq,
   memset(lfe_f->output_history, 0, sizeof(lfe_f->output_history));
 }
 
+#define DEFAULT_SAMPLERATE 48000.0f
 static float lfefilter_update(lfe_filter_t *lfe_f, float input) {
   float output;
 
   if (lfe_f->init != 1) {
-    lfefilter_init(lfe_f, 120, 1 / (float)DEFAULT_SAMPLERATE);
+    lfefilter_init(lfe_f, 120, DEFAULT_SAMPLERATE);
   }
   output = lfe_f->a1 * input + lfe_f->a2 * lfe_f->input_history[0] +
            lfe_f->a3 * lfe_f->input_history[1] -
@@ -1215,3 +1214,4 @@ static float lfefilter_update(lfe_filter_t *lfe_f, float input) {
 
   return (output);
 }
+// cb_im**

@@ -140,12 +140,14 @@
     <ClCompile Include="..\..\src\iamf_dec\downmix_renderer.c" />
     <ClCompile Include="..\..\src\iamf_dec\flac\flac_multistream_decoder.c" />
     <ClCompile Include="..\..\src\iamf_dec\flac\IAMF_flac_decoder.c" />
+    <ClCompile Include="..\..\src\iamf_dec\h2b_rdr.c" />
     <ClCompile Include="..\..\src\iamf_dec\h2m_rdr.c" />
     <ClCompile Include="..\..\src\iamf_dec\IAMF_core_decoder.c" />
     <ClCompile Include="..\..\src\iamf_dec\IAMF_debug_sr.c" />
     <ClCompile Include="..\..\src\iamf_dec\IAMF_decoder.c" />
     <ClCompile Include="..\..\src\iamf_dec\IAMF_OBU.c" />
     <ClCompile Include="..\..\src\iamf_dec\IAMF_utils.c" />
+    <ClCompile Include="..\..\src\iamf_dec\m2b_rdr.c" />
     <ClCompile Include="..\..\src\iamf_dec\m2m_rdr.c" />
     <ClCompile Include="..\..\src\iamf_dec\opus\IAMF_opus_decoder.c" />
     <ClCompile Include="..\..\src\iamf_dec\opus\opus_multistream2_decoder.c" />
@@ -155,6 +157,8 @@
     <ClCompile Include="..\..\src\iamf_dec\vlogging_tool_sr.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\dep_external\include\bear\iamf_bear_api.h" />
+    <ClInclude Include="..\..\dep_external\include\resonance\iamf_resonance_api.h" />
     <ClInclude Include="..\..\dep_external\include\wav\dep_wavwriter.h" />
     <ClInclude Include="..\..\include\IAMF_decoder.h" />
     <ClInclude Include="..\..\include\IAMF_defines.h" />

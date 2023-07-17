@@ -53,6 +53,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #if SUPPORT_VERIFIER
 #define FLAG_VLOG 0x2
 #endif
+#define FLAG_DISABLE_LIMITER 0x4
 #define SAMPLING_RATE 48000
 
 typedef struct Layout {
@@ -118,6 +119,7 @@ static void print_usage(char *argv[]) {
   fprintf(stderr, "-mp [id]     : Set mix presentation id.\n");
   fprintf(stderr,
           "-m           : Generate a metadata file with the suffix .met .\n");
+  fprintf(stderr, "-disable_limiter\n             : Disable peak limiter.\n");
 }
 
 static uint32_t valid_sound_system_layout(uint32_t ss) {
@@ -133,16 +135,9 @@ typedef struct extradata_header {
 } extradata_header;
 
 static int extradata_layout2stream(uint8_t *buf, IAMF_Layout *layout) {
-  uint32_t offset = 0;
-
-  memcpy(buf + offset, layout, 1);
-  ++offset;
-  if (layout->type == IAMF_LAYOUT_TYPE_LOUDSPEAKERS_SP_LABEL) {
-    memcpy(buf + offset, &layout->sp_labels.sp_label,
-           layout->sp_labels.num_loudspeakers);
-    offset += layout->sp_labels.num_loudspeakers;
-  }
-  return offset;
+  int s = sizeof(IAMF_Layout);
+  memcpy(buf, layout, s);
+  return s;
 }
 
 static int extradata_loudness2stream(uint8_t *buf,
@@ -175,12 +170,6 @@ static int extradata_loudness2stream(uint8_t *buf,
   return offset;
 }
 
-static int extradata_iamf_layout_size(IAMF_Layout *layout) {
-  if (layout->type == IAMF_LAYOUT_TYPE_LOUDSPEAKERS_SP_LABEL)
-    return 1 + layout->sp_labels.num_loudspeakers;
-  return 1;
-}
-
 static int extradata_iamf_loudness_size(IAMF_LoudnessInfo *loudness) {
   int ret = 5;
   if (loudness->info_type & 1) ret += 2;
@@ -193,7 +182,7 @@ static int extradata_iamf_loudness_size(IAMF_LoudnessInfo *loudness) {
 static int extradata_iamf_size(IAMF_extradata *meta) {
   int ret = 24;
   for (int i = 0; i < meta->num_loudness_layouts; ++i) {
-    ret += extradata_iamf_layout_size(&meta->loudness_layout[i]);
+    ret += sizeof(IAMF_Layout);
     ret += extradata_iamf_loudness_size(&meta->loudness[i]);
   }
   ret += 4;
@@ -300,20 +289,9 @@ static int extradata_write(FILE *f, int64_t pts, IAMF_extradata *meta) {
   return size;
 }
 
-static void extradata_iamf_layout_clean(IAMF_Layout *layout) {
-  if (layout && layout->type == IAMF_LAYOUT_TYPE_LOUDSPEAKERS_SP_LABEL &&
-      layout->sp_labels.sp_label) {
-    free(layout->sp_labels.sp_label);
-  }
-}
-
 static void extradata_iamf_clean(IAMF_extradata *data) {
   if (data) {
-    if (data->loudness_layout) {
-      for (int i = 0; i < data->num_loudness_layouts; ++i)
-        extradata_iamf_layout_clean(&data->loudness_layout[i]);
-      free(data->loudness_layout);
-    }
+    if (data->loudness_layout) free(data->loudness_layout);
 
     if (data->loudness) {
       if (data->loudness->anchor_loudness)
@@ -346,7 +324,7 @@ static int bs_input_wav_output(PlayerArgs *pas) {
   void *pcm = NULL;
   IAMF_DecoderHandle dec;
   int channels = 0;
-  int count = 0;
+  int count = 0, samples = 0;
   uint64_t frsize = 0, fsize = 0;
   uint32_t size;
   const char *s = 0, *d;
@@ -403,7 +381,10 @@ static int bs_input_wav_output(PlayerArgs *pas) {
     goto end;
   }
 
-  IAMF_decoder_peak_limiter_set_threshold(dec, db);
+  if (pas->flags & FLAG_DISABLE_LIMITER)
+    IAMF_decoder_peak_limiter_enable(dec, 0);
+  else
+    IAMF_decoder_peak_limiter_set_threshold(dec, db);
   IAMF_decoder_set_normalization_loudness(dec, loudness);
   IAMF_decoder_set_bit_depth(dec, bit_depth);
 
@@ -498,6 +479,7 @@ static int bs_input_wav_output(PlayerArgs *pas) {
         /* fprintf(stdout, "read packet size %d\n", rsize); */
         if (ret > 0) {
           ++count;
+          samples += ret;
           /* fprintf(stderr, "===================== Get %d frame and size %d\n",
            * count, ret); */
           dep_wav_write_data(wav_f, (unsigned char *)pcm,
@@ -531,6 +513,7 @@ static int bs_input_wav_output(PlayerArgs *pas) {
     used = size - used;
   } while (1);
   fprintf(stderr, "===================== Get %d frames\n", count);
+  fprintf(stderr, "===================== Get %d samples\n", samples);
 
   if (fsize != frsize)
     fprintf(stderr,
@@ -571,7 +554,7 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
   void *pcm = NULL;
   IAMF_DecoderHandle dec;
   int channels;
-  int count = 0;
+  int count = 0, samples = 0;
   uint64_t frsize = 0;
   const char *s = 0, *d;
   int entno = 0;
@@ -630,7 +613,10 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
     return -1;
   }
 
-  IAMF_decoder_peak_limiter_set_threshold(dec, db);
+  if (pas->flags & FLAG_DISABLE_LIMITER)
+    IAMF_decoder_peak_limiter_enable(dec, 0);
+  else
+    IAMF_decoder_peak_limiter_set_threshold(dec, db);
   IAMF_decoder_set_normalization_loudness(dec, loudness);
   IAMF_decoder_set_bit_depth(dec, bit_depth);
 
@@ -740,6 +726,7 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
     block = 0;
     if (ret > 0) {
       ++count;
+      samples += ret;
       /* fprintf(stderr, */
       /* "===================== Get %d frame and size %d, offset %" PRId64"\n",
        */
@@ -757,6 +744,7 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
   } while (1);
 end:
   fprintf(stderr, "===================== Get %d frames\n", count);
+  fprintf(stderr, "===================== Get %d samples\n", samples);
   if (pcm) free(pcm);
   FCLOSE(f)
   FCLOSE(meta_f)
@@ -853,6 +841,9 @@ int main(int argc, char *argv[]) {
         pas.mix_presentation_id = strtoull(argv[++args], NULL, 10);
         fprintf(stdout, "select mix presentation id %" PRId64,
                 pas.mix_presentation_id);
+      } else if (!strcmp(argv[args], "-disable_limiter")) {
+        pas.flags |= FLAG_DISABLE_LIMITER;
+        fprintf(stdout, "Disable peak limiter\n");
       }
     } else {
       f = argv[args];

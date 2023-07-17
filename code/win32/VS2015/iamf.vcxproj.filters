@@ -84,6 +84,12 @@
     <ClCompile Include="..\..\src\iamf_dec\downmix_renderer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\iamf_dec\h2b_rdr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\iamf_dec\m2b_rdr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\IAMF_decoder.h">
@@ -159,6 +165,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\iamf_dec\downmix_renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\dep_external\include\bear\iamf_bear_api.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\dep_external\include\resonance\iamf_resonance_api.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -790,7 +790,8 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
 
       // rendering_config
       conf_s[i].conf_r.headphones_rendering_mode = bs_get32b(&b, 2);
-      size = bs_getAleb128(&b);
+      conf_s[i].conf_r.rendering_config_extension_size = size =
+          bs_getAleb128(&b);
       bs_skipABytes(&b, size);
       ia_logd(
           "rendering config info: headphones rendering mode %u, extension size "
@@ -836,32 +837,7 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
       for (int i = 0; i < sub->num_layouts; i++) {
         // Layout
         type = bs_get32b(&b, 2);
-        if (type == IAMF_LAYOUT_TYPE_LOUDSPEAKERS_SP_LABEL) {
-          SP_Label_Layout *sl = IAMF_MALLOCZ(SP_Label_Layout, 1);
-          if (!sl) {
-            ia_loge(
-                "fail to allocate memory for sp label layout of Mix "
-                "Presentation Object.");
-            goto mix_presentation_fail;
-          }
-          layouts[i] = TARGET_LAYOUT(sl);
-          sl->base.type = IAMF_LAYOUT_TYPE_LOUDSPEAKERS_SP_LABEL;
-          sl->nb_loudspeakers = bs_get32b(&b, 6);
-          ia_logd("sp labels count %d", sl->nb_loudspeakers);
-          if (sl->nb_loudspeakers > 0) {
-            sl->sp_labels = IAMF_MALLOCZ(uint32_t, sl->nb_loudspeakers);
-            if (!sl->sp_labels) {
-              ia_loge(
-                  "fail to allocate memory for sp labels of Mix Presentation "
-                  "Object.");
-              goto mix_presentation_fail;
-            }
-            for (int i = 0; i < sl->nb_loudspeakers; ++i) {
-              sl->sp_labels[i] = bs_getA8b(&b);
-              ia_logd("\t>sp label : %u", sl->sp_labels[i]);
-            }
-          }
-        } else if (type == IAMF_LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION) {
+        if (type == IAMF_LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION) {
           SoundSystemLayout *ss = IAMF_MALLOCZ(SoundSystemLayout, 1);
           if (!ss) {
             ia_loge(
@@ -985,11 +961,6 @@ void iamf_mix_presentation_free(IAMF_MixPresentation *obj) {
 
       if (sub->layouts) {
         for (int i = 0; i < sub->num_layouts; ++i) {
-          if (sub->layouts[i] &&
-              sub->layouts[i]->type == IAMF_LAYOUT_TYPE_LOUDSPEAKERS_SP_LABEL) {
-            SP_Label_Layout *sl = SP_LABEL_LAYOUT(sub->layouts[i]);
-            free(sl->sp_labels);
-          }
           free(sub->layouts[i]);
         }
         free(sub->layouts);

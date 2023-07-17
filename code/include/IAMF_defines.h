@@ -55,8 +55,7 @@ typedef enum AmbisonicsMode {
 
 typedef enum IAMF_LayoutType {
   IAMF_LAYOUT_TYPE_NOT_DEFINED = 0,
-  IAMF_LAYOUT_TYPE_LOUDSPEAKERS_SP_LABEL,
-  IAMF_LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION,
+  IAMF_LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION = 2,
   IAMF_LAYOUT_TYPE_BINAURAL,
 } IAMF_LayoutType;
 
@@ -96,12 +95,7 @@ typedef enum IAMF_AnimationType {
  *  class layout() {
  *    unsigned int (2) layout_type;
  *
- *    if (layout_type == LOUDSPEAKERS_SP_LABEL) {
- *      unsigned int (6) num_loudspeakers;
- *      for (i = 0; i < num_loudspeakers; i++) {
- *        unsigned int (8) sp_label;
- *      }
- *    } else if (layout_type == LOUDSPEAKERS_SS_CONVENTION) {
+ *    if (layout_type == LOUDSPEAKERS_SS_CONVENTION) {
  *      unsigned int (4) sound_system;
  *      unsigned int (2) reserved;
  *    } else if (layout_type == BINAURAL or NOT_DEFINED) {
@@ -112,12 +106,6 @@ typedef enum IAMF_AnimationType {
  * */
 typedef struct IAMF_Layout {
   union {
-    struct {
-      uint8_t num_loudspeakers : 6;
-      uint8_t type : 2;
-      uint8_t *sp_label;
-    } sp_labels;
-
     struct {
       uint8_t reserved : 2;
       uint8_t sound_system : 4;
