@@ -10,7 +10,11 @@ test_vector_metadata {
   file_name_prefix: "test_000105"
   is_valid: true
   mp4_fixed_timestamp: "2023-05-12 00:00:00"
-  primary_tested_spec_sections: ["3.6.3/ambisonics_projection_config"]
+  primary_tested_spec_sections: [
+    "3.6.3/ambisonics_projection_config",
+    "7.5.1",
+    "7.5.2"
+  ]
   base_test: "test_000042"
 }
 

@@ -11,7 +11,9 @@ test_vector_metadata {
   primary_tested_spec_sections: [
     "3.6.2/loudspeaker_layout == 7.1.4",
     "7",
-    "7.3.2.1"
+    "7.3.2.1",
+    "7.5.1",
+    "7.5.2"
   ]
   base_test: "test_000223"
 }

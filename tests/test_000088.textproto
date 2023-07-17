@@ -24,7 +24,9 @@ test_vector_metadata {
     "5.1",
     "5.1.2",
     "7",
-    "7.4/animation_type == STEP"
+    "7.4/animation_type == STEP",
+    "7.5.1",
+    "7.5.2"
   ]
   base_test: "test_000071"
   partition_mix_gain_parameter_blocks: false
