@@ -4,7 +4,7 @@
 test_vector_metadata {
   human_readable_description:
     "A 4-layer IAMF stream encoded using Opus with the last layer "
-    "being 7.1.4 and `default_w == 0` with`headphones_rendering_mode == 0`."
+    "being 7.1.4 and `default_w == 0` with `headphones_rendering_mode == 0`."
   file_name_prefix: "test_000050"
   is_valid: true
   mp4_fixed_timestamp: "2023-05-12 00:00:00"
