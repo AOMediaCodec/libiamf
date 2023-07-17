@@ -59,6 +59,13 @@ enum AacSampleFrequencyIndex {
   AAC_SAMPLE_FREQUENCY_INDEX_ESCAPE_VALUE = 16;
 }
 
+// Settings to configure `fdk_aac`.
+message AacEncoderMetadata {
+  optional int32 bitrate_mode = 1;
+  optional bool enable_afterburner = 2 [default = true];
+  optional int32 signaling_mode = 3 [default = 2];
+}
+
 message AacDecoderSpecificInfo {
   optional uint32 audio_object_type = 1;
   optional AacSampleFrequencyIndex sample_frequency_index = 2;
@@ -82,6 +89,7 @@ message DecoderConfigAac {
   optional uint32 average_bit_rate = 7;
   optional AacDecoderSpecificInfo decoder_specific_info = 8;
   optional AacGaSpecificConfig ga_specific_config = 9;
+  optional AacEncoderMetadata aac_encoder_metadata = 10;
 }
 
 enum FlacBlockType {
