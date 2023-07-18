@@ -351,28 +351,6 @@ parameter_block_metadata {
 }
 
 parameter_block_metadata {
-  parameter_id: 100
-  start_timestamp: 8192
-  duration: 1024
-  constant_subblock_duration: 1024
-  # num_subblocks: 1
-  subblocks: [
-    {
-      # subblock_duration: 1024
-      mix_gain_parameter_data {
-        animation_type: ANIMATE_STEP
-        param_data {
-          step {
-            start_point_value: 768
-          }
-        }
-      }
-    }
-
-  ]
-}
-
-parameter_block_metadata {
   parameter_id: 101
   start_timestamp: 0
   duration: 1024
@@ -517,25 +495,6 @@ parameter_block_metadata {
         param_data {
           step {
             start_point_value: 64
-          }
-        }
-      }
-    }
-  ]
-}
-
-parameter_block_metadata {
-  parameter_id: 101
-  start_timestamp: 8192
-  duration: 1024
-  constant_subblock_duration: 1024
-  subblocks: [
-    {
-      mix_gain_parameter_data {
-        animation_type: ANIMATE_STEP
-        param_data {
-          step {
-            start_point_value: 0
           }
         }
       }
