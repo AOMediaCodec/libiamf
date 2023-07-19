@@ -128,16 +128,16 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -12980
-        digital_peak: -11861
+        integrated_loudness: -4620
+        digital_peak: -4371
       }
     }
   }
 }
 
 audio_frame_metadata {
-  wav_filename: "sawtooth_100_stereo.wav"
-  samples_to_trim_at_end: 192
+  wav_filename: "sine_1000_16khz_512ms.wav"
+  samples_to_trim_at_end: 0
   samples_to_trim_at_start: 0
   audio_element_id: 300
   channel_ids: [0, 1]

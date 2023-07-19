@@ -88,7 +88,7 @@ audio_element_metadata {
         substream_count: 4
         coupled_substream_count: 2
         output_gain_flag: 51
-        output_gain: -550
+        output_gain: 359
       },
       {
         loudspeaker_layout: 3  # 5.1.2 [L5/R5]

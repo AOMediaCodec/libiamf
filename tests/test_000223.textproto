@@ -115,7 +115,7 @@ mix_presentation_metadata {
         default_mix_gain: 0
       }
     }
-    num_layouts: 2
+    num_layouts: 4
     layouts {
       loudness_layout {
         layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
@@ -127,6 +127,34 @@ mix_presentation_metadata {
       loudness {
         info_type: 0
         integrated_loudness: -4013
+        digital_peak: 0
+      }
+    }
+    layouts {
+      loudness_layout {
+        layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
+        ss_layout {
+          sound_system: SOUND_SYSTEM_B_0_5_0
+          reserved: 0
+        }
+      }
+      loudness {
+        info_type: 0
+        integrated_loudness: -3695
+        digital_peak: -798
+      }
+    }
+    layouts {
+      loudness_layout {
+        layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
+        ss_layout {
+          sound_system: SOUND_SYSTEM_11_2_3_0
+          reserved: 0
+        }
+      }
+      loudness {
+        info_type: 0
+        integrated_loudness: -3851
         digital_peak: 0
       }
     }

@@ -111,7 +111,7 @@ audio_element_metadata {
         substream_count: 5
         coupled_substream_count: 3
         output_gain_flag: 15
-        output_gain: -550
+        output_gain: 359
       },
       {
         loudspeaker_layout: 7  # 7.1.4 [Lss7/Rss7, Ltf4/Rtf4]

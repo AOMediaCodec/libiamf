@@ -148,5 +148,6 @@
 "test_000404","test_000403","3.6.2/loudspeaker_layout == Stereo, 3.6.2/loudspeaker_layout == 3.1.2, 3.7.4/default_mix_gain, 3.11.1, 4.2, 8.5.1",True,"A simple example of a 3.1.2 + stereo base profile IAMF stream encoded using Opus."
 "test_000405","test_000404","3.6.2/loudspeaker_layout == Stereo, 3.6.2/loudspeaker_layout == 5.1, 3.7.4/default_mix_gain, 3.11.1, 4.2, 8.5.1",True,"A simple example of a 5.1 + stereo base profile IAMF stream encoded using Opus."
 "test_000406","test_000400","3.8.1/animation_type == LINEAR",True,"A simple example of a stereo + stereo base profile IAMF stream using linear gain."
+"test_000407","test_000400","3.8.1/animation_type == BEZIER, 7, 7.4/animation_type == BEZIER",True,"A simple example of a stereo + stereo base profile IAMF stream using bezier gain."
 "test_000408","test_000400","3.6.1, 3.6.1/parameter_id, 3.8/num_subblocks, 3.8.1, 3.8.1/animation_type == LINEAR, 7, 7.4/animation_type == LINEAR",True,"A simple example of a stereo + stereo base profile IAMF stream has two subblocks in the parameter block."
 "test_000409","test_000400","7, 7.3, 7.3.1",True,"A simple example of a stereo + stereo base profile IAMF stream has 2 Mix Presentation OBUs."
