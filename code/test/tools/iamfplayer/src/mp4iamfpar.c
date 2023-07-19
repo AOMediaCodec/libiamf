@@ -187,36 +187,3 @@ int mp4_iamf_parser_set_logger(MP4IAMFParser *ths, FILE *logger) {
   ths->m_logger = logger;
   return (0);
 }
-
-int mp4_iamf_parser_set_starting_time(MP4IAMFParser *ths, int tn, uint32_t s) {
-  audio_rtr_t *atr = ths->m_mp4r->a_trak;
-  int64_t st = s * ths->m_mp4r->timescale + atr[tn].start;
-  int ret = ERR_OK;
-  int sample_delta, delta = 0;
-
-  while (st > 0 && ret == ERR_OK) {
-    if (atr[tn].frame.ents_offset + atr[tn].frame.ents <=
-            atr[tn].frame.current &&
-        ths->m_mp4r->moof_flag)
-      ret = mp4demux_parse(ths->m_mp4r, tn);
-    if (ret != ERR_OK) break;
-
-    /* printf( */
-    /* "sample %d, its offset %u\n", atr[tn].frame.current, */
-    /* atr[tn].frame.offs[atr[tn].frame.current - atr[tn].frame.ents_offset]);
-     */
-    ret = mp4demux_audio(ths->m_mp4r, tn, &sample_delta);
-    if (ret != ERR_OK) break;
-    if (!delta && sample_delta) delta = sample_delta;
-
-    if (st > sample_delta) {
-      st -= sample_delta;
-    } else {
-      break;
-    }
-  }
-  /* printf("timescale %u, sample_delta %d, frame no %d\n",
-   * ths->m_mp4r->timescale, */
-  /* delta, atr[tn].frame.current); */
-  return ret;
-}

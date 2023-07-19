@@ -53,6 +53,5 @@ int mp4_iamf_parser_read_packet(MP4IAMFParser *, int trakn, uint8_t **pkt_buf,
                                 int *ent_no);
 void mp4_iamf_parser_close(MP4IAMFParser *);
 int mp4_iamf_parser_set_logger(MP4IAMFParser *, FILE *logger);
-int mp4_iamf_parser_set_starting_time(MP4IAMFParser *, int tn, uint32_t s);
 
 #endif /* __MP4_IAMF_PAR_H_ */
