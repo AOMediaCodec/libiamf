@@ -3,9 +3,9 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A stereo IAMF stream with two one mix gain parameters using default "
-    "value. The other uses `param_definition_mode == 0` with non-constant "
-    "subblock duration."
+    "A stereo IAMF stream with one mix gain parameter using default value. A "
+    "different mix gain parameter uses `param_definition_mode == 0` with "
+    "non-constant subblock duration."
   file_name_prefix: "test_000088"
   is_valid: true
   mp4_fixed_timestamp: "2023-07-13 00:00:00"
@@ -136,7 +136,7 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -13725
+        integrated_loudness: -13717
         digital_peak: -12856
       }
     }
