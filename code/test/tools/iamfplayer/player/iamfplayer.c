@@ -90,9 +90,6 @@ static void print_usage(char *argv[]) {
   fprintf(
       stderr,
       "-r [rate]    : audio signal sampling rate, 48000 is the default. \n");
-  fprintf(stderr,
-          "-ts pos      : seek to a given position in seconds, which is valid "
-          "when mp4 file is used as input.\n");
 #if SUPPORT_VERIFIER
   fprintf(stderr, "-v <file>    : verification log generation.\n");
 #endif
@@ -381,6 +378,7 @@ static int bs_input_wav_output(PlayerArgs *pas) {
     goto end;
   }
 
+  float limiter_threshold = IAMF_decoder_peak_limiter_get_threshold(dec);
   if (pas->flags & FLAG_DISABLE_LIMITER)
     IAMF_decoder_peak_limiter_enable(dec, 0);
   else
@@ -613,6 +611,7 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
     return -1;
   }
 
+  float limiter_threshold = IAMF_decoder_peak_limiter_get_threshold(dec);
   if (pas->flags & FLAG_DISABLE_LIMITER)
     IAMF_decoder_peak_limiter_enable(dec, 0);
   else
@@ -676,16 +675,6 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
            header->timescale, st);
   }
   IAMF_decoder_set_pts(dec, st * -1, 90000);
-
-  if (pas->st > 0) {
-    ret = mp4_iamf_parser_set_starting_time(&mp4par, 0, pas->st);
-    if (ret < 0) {
-      fprintf(stderr, "invalid starting time for %s\n", pas->path);
-      goto end;
-    }
-
-    mp4_iamf_parser_get_audio_track_header(&mp4par, &header);
-  }
 
   ret = iamf_header_read_description_OBUs(header, &block, &size);
   if (!ret) {

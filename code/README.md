@@ -40,7 +40,6 @@ options:
            1 : mp4 input.
 -o2        2 : pcm output.
 -r [rate]    : audio signal sampling rate, 48000 is the default.
--ts pos      : seek to a given position in seconds, which is valid when mp4 file is used as input.
 -s[0~11,b]   : output layout, the sound system A~J and extensions (Upper + Middle + Bottom).
            0 : Sound system A (0+2+0)
            1 : Sound system B (0+5+0)
