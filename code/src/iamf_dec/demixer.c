@@ -422,7 +422,7 @@ static void dmx_gainup(Demixer *ths) {
   for (int c = 0; c < ths->chs_gain_list.count; ++c) {
     for (int i = 0; i < ths->frame_size; ++i) {
       if (ths->ch_data[ths->chs_gain_list.ch_gain[c].ch]) {
-        ths->ch_data[ths->chs_gain_list.ch_gain[c].ch][i] /=
+        ths->ch_data[ths->chs_gain_list.ch_gain[c].ch][i] *=
             ths->chs_gain_list.ch_gain[c].gain;
       }
     }

@@ -4,6 +4,8 @@ project (iamfplayer)
 
 message(status,"+++++++++++iamfplayer+++++++++++++")
 
+option(BINAURALIZER "Enable binaural rendering" OFF)
+
 include_directories (iamfplayer)
 include_directories (include)
 aux_source_directory (player DIR_IAMFPLAY_PLAYER)
@@ -12,7 +14,12 @@ aux_source_directory (src DIR_IAMFPLAY_SRC)
 set(LIB_DIR  "${CMAKE_INSTALL_PREFIX}/lib")
 set(INCLUDE_IAMF_DIR  "${CMAKE_INSTALL_PREFIX}/include/iamf")
 set(INCLUDE_DEP_EXTERNAL_WAV_DIR  "../../../dep_external/include/wav")
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,--no-as-need")
+
+if(BINAURALIZER)
+  message(STATUS "Enable binaural rendering")
+  add_definitions(-DDISABLE_BINAURALIZER=0)
+endif()
 
 message(status,${INCLUDE_IAMF_DIR})
 include_directories(
@@ -21,11 +28,16 @@ include_directories(
 )
 link_directories(
   ${LIB_DIR}
+  ${LIB_DIR}/binaural
 )
 
 
 add_executable (iamfplayer player/iamfplayer.c
     ${DIR_IAMFPLAY_PLAYER} ${DIR_IAMFPLAY_SRC})
 
-target_link_libraries (iamfplayer iamf m)
+if(BINAURALIZER)
+  target_link_libraries (iamfplayer iamf m iamf2bear iamf2resonance boost_filesystem boost_system boost_thread efl objectmodel panning pml rbbl rcl rrl visr)
+else()
+  target_link_libraries (iamfplayer iamf m)
+endif()
 
