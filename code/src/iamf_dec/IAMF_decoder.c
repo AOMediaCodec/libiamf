@@ -2512,10 +2512,12 @@ void iamf_stream_renderer_close(IAMF_StreamRenderer *sr) {
   if (s->final_layout &&
       s->final_layout->layout.type == IAMF_LAYOUT_TYPE_BINAURAL) {
     if (s->scheme == AUDIO_ELEMENT_TYPE_CHANNEL_BASED) {
-      IAMF_element_renderer_deinit_M2B(sr->renderer.layout, s->element_id);
+      IAMF_element_renderer_deinit_M2B(&sr->renderer.layout->binaural_f,
+                                       s->element_id);
       ia_logd("deinit M2B");
     } else if (s->scheme == AUDIO_ELEMENT_TYPE_SCENE_BASED) {
-      IAMF_element_renderer_deinit_H2B(sr->renderer.layout, s->element_id);
+      IAMF_element_renderer_deinit_H2B(&sr->renderer.layout->binaural_f,
+                                       s->element_id);
       ia_logd("deinit H2B");
     }
   }
