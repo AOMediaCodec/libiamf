@@ -12,20 +12,20 @@ Please see the examples in the "test/tools" directory. If you're already buildin
 ### Compiling
 There are 2 parts to build: iamf(common&iamf_dec) tool(iamfplayer).
 
-"build_x86.sh" is an example to build, you can run it directly at your side.
+"build.sh" is an example to build, you can run it directly at your side.
 
 1. build iamf in "src" directory.
 ```sh
 % BUILD_LIBS=$PWD/build_libs
-% cmake ./ -DCMAKE_INSTALL_PREFIX=${BUILD_LIBS}
-% make 
+% cmake ./ -DCMAKE_INSTALL_PREFIX=${BUILD_LIBS} -DBINAURALIZER=ON
+% make
 % make install
 ```
 
 2. build tool in "test/tools/iamfplayer" directory
 ```sh
-% cmake ./-DCMAKE_INSTALL_PREFIX=${BUILD_LIBS}
-% make 
+% cmake ./-DCMAKE_INSTALL_PREFIX=${BUILD_LIBS} -DBINAURALIZER=ON
+% make
 ```
 
 Remark: please ensure that they have same CMAKE_INSTALL_PREFIX.
