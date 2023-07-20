@@ -4,19 +4,33 @@
 test_vector_metadata {
   human_readable_description:
     "A 4-layer IAMF stream encoded using Opus with the last layer "
-    "being 7.1.4."
+    "being 7.1.4 and `default_w == 0` with `headphones_rendering_mode == 0`."
   file_name_prefix: "test_000050"
   is_valid: true
   mp4_fixed_timestamp: "2023-05-12 00:00:00"
-  temporal_units_per_ia_sample: 1
-  primary_tested_spec_sections: ["2.7.2/channel_audio_layer_config", "2.10", "2.12.1", "5"]
+  primary_tested_spec_sections: [
+    "3.6/default_w",
+    "3.6.2/channel_audio_layer_config",
+    "3.6.2/loudspeaker_layout == Stereo",
+    "3.6.2/loudspeaker_layout == 3.1.2",
+    "3.6.2/loudspeaker_layout == 7.1.2",
+    "3.6.2/loudspeaker_layout == 7.1.4",
+    "3.6.2/num_layers",
+    "3.7.3/headphones_rendering_mode == 0",
+    "3.9",
+    "3.11.1",
+    "6",
+    "7",
+    "7.3.2",
+    "7.3.2.1"
+  ]
   base_test: "test_000037"
 }
 
 ia_sequence_header_metadata {
   ia_code: 0x69616d66  # "iamf"
-  profile_name: PROFILE_VERSION_SIMPLE
-  profile_compatible: PROFILE_VERSION_SIMPLE
+  primary_profile: PROFILE_VERSION_SIMPLE
+  additional_profile: PROFILE_VERSION_SIMPLE
 }
 
 codec_config_metadata {
@@ -134,8 +148,13 @@ mix_presentation_metadata {
     num_audio_elements: 1
     audio_elements {
       audio_element_id: 300
-      mix_presentation_element_annotations {
-        audio_element_friendly_label: "test_sub_mix_0_audio_element_0"
+      mix_presentation_element_annotations_array: [
+        {
+          audio_element_friendly_label: "test_sub_mix_0_audio_element_0"
+        }
+      ]
+      rendering_config {
+        headphones_rendering_mode: HEADPHONES_RENDERING_MODE_STEREO
       }
       element_mix_config {
         mix_gain {
@@ -171,8 +190,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -8334
-        digital_peak: -3905
+        integrated_loudness: -6428
+        digital_peak: -2108
       }
     }
     layouts {
@@ -185,8 +204,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -5758
-        digital_peak: -1971
+        integrated_loudness: -6276
+        digital_peak: -2688
       }
     }
     layouts {
@@ -199,8 +218,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -5758
-        digital_peak: -1971
+        integrated_loudness: -7098
+        digital_peak: -2816
       }
     }
     layouts {
@@ -213,8 +232,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -5758
-        digital_peak: -1971
+        integrated_loudness: -7098
+        digital_peak: -2816
       }
     }
   }

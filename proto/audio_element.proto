@@ -10,11 +10,17 @@ enum AudioElementType {
   AUDIO_ELEMENT_SCENE_BASED = 2;
 }
 
+message ParamDefinitionExtension {
+  optional uint32 param_definition_size = 1;
+  optional bytes param_definition_bytes = 2;
+}
+
 message AudioElementParam {
   optional uint32 param_definition_type = 1;
   oneof param_definition {
     DemixingParamDefinition demixing_param = 2;
     ReconGainParamDefinition recon_gain_param = 3;
+    ParamDefinitionExtension param_definition_extension = 4;
   }
 }
 
@@ -63,6 +69,11 @@ message AmbisonicsConfig {
   }
 }
 
+message AudioElementConfigExtension {
+  optional uint32 audio_element_config_size = 1;
+  optional bytes audio_element_config_bytes = 2;
+}
+
 message AudioElementObuMetadata {
   optional uint32 audio_element_id = 1;
   optional AudioElementType audio_element_type = 2;
@@ -75,5 +86,6 @@ message AudioElementObuMetadata {
   oneof config {
     ScalableChannelLayoutConfig scalable_channel_layout_config = 9;
     AmbisonicsConfig ambisonics_config = 10;
+    AudioElementConfigExtension audio_element_config_extension = 11;
   }
 }

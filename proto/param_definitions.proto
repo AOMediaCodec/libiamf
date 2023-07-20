@@ -10,8 +10,8 @@ message ParamDefinition {
   optional bool param_definition_mode = 3;
   optional uint32 reserved = 4;
   optional uint32 duration = 5;
-  optional uint32 num_subblocks = 6;
   optional uint32 constant_subblock_duration = 7;
+  optional uint32 num_subblocks = 6;
   repeated uint32 subblock_durations = 8 [packed = true];
 }
 

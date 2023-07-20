@@ -2,6 +2,7 @@ syntax = "proto2";
 
 package libiamf_proto;
 
+import "arbitrary_obu.proto";
 import "audio_element.proto";
 import "audio_frame.proto";
 import "codec_config.proto";
@@ -22,4 +23,8 @@ message UserMetadata {
   repeated ParameterBlockObuMetadata parameter_block_metadata = 7;
   optional TemporalDelimiterObuMetadata temporal_delimiter_metadata = 8;
   optional TestVectorMetadata test_vector_metadata = 9;
+
+  // A list of arbitrary OBUs to insert blindly into the stream. There is no
+  // attempt to validate or process any side effects of adding the OBUs.
+  repeated ArbitraryObuMetadata arbitrary_obu_metadata = 11;
 }
