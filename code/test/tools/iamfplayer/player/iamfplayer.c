@@ -60,10 +60,6 @@ typedef struct Layout {
   int type;
   union {
     IAMF_SoundSystem ss;
-    struct {
-      int nb_labels;
-      uint8_t *labels;
-    } label;
   };
 } Layout;
 
@@ -419,7 +415,7 @@ static int bs_input_wav_output(PlayerArgs *pas) {
   wav_f = (FILE *)dep_wav_write_open(out, r, bit_depth, channels);
   if (!wav_f) {
     fprintf(stderr, "%s can't opened.\n", out);
-    return -1;
+    goto end;
   }
 
   do {
@@ -520,19 +516,13 @@ static int bs_input_wav_output(PlayerArgs *pas) {
             frsize, fsize, ret);
 
 end:
-  if (pcm) {
-    free(pcm);
-  }
+  if (pcm) free(pcm);
 
   FCLOSE(f);
   FCLOSE(meta_f);
 
-  if (wav_f) {
-    dep_wav_write_close(wav_f);
-  }
-  if (dec) {
-    IAMF_decoder_close(dec);
-  }
+  if (wav_f) dep_wav_write_close(wav_f);
+  if (dec) IAMF_decoder_close(dec);
   return ret;
 }
 

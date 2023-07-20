@@ -58,8 +58,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define IAMF_DECODER_CONFIG_MIX_PRESENTATION 0x1
 #define IAMF_DECODER_CONFIG_OUTPUT_LAYOUT 0x2
-#define IAMF_DECODER_CONFIG_ALL \
-  IAMF_DECODER_CONFIG_MIX_PRESENTATION | IAMF_DECODER_CONFIG_OUTPUT_LAYOUT
+#define IAMF_DECODER_CONFIG_PRESENTATION 0x4
 
 #ifdef IA_TAG
 #undef IA_TAG
@@ -3751,9 +3750,11 @@ int iamf_decoder_internal_configure(IAMF_DecoderHandle handle,
     if (!ctx->output_layout) {
       ret = IAMF_ERR_ALLOC_FAIL;
       ctx->output_layout = old;
-    } else if (old && old != ctx->output_layout) {
-      iamf_layout_info_free(old);
-      ret = IAMF_ERR_INTERNAL;
+    } else if (old) {
+      if (old == ctx->output_layout)
+        ret = IAMF_ERR_INTERNAL;
+      else
+        iamf_layout_info_free(old);
     }
 
     if (ret < 0) return IAMF_ERR_INTERNAL;
@@ -3852,7 +3853,7 @@ int IAMF_decoder_configure(IAMF_DecoderHandle handle, const uint8_t *data,
   if (ret == IAMF_ERR_BUFFER_TOO_SMALL &&
       !(~handle->ctx.flags & IAMF_FLAG_DESCRIPTORS)) {
     handle->ctx.flags |= IAMF_FLAG_CONFIG;
-    handle->ctx.need_configure = IAMF_DECODER_CONFIG_ALL;
+    handle->ctx.need_configure = IAMF_DECODER_CONFIG_PRESENTATION;
     handle->ctx.status = IAMF_DECODER_STATUS_RECEIVE;
     ia_logd("configure with complete descriptor OBUs.");
     ret = iamf_decoder_internal_configure(handle, 0, 0, 0);
