@@ -13,7 +13,7 @@ add_definitions(-DIAMF_ADDITIONAL_PROFILE=001)
 
 set(CODEC_LIB_DIR  "${PROJECT_SOURCE_DIR}/dep_codecs/lib")
 set(CODEC_INCLUDE_DIR  "${PROJECT_SOURCE_DIR}/dep_codecs/include")
-
+set(EXTER_LIB_DIR  "${PROJECT_SOURCE_DIR}/dep_external/lib")
 set(EXTER_INCLUDE_DIR  "${PROJECT_SOURCE_DIR}/dep_external/include")
 
 option(CODEC_CAP "Codec capability check" ON)
