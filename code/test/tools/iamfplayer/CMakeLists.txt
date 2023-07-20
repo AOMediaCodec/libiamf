@@ -6,7 +6,6 @@ message(status,"+++++++++++iamfplayer+++++++++++++")
 
 option(BINAURALIZER "Enable binaural rendering" OFF)
 
-include_directories (iamfplayer)
 include_directories (include)
 aux_source_directory (player DIR_IAMFPLAY_PLAYER)
 aux_source_directory (src DIR_IAMFPLAY_SRC)
