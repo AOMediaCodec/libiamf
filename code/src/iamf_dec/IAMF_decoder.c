@@ -57,7 +57,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SPEEX_RESAMPLER_QUALITY 4
 
 #define IAMF_DECODER_CONFIG_MIX_PRESENTATION 0x1
-#define IAMF_DECODER_CONFIG_ALL 0x10
+#define IAMF_DECODER_CONFIG_OUTPUT_LAYOUT 0x2
+#define IAMF_DECODER_CONFIG_ALL \
+  IAMF_DECODER_CONFIG_MIX_PRESENTATION | IAMF_DECODER_CONFIG_OUTPUT_LAYOUT
 
 #ifdef IA_TAG
 #undef IA_TAG
@@ -88,6 +90,7 @@ static void swap(void **p1, void **p2) {
 }
 
 static int64_t time_transform(int64_t t1, int s1, int s2) {
+  if (s1 == s2) return t1;
   double r = t1 * s2;
   return r / s1 + 0.5f;
 }
@@ -1082,7 +1085,8 @@ static int iamf_database_parameters_clear_segments(IAMF_DataBase *db) {
 }
 
 static int iamf_database_parameters_time_elapse(IAMF_DataBase *db,
-                                                uint64_t duration) {
+                                                uint64_t duration,
+                                                uint32_t rate) {
   Viewer *pv = &db->pViewer;
   ParameterItem *pi;
   ParameterSegment *seg;
@@ -1090,11 +1094,13 @@ static int iamf_database_parameters_time_elapse(IAMF_DataBase *db,
   for (int i = 0; i < pv->count; ++i) {
     pi = (ParameterItem *)pv->items[i];
     ia_logd("S: pid %" PRIu64 " pts %" PRIu64 ", duration %" PRIu64
-            ", elapsed %" PRIu64 ", elapse %" PRIu64,
-            pi->id, pi->timestamp, pi->duration, pi->elapse, duration);
+            ", elapsed %" PRIu64 ", rate %" PRIu64 ", elapse %" PRIu64
+            ", rate %u",
+            pi->id, pi->timestamp, pi->duration, pi->elapse,
+            pi->param_base->rate, duration, rate);
 
     if (pi->value.params) {
-      pi->elapse += duration;
+      pi->elapse += time_transform(duration, rate, pi->param_base->rate);
       while (1) {
         // ia_logd("length %d", queue_length(pi->value.params));
         seg = (ParameterSegment *)queue_take(pi->value.params, 0);
@@ -1342,7 +1348,6 @@ static void iamf_mixer_reset(IAMF_Mixer *m);
 static int iamf_stream_scale_decoder_update_recon_gain(
     IAMF_StreamDecoder *decoder, ReconGainList *list);
 static SpeexResamplerState *iamf_stream_resampler_open(IAMF_Stream *stream,
-                                                       uint32_t in_rate,
                                                        uint32_t out_rate,
                                                        int quality);
 static void iamf_stream_resampler_close(SpeexResamplerState *r);
@@ -1879,14 +1884,14 @@ stream_enable_fail:
 }
 
 SpeexResamplerState *iamf_stream_resampler_open(IAMF_Stream *stream,
-                                                uint32_t in_rate,
                                                 uint32_t out_rate,
                                                 int quality) {
   int err = 0;
   uint32_t channels = stream->final_layout->channels;
-  SpeexResamplerState *resampler =
-      speex_resampler_init(channels, in_rate, out_rate, quality, &err);
-  ia_logi("in sample rate %u, out sample rate %u", in_rate, out_rate);
+  SpeexResamplerState *resampler = speex_resampler_init(
+      channels, stream->sampling_rate, out_rate, quality, &err);
+  ia_logi("in sample rate %u, out sample rate %u", stream->sampling_rate,
+          out_rate);
   if (err != RESAMPLER_ERR_SUCCESS) goto open_fail;
   speex_resampler_skip_zeros(resampler);
   resampler->buffer = IAMF_MALLOCZ(float, stream->max_frame_size *channels);
@@ -2777,6 +2782,10 @@ uint32_t iamf_decoder_internal_read_descriptors_OBUs(IAMF_DecoderHandle handle,
     rsize = ret;
     ia_logt("consume size %d, obu type (%d) %s", ret, obu.type,
             IAMF_OBU_type_string(obu.type));
+    if (obu.redundant) {
+      pos += rsize;
+      continue;
+    }
     if (IAMF_OBU_is_descrptor_OBU(&obu)) {
       ret = iamf_decoder_internal_add_descrptor_OBU(handle, &obu);
       if (ret == IAMF_OK) {
@@ -2886,7 +2895,7 @@ uint32_t iamf_decoder_internal_parse_OBUs(IAMF_DecoderHandle handle,
         iamf_decoder_internal_parameter_prepare(handle, pid);
       }
     } else if (obu.type >= IAMF_OBU_AUDIO_FRAME &&
-               obu.type < IAMF_OBU_SEQUENCE_HEADER) {
+               obu.type <= IAMF_OBU_AUDIO_FRAME_ID17) {
       IAMF_Object *obj = IAMF_object_new(&obu, 0);
       IAMF_Frame *o = (IAMF_Frame *)obj;
       iamf_decoder_internal_deliver(handle, o);
@@ -3145,6 +3154,7 @@ static int iamf_decoder_enable_mix_presentation(IAMF_DecoderHandle handle,
     if (ret != IAMF_OK) return ret;
   }
 
+  pst->frame.channels = ctx->output_layout->channels;
   iamf_set_stream_info(handle);
   iamf_mixer_init(handle);
 
@@ -3168,9 +3178,8 @@ static int iamf_decoder_enable_mix_presentation(IAMF_DecoderHandle handle,
   }
   if (!resampler) {
     IAMF_Stream *stream = pst->streams[0];
-    resampler =
-        iamf_stream_resampler_open(stream, stream->sampling_rate,
-                                   ctx->sampling_rate, SPEEX_RESAMPLER_QUALITY);
+    resampler = iamf_stream_resampler_open(stream, ctx->sampling_rate,
+                                           SPEEX_RESAMPLER_QUALITY);
     if (!resampler) return IAMF_ERR_INTERNAL;
   }
   pst->resampler = resampler;
@@ -3433,13 +3442,15 @@ static int iamf_decoder_internal_decode(IAMF_DecoderHandle handle,
     ia_logd("frame pts %" PRIu64 ", id %" PRIu64, f->pts, pst->output_gain_id);
 
     u = iamf_database_parameter_get_mix_gain_unit(
-        db, pst->output_gain_id, f->pts, f->samples, ctx->sampling_rate);
+        db, pst->output_gain_id, f->pts, f->samples,
+        pst->streams[0]->sampling_rate);
     if (u) {
       iamf_frame_gain(f, u);
       mix_gain_unit_free(u);
     }
 
-    iamf_database_parameters_time_elapse(db, real_frame_size);
+    iamf_database_parameters_time_elapse(db, real_frame_size,
+                                         pst->streams[0]->sampling_rate);
 
     if (resampler->in_rate != resampler->out_rate) {
       real_frame_size =
@@ -3727,6 +3738,27 @@ int iamf_decoder_internal_configure(IAMF_DecoderHandle handle,
 
   ctx = &handle->ctx;
   db = &ctx->db;
+  if (ctx->need_configure & IAMF_DECODER_CONFIG_OUTPUT_LAYOUT) {
+    LayoutInfo *old = ctx->output_layout;
+    ia_logd("old layout %p", old);
+    if (ctx->layout.type == IAMF_LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION)
+      ctx->output_layout = iamf_layout_info_new_sound_system(
+          ctx->layout.sound_system.sound_system);
+    else if (ctx->layout.type == IAMF_LAYOUT_TYPE_BINAURAL)
+      ctx->output_layout = iamf_layout_info_new_binaural();
+
+    ia_logd("new layout %p", ctx->output_layout);
+    if (!ctx->output_layout) {
+      ret = IAMF_ERR_ALLOC_FAIL;
+      ctx->output_layout = old;
+    } else if (old && old != ctx->output_layout) {
+      iamf_layout_info_free(old);
+      ret = IAMF_ERR_INTERNAL;
+    }
+
+    if (ret < 0) return IAMF_ERR_INTERNAL;
+  }
+
   if (data && size > 0) {
     if (ctx->status == IAMF_DECODER_STATUS_INIT)
       ctx->status = IAMF_DECODER_STATUS_CONFIGURE;
@@ -3758,25 +3790,18 @@ int iamf_decoder_internal_configure(IAMF_DecoderHandle handle,
     }
 
     if (ctx->need_configure & IAMF_DECODER_CONFIG_MIX_PRESENTATION) {
-      ctx->need_configure &= ~IAMF_DECODER_CONFIG_MIX_PRESENTATION;
-      if (ctx->presentation &&
-          ctx->mix_presentation_id ==
-              ctx->presentation->obj->mix_presentation_id) {
-        return IAMF_OK;
+      if (!ctx->presentation) {
+        ret = IAMF_ERR_INTERNAL;
+      } else if (ctx->mix_presentation_id !=
+                     ctx->presentation->obj->mix_presentation_id &&
+                 !iamf_database_get_mix_presentation(
+                     db, ctx->mix_presentation_id)) {
+        ia_logw("Invalid mix presentation id %lu.", ctx->mix_presentation_id);
+        ret = IAMF_ERR_INTERNAL;
       }
+    }
 
-      ia_logd("configure mix presentation.");
-      if (!iamf_database_get_mix_presentation(db, ctx->mix_presentation_id))
-        return IAMF_ERR_INTERNAL;
-
-#ifdef CLEAN_MP
-      if (ctx->presentation) {
-        iamf_presentation_free(ctx->presentation);
-        ctx->presentation = 0;
-      }
-#endif
-
-#ifdef RESET_LIMITER
+    if (ctx->need_configure & IAMF_DECODER_CONFIG_OUTPUT_LAYOUT) {
       if (handle->limiter) {
         audio_effect_peak_limiter_uninit(handle->limiter);
         audio_effect_peak_limiter_init(
@@ -3784,7 +3809,6 @@ int iamf_decoder_internal_configure(IAMF_DecoderHandle handle,
             iamf_layout_channels_count(&handle->ctx.output_layout->layout),
             LIMITER_AttackSec, LIMITER_ReleaseSec, LIMITER_LookAhead);
       }
-#endif
     }
 
     ctx->need_configure = 0;
@@ -3852,28 +3876,35 @@ int IAMF_decoder_decode(IAMF_DecoderHandle handle, const uint8_t *data,
 
 int IAMF_decoder_output_layout_set_sound_system(IAMF_DecoderHandle handle,
                                                 IAMF_SoundSystem ss) {
-  IAMF_DecoderContext *ctx = &handle->ctx;
-  if (!iamf_sound_system_valid(ss)) {
-    return IAMF_ERR_BAD_ARG;
-  }
+  IAMF_DecoderContext *ctx;
+  if (!handle) return IAMF_ERR_BAD_ARG;
+  if (!iamf_sound_system_valid(ss)) return IAMF_ERR_BAD_ARG;
+
+  ctx = &handle->ctx;
+  if (ctx->layout.type == IAMF_LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION &&
+      ctx->layout.sound_system.sound_system == ss)
+    return IAMF_OK;
 
   ia_logd("sound system %d, channels %d", ss,
           IAMF_layout_sound_system_channels_count(ss));
 
-  if (ctx->output_layout) iamf_layout_info_free(ctx->output_layout);
-  ctx->output_layout = iamf_layout_info_new_sound_system(ss);
-
+  ctx->layout.type = IAMF_LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION;
+  ctx->layout.sound_system.sound_system = ss;
+  ctx->need_configure |= IAMF_DECODER_CONFIG_OUTPUT_LAYOUT;
   return 0;
 }
 
 int IAMF_decoder_output_layout_set_binaural(IAMF_DecoderHandle handle) {
-  IAMF_DecoderContext *ctx = &handle->ctx;
+  IAMF_DecoderContext *ctx;
+
+  if (!handle) return IAMF_ERR_BAD_ARG;
+
+  ctx = &handle->ctx;
+  if (ctx->layout.type == IAMF_LAYOUT_TYPE_BINAURAL) return IAMF_OK;
 
   ia_logd("binaural channels %d", IAMF_layout_binaural_channels_count());
-
-  if (ctx->output_layout) iamf_layout_info_free(ctx->output_layout);
-  ctx->output_layout = iamf_layout_info_new_binaural();
-
+  ctx->layout.type = IAMF_LAYOUT_TYPE_BINAURAL;
+  ctx->need_configure |= IAMF_DECODER_CONFIG_OUTPUT_LAYOUT;
   return 0;
 }
 

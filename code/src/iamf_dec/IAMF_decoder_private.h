@@ -314,6 +314,7 @@ typedef struct IAMF_DecoderContext {
   uint32_t flags;
   IAMF_DecoderStatus status;
 
+  IAMF_Layout layout;
   LayoutInfo *output_layout;
   int sampling_rate;
 
