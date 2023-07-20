@@ -476,46 +476,6 @@ parameter_block_metadata {
   ]
 }
 
-parameter_block_metadata {
-  parameter_id: 101
-  start_timestamp: 8192
-  subblocks: [
-    {
-      # `param_definition_mode` implies a duration of 256.
-      mix_gain_parameter_data {
-        animation_type: ANIMATE_STEP
-        param_data {
-          step {
-            start_point_value: 25
-          }
-        }
-      }
-    },
-    # `param_definition_mode` implies a duration of 512.
-    {
-      mix_gain_parameter_data {
-        animation_type: ANIMATE_STEP
-        param_data {
-          step {
-            start_point_value: 30
-          }
-        }
-      }
-    },
-    # `param_definition_mode` implies a duration of 256.
-    {
-      mix_gain_parameter_data {
-        animation_type: ANIMATE_STEP
-        param_data {
-          step {
-            start_point_value: 35
-          }
-        }
-      }
-    }
-  ]
-}
-
 temporal_delimiter_metadata {
   enable_temporal_delimiters: false
 }

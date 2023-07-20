@@ -67,6 +67,7 @@ message AacEncoderMetadata {
 }
 
 message AacDecoderSpecificInfo {
+  optional uint32 decoder_specific_info_descriptor_tag = 5 [default = 0x05];
   optional uint32 audio_object_type = 1;
   optional AacSampleFrequencyIndex sample_frequency_index = 2;
   optional uint32 sampling_frequency = 3;
@@ -80,6 +81,7 @@ message AacGaSpecificConfig {
 }
 
 message DecoderConfigAac {
+  optional uint32 decoder_config_descriptor_tag = 11 [default = 0x04];
   optional uint32 object_type_indication = 1;
   optional uint32 stream_type = 2;
   optional bool upstream = 3;

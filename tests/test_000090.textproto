@@ -9,7 +9,7 @@ test_vector_metadata {
   is_valid: true
   mp4_fixed_timestamp: "2023-07-17 00:00:00"
   primary_tested_spec_sections: [
-    "3.2/num_samples_to_trim_at_end"
+    "3.2/num_samples_to_trim_at_end",
     "3.5",
     "3.11.2"
   ]
@@ -29,6 +29,7 @@ codec_config_metadata {
     num_samples_per_frame: 1024
     audio_roll_distance: -1
     decoder_config_aac: {
+      decoder_config_descriptor_tag: 0x04
       object_type_indication: 0x40
       stream_type: 0x05
       upstream: 0
@@ -36,6 +37,7 @@ codec_config_metadata {
       max_bitrate: 0
       average_bit_rate: 0
       decoder_specific_info {
+        decoder_specific_info_descriptor_tag: 0x05
         audio_object_type: 2
         sample_frequency_index: AAC_SAMPLE_FREQUENCY_INDEX_48000
         channel_configuration: 2

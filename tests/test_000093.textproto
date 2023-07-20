@@ -34,6 +34,7 @@ codec_config_metadata {
     num_samples_per_frame: 1024
     audio_roll_distance: -1
     decoder_config_aac: {
+      decoder_config_descriptor_tag: 0x04
       object_type_indication: 0x40
       stream_type: 0x05
       upstream: 0
@@ -41,6 +42,7 @@ codec_config_metadata {
       max_bitrate: 0
       average_bit_rate: 0
       decoder_specific_info {
+        decoder_specific_info_descriptor_tag: 0x05
         audio_object_type: 2
         sample_frequency_index: AAC_SAMPLE_FREQUENCY_INDEX_48000
         channel_configuration: 2

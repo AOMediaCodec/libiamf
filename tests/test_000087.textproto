@@ -215,8 +215,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -5127
-        digital_peak: -1411
+        integrated_loudness: -5114
+        digital_peak: -1416
       }
     }
     layouts {
@@ -229,7 +229,7 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -4966
+        integrated_loudness: -5119
         digital_peak: -1784
       }
     }
@@ -242,7 +242,7 @@ audio_frame_metadata: [
     samples_to_trim_at_end: 648
     samples_to_trim_at_start: 312
     audio_element_id: 300
-    channel_ids: [0, 1, 2, 3, 6, 7]
+    channel_ids: [0, 1, 2, 3, 4, 5]
     channel_labels: ["L5", "R5", "C", "LFE", "Ls5", "Rs5"]
   },
   {
