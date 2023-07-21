@@ -62,7 +62,7 @@ audio_element_metadata {
         constant_subblock_duration: 1024
       }
       default_demixing_info_parameter_data: {
-        dmixp_mode: DMIXP_MODE_1
+        dmixp_mode: DMIXP_MODE_2
       }
       default_w: 0
     }
@@ -139,8 +139,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -4013
-        digital_peak: 0
+        integrated_loudness: -4596
+        digital_peak: -609
       }
     }
     layouts {
@@ -153,8 +153,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -3695
-        digital_peak: -798
+        integrated_loudness: -4406
+        digital_peak: -1009
       }
     }
     layouts {
@@ -167,7 +167,7 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -3851
+        integrated_loudness: -4157
         digital_peak: 0
       }
     }
