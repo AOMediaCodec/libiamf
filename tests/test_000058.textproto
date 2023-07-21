@@ -12,7 +12,7 @@ test_vector_metadata {
     "3.7/num_audio_elements",
     "4.2/Base Profile",
     "7/IAMF Processing",
-    "7.3.3"
+    "7.3.3/Mixing Audio Elements"
   ]
   base_test: "test_000005"
 }
