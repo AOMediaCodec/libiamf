@@ -2611,7 +2611,7 @@ static int iamf_stream_render(IAMF_StreamRenderer *sr, float *in, float *out,
         ret = IAMF_ERR_INTERNAL;
         goto render_end;
       }
-      hin.lfe_on = 1;  // turn on LFE of HOA ##SR
+      hin.lfe_on = 0;
       IAMF_element_renderer_get_H2M_matrix(
           &hin, stream->final_layout->sp.sp_layout.predefined_sp, &h2m);
 

@@ -122,7 +122,7 @@ static int iamf_core_decoder_convert_projection(IAMF_CoreDecoder *ths,
       out[r * frame_size + s] = .0f;
       for (int l = 0; l < matrix->column; ++l) {
         out[r * frame_size + s] +=
-            in[l * frame_size + s] * matrix->matrix[r * matrix->column + l];
+            in[l * frame_size + s] * matrix->matrix[l * matrix->row + r];
       }
     }
   }
