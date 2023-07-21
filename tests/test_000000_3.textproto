@@ -11,7 +11,7 @@ test_vector_metadata {
   mp4_fixed_timestamp: "2023-04-06 00:00:00"
   primary_tested_spec_sections: [
     "3.2/num_samples_to_trim_at_end",
-    "3.4",
+    "3.4/IA Sequence Header OBU Syntax and Semantics",
     "3.5/num_samples_per_frame",
     "6.2.2/ia_sample_duration"
   ]

@@ -10,13 +10,13 @@ test_vector_metadata {
   mp4_fixed_timestamp: "2023-06-20 00:00:00"
   primary_tested_spec_sections: [
     "3.6/default_w",
-    "3.6.2",
-    "3.8.3",
-    "7",
+    "3.6.2/Scalable Channel Layout Config Syntax and Semantics",
+    "3.8.3/Recon Gain Info Parameter Data Syntax and Semantics",
+    "7/IAMF Processing",
     "7.2/recon_gain",
-    "7.2.3",
-    "7.3.2",
-    "7.3.2.1"
+    "7.2.3/Recon Gain",
+    "7.3.2/Rendering an Audio Element",
+    "7.3.2.1/Rendering a Channel-Based Audio Element to Loudspeakers"
   ]
   base_test: "test_000056"
 }

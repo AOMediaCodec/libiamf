@@ -17,12 +17,12 @@ test_vector_metadata {
     "3.6.2/loudspeaker_layout == 7.1.4",
     "3.6.2/num_layers",
     "3.7.3/headphones_rendering_mode == 1",
-    "3.9",
-    "3.11.1",
-    "6",
-    "7",
-    "7.3.2",
-    "7.3.2.1"
+    "3.9/Audio Frame OBU Syntax and Semantics",
+    "3.11.1/OPUS Specific",
+    "6/ISOBMFF IAMF Encapsulation",
+    "7/IAMF Processing",
+    "7.3.2/Rendering an Audio Element",
+    "7.3.2.1/Rendering a Channel-Based Audio Element to Loudspeakers"
   ]
   base_test: "test_000050"
 }

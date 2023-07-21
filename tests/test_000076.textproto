@@ -8,7 +8,10 @@ test_vector_metadata {
   file_name_prefix: "test_000076"
   is_valid: true
   mp4_fixed_timestamp: "2023-07-17 00:00:00"
-  primary_tested_spec_sections: ["3.5", "3.11.2"]
+  primary_tested_spec_sections: [
+    "3.5/Codec Config OBU Syntax and Semantics",
+    "3.11.2/AAC-LC Specific"
+  ]
   base_test: "test_000005"
 }
 

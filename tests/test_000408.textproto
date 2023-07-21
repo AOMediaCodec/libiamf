@@ -12,9 +12,9 @@ test_vector_metadata {
     "3.6.1",
     "3.6.1/parameter_id",
     "3.8/num_subblocks",
-    "3.8.1",
+    "3.8.1/Mix Gain Parameter Data Syntax and Semantics",
     "3.8.1/animation_type == LINEAR",
-    "7",
+    "7/IAMF Processing",
     "7.4/animation_type == LINEAR"
   ]
   base_test: "test_000400"

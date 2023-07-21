@@ -9,11 +9,11 @@ test_vector_metadata {
   is_valid: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
   primary_tested_spec_sections: [
-    "3.4",
-    "3.10",
+    "3.4/IA Sequence Header OBU Syntax and Semantics",
+    "3.10/Codec Specific",
     "4.2/temporal_delimiter_obu",
-    "5.1",
-    "5.1.2",
+    "5.1/IA Sequence",
+    "5.1.2/IA Data OBUs",
     "6.2.4/temporal_delimiter_obu"
   ]
   base_test: "test_000005"
