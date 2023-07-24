@@ -11,8 +11,8 @@ test_vector_metadata {
   primary_tested_spec_sections: [
     "3.6.2/loudspeaker_layout == Stereo",
     "3.7.4/default_mix_gain",
-    "4.2",
-    "8.5.1"
+    "4.2/Base Profile",
+    "8.5.1/Loudness Information"
   ]
   base_test: "test_000300"
 }

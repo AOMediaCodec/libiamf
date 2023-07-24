@@ -13,8 +13,8 @@ test_vector_metadata {
     "3.6.2/loudspeaker_layout == Stereo",
     "3.6.2/loudspeaker_layout == 5.1",
     "3.6.2/num_layers",
-    "3.9",
-    "3.11.3"
+    "3.9/Audio Frame OBU Syntax and Semantics",
+    "3.11.3/FLAC Specific"
   ]
   base_test: "test_000036"
 }

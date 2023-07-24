@@ -15,7 +15,7 @@ test_vector_metadata {
     "3.6.1/param_definition_mode",
     "3.8/duration",
     "3.8/constant_subblock_duration",
-    "3.9"
+    "3.9/Audio Frame OBU Syntax and Semantics"
   ]
   base_test: "test_000005"
 }

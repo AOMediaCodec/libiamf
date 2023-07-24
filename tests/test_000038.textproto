@@ -11,11 +11,11 @@ test_vector_metadata {
   primary_tested_spec_sections: [
     "3.6.3/ambisonics_mono_config",
     "3.7.3/headphones_rendering_mode == 0",
-    "7",
+    "7/IAMF Processing",
     "7.1/channel_mapping",
-    "7.3",
-    "7.3.2",
-    "7.3.2.2"
+    "7.3/Mix Presentation",
+    "7.3.2/Rendering an Audio Element",
+    "7.3.2.2/Rendering a Scene-Based Audio Element to Loudspeakers"
   ]
   base_test: "test_000005"
 }

@@ -16,12 +16,12 @@ test_vector_metadata {
     "3.6.2/loudspeaker_layout == 5.1.2",
     "3.6.2/loudspeaker_layout == 5.1.4",
     "3.6.2/num_layers",
-    "3.9",
-    "3.11.1",
-    "7",
-    "7.2.2",
-    "7.3.2",
-    "7.3.2.1"
+    "3.9/Audio Frame OBU Syntax and Semantics",
+    "3.11.1/OPUS Specific",
+    "7/IAMF Processing",
+    "7.2.2/De-mixer",
+    "7.3.2/Rendering an Audio Element",
+    "7.3.2.1/Rendering a Channel-Based Audio Element to Loudspeakers"
   ]
   base_test: "test_000054"
 }

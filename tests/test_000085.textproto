@@ -11,7 +11,7 @@ test_vector_metadata {
   primary_tested_spec_sections: [
     "3.2/num_samples_to_trim_at_end",
     "3.5/audio_roll_distance != 0",
-    "3.11.4"
+    "3.11.4/LPCM Specific"
   ]
   base_test: "test_000005"
 }

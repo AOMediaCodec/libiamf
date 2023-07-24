@@ -10,8 +10,8 @@ test_vector_metadata {
   mp4_fixed_timestamp: "2023-05-12 00:00:00"
   primary_tested_spec_sections: [
     "3.6.3/ambisonics_mono_config",
-    "3.9",
-    "3.11.3"
+    "3.9/Audio Frame OBU Syntax and Semantics",
+    "3.11.3/FLAC Specific"
   ]
   base_test: "test_000039"
 }

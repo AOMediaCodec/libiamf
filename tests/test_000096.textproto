@@ -12,9 +12,9 @@ test_vector_metadata {
     "3.6.3/ambisonics_mono_config",
     "3.7.3/headphones_rendering_mode == 1",
     "3.7.6/layout_type == BINAURAL",
-    "7.3.2.4",
-    "7.5.1",
-    "7.5.2"
+    "7.3.2.4/Rendering a Scene-Based Audio Element to Headphones",
+    "7.5.1/Loudness Normalization",
+    "7.5.2/Limiter"
   ]
   base_test: "test_000103"
 }
