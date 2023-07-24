@@ -151,12 +151,8 @@ static int aac_multistream_decode_native(
     if (info) {
       (*copy_channel_out)(out, st->buffer, fs, info->numChannels);
       out += (fs * info->numChannels);
-    } else if (i < st->coupled_streams) {
-      (*copy_channel_out)(out, st->buffer, fs, 2);
-      out += (fs * 2);
     } else {
-      (*copy_channel_out)(out, st->buffer, fs, 1);
-      out += fs;
+      ia_logw("Can not get stream info.");
     }
   }
 
@@ -172,37 +168,31 @@ AACMSDecoder *aac_multistream_decoder_open(uint8_t *config, uint32_t size,
   HANDLE_AACDECODER *handles = 0;
   HANDLE_AACDECODER handle;
 
-  UCHAR *conf[2];
+  UCHAR *conf[2] = {0, 0};
   UINT clen;
 
   int i, ret = 0;
 
   if (!config || !size || streams < 1) {
-    if (error) *error = IAMF_ERR_BAD_ARG;
-    return 0;
+    ret = IAMF_ERR_BAD_ARG;
+    goto end;
   }
 
   conf[0] = config;
   clen = size;
   conf[1] = IAMF_MALLOC(UCHAR, clen);
   if (!conf[1]) {
-    if (error) *error = IAMF_ERR_ALLOC_FAIL;
-    return 0;
+    ret = IAMF_ERR_ALLOC_FAIL;
+    goto end;
   }
 
   st = IAMF_MALLOCZ(AACMSDecoder, 1);
   handles = IAMF_MALLOCZ(HANDLE_AACDECODER, streams);
 
   if (!st || !handles) {
-    if (error) {
-      *error = IAMF_ERR_ALLOC_FAIL;
-    }
-    if (st) {
-      aac_multistream_decoder_close(st);
-    }
+    ret = IAMF_ERR_ALLOC_FAIL;
     IAMF_FREE(handles);
-    IAMF_FREE(conf[1]);
-    return 0;
+    goto end;
   }
 
   st->flags = flags;
@@ -239,11 +229,10 @@ AACMSDecoder *aac_multistream_decoder_open(uint8_t *config, uint32_t size,
     }
   }
 
+end:
   if (ret < 0) {
-    if (error) {
-      *error = ret;
-    }
-    aac_multistream_decoder_close(st);
+    if (error) *error = ret;
+    if (st) aac_multistream_decoder_close(st);
     st = 0;
   }
 
