@@ -4088,11 +4088,12 @@ int IAMF_decoder_get_last_metadata(IAMF_DecoderHandle handle, int64_t *pts,
   if (!handle || !pts || !metadata) return IAMF_ERR_BAD_ARG;
 
   ctx = &handle->ctx;
-  d = time_transform(ctx->duration - ctx->last_frame_size, ctx->time_precision,
+  d = time_transform(ctx->duration - ctx->last_frame_size, ctx->sampling_rate,
                      ctx->pts_time_base);
   *pts = ctx->pts + d;
-  ia_logd("pts %" PRId64 "/%u, last duration %u/%u", *pts, ctx->pts_time_base,
-          ctx->duration - ctx->last_frame_size, ctx->time_precision);
+  ia_logd("pts %" PRId64 "/%u, last duration %" PRIu64 "/%d", *pts,
+          ctx->pts_time_base, ctx->duration - ctx->last_frame_size,
+          ctx->sampling_rate);
 
   iamf_extra_data_copy(metadata, &ctx->metadata);
   metadata->number_of_samples = ctx->last_frame_size;

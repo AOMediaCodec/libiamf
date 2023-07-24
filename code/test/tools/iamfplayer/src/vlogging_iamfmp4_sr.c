@@ -1046,85 +1046,6 @@ static void write_stsd_atom_log(char* log, void* atom_d, int size,
   write_postfix(LOG_MP4BOX, log);
 }
 
-static void write_iamf_atom_log(char* log, void* atom_d, int size,
-                                uint64_t atom_addr) {
-  /*
-  <Address Value = "0x00000000000001E3" / >
-  <HeaderSize Value = "8" / >
-  <DataSize Value = "152" / >
-  <Size Value = "160" / >
-  <ParserReadBytes Value = "160" / >
-  <Reserved - 32bits Value = "0x00000000" / >
-  <Reserved - 16bits Value = "0x0000" / >
-  <DataReferenceIndex Value = "1" / >
-  <Version Value = "0" / >
-  <Revision Value = "0" / >
-  <Vendor Value = "...." / >
-  <NumChannels Value = "2" / >
-  <SampleBits Value = "16" / >
-  <CompressionID Value = "0" / >
-  <PacketSize Value = "0" / >
-  <SampleRate Value = "16000" / >
-  */
-  uint32_t val;
-  int index = 0;
-
-  log += write_prefix(LOG_MP4BOX, log);
-  log += write_yaml_form(log, 0, "iamf_%016x:", atom_addr);
-
-  // Reserved
-  val = queue_rb32(index, atom_d, size - index);
-  index += 4;
-  log += write_yaml_form(log, 0, "- Reserved1: %u", val);
-
-  // Reserved
-  val = queue_rb16(index, atom_d, size - index);
-  index += 2;
-  log += write_yaml_form(log, 0, "- Reserved2: %u", val);
-
-  // Data Reference Index
-  val = queue_rb16(index, atom_d, size - index);
-  index += 2;
-  log += write_yaml_form(log, 0, "- DataReferenceIndex: %u", val);
-
-  // Reserved
-  val = queue_rb32(index, atom_d, size - index);
-  index += 4;
-  log += write_yaml_form(log, 0, "- Reserved3: %u", val);
-
-  // Reserved
-  val = queue_rb32(index, atom_d, size - index);
-  index += 4;
-  log += write_yaml_form(log, 0, "- Reserved4: %u", val);
-
-  // Channel Count
-  val = queue_rb16(index, atom_d, size - index);
-  index += 2;
-  log += write_yaml_form(log, 0, "- ChannelCount: %u", val);
-
-  // Sample Size
-  val = queue_rb16(index, atom_d, size - index);
-  index += 2;
-  log += write_yaml_form(log, 0, "- SampleSize: %u", val);
-
-  // Pre-defined
-  val = queue_rb16(index, atom_d, size - index);
-  index += 2;
-  log += write_yaml_form(log, 0, "- Predefined: %u", val);
-
-  // Reserved
-  val = queue_rb16(index, atom_d, size - index);
-  index += 2;
-  log += write_yaml_form(log, 0, "- Reserved5: %u", val);
-
-  // Sample Rate
-  val = queue_rb32(index, atom_d, size - index);
-  index += 4;
-  log += write_yaml_form(log, 0, "- SampleRate: %u", val >> 16);
-
-  write_postfix(LOG_MP4BOX, log);
-}
-
 /*
 class obu_header() {
         unsigned int(5) obu_type;
@@ -1229,23 +1150,95 @@ static uint32_t read_IAMF_OBU(const uint8_t* data, uint32_t size,
 
 static void write_iamd_atom_log(char* log, void* atom_d, int size,
                                 uint64_t atom_addr) {
+  write_postfix(LOG_MP4BOX, log);
+}
+
+static void write_iamf_atom_log(char* log, void* atom_d, int size,
+                                uint64_t atom_addr) {
   /*
-  <iamd>
-  <Address Value="0x0000000000000207"/>
-  <HeaderSize Value="8"/>
-  <DataSize Value="116"/>
-  <Size Value="124"/>
-  <ParserReadBytes Value="124"/>
-  </iamd>
+  <Address Value = "0x00000000000001E3" / >
+  <HeaderSize Value = "8" / >
+  <DataSize Value = "152" / >
+  <Size Value = "160" / >
+  <ParserReadBytes Value = "160" / >
+  <Reserved - 32bits Value = "0x00000000" / >
+  <Reserved - 16bits Value = "0x0000" / >
+  <DataReferenceIndex Value = "1" / >
+  <Version Value = "0" / >
+  <Revision Value = "0" / >
+  <Vendor Value = "...." / >
+  <NumChannels Value = "2" / >
+  <SampleBits Value = "16" / >
+  <CompressionID Value = "0" / >
+  <PacketSize Value = "0" / >
+  <SampleRate Value = "16000" / >
+  configOBUs
   */
-  int index = 0, ret;
-  int x, val;
+  uint32_t val;
+  int index = 0;
+
+  log += write_prefix(LOG_MP4BOX, log);
+  log += write_yaml_form(log, 0, "iamf_%016x:", atom_addr);
+
+  // Reserved
+  val = queue_rb32(index, atom_d, size - index);
+  index += 4;
+  log += write_yaml_form(log, 0, "- Reserved1: %u", val);
+
+  // Reserved
+  val = queue_rb16(index, atom_d, size - index);
+  index += 2;
+  log += write_yaml_form(log, 0, "- Reserved2: %u", val);
+
+  // Data Reference Index
+  val = queue_rb16(index, atom_d, size - index);
+  index += 2;
+  log += write_yaml_form(log, 0, "- DataReferenceIndex: %u", val);
+
+  // Reserved
+  val = queue_rb32(index, atom_d, size - index);
+  index += 4;
+  log += write_yaml_form(log, 0, "- Reserved3: %u", val);
+
+  // Reserved
+  val = queue_rb32(index, atom_d, size - index);
+  index += 4;
+  log += write_yaml_form(log, 0, "- Reserved4: %u", val);
+
+  // Channel Count
+  val = queue_rb16(index, atom_d, size - index);
+  index += 2;
+  log += write_yaml_form(log, 0, "- ChannelCount: %u", val);
+
+  // Sample Size
+  val = queue_rb16(index, atom_d, size - index);
+  index += 2;
+  log += write_yaml_form(log, 0, "- SampleSize: %u", val);
+
+  // Pre-defined
+  val = queue_rb16(index, atom_d, size - index);
+  index += 2;
+  log += write_yaml_form(log, 0, "- Predefined: %u", val);
+
+  // Reserved
+  val = queue_rb16(index, atom_d, size - index);
+  index += 2;
+  log += write_yaml_form(log, 0, "- Reserved5: %u", val);
+
+  // Sample Rate
+  val = queue_rb32(index, atom_d, size - index);
+  index += 4;
+  log += write_yaml_form(log, 0, "- SampleRate: %u", val >> 16);
+
+  // configOBUs
+  int ret = 0;
+  int x = 0;
   int codec_id;
   IAMF_OBU_t obu;
   uint64_t val64;
 
-  log += write_prefix(LOG_MP4BOX, log);
-  log += write_yaml_form(log, 0, "iamd_%016x:", atom_addr);
+  // log += write_prefix(LOG_MP4BOX, log);
+  // log += write_yaml_form(log, 0, "iamd_%016x:", atom_addr);
 
   /*
   [ ] ia_sequence_header_obu() is the ia_sequence_header_obu() in this set of
@@ -1751,9 +1744,6 @@ int vlog_atom(uint32_t atom_type, void* atom_d, int size, uint64_t atom_addr) {
     /* Immersive audio atom */
     case MP4BOX_IAMF:
       write_iamf_atom_log(log, atom_d, size, atom_addr);
-      break;
-    case MP4BOX_IAMD:
-      write_iamd_atom_log(log, atom_d, size, atom_addr);
       break;
 
     case MP4BOX_MDAT:
