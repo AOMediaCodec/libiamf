@@ -5,6 +5,7 @@ project (iamfplayer)
 message(status,"+++++++++++iamfplayer+++++++++++++")
 
 option(BINAURALIZER "Enable binaural rendering" OFF)
+option(SUPPORT_VERIFIER "Output vlogging file" OFF)
 
 include_directories (include)
 aux_source_directory (player DIR_IAMFPLAY_PLAYER)
@@ -19,6 +20,12 @@ if(BINAURALIZER)
   message(STATUS "Enable binaural rendering")
   add_definitions(-DDISABLE_BINAURALIZER=0)
 endif()
+
+if(SUPPORT_VERIFIER)
+  message(STATUS "Output vlogging file")
+  add_definitions(-DSUPPORT_VERIFIER=1)
+endif()
+
 
 message(status,${INCLUDE_IAMF_DIR})
 include_directories(

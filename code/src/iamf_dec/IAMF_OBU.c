@@ -857,6 +857,7 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
                 "Presentation Object.");
             goto mix_presentation_fail;
           }
+          b->base.type = IAMF_LAYOUT_TYPE_BINAURAL;
           layouts[i] = TARGET_LAYOUT(b);
           ia_logd("\tLayout %d > binaural.", i);
         } else {

@@ -330,7 +330,7 @@ typedef struct IAMF_DecoderContext {
   uint32_t need_configure;
 
   // PTS
-  uint32_t duration;
+  uint64_t duration;
   int64_t pts;
   uint32_t pts_time_base;
   uint32_t last_frame_size;

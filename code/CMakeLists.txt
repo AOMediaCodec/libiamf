@@ -16,6 +16,12 @@ set(CODEC_INCLUDE_DIR  "${PROJECT_SOURCE_DIR}/dep_codecs/include")
 set(EXTER_LIB_DIR  "${PROJECT_SOURCE_DIR}/dep_external/lib")
 set(EXTER_INCLUDE_DIR  "${PROJECT_SOURCE_DIR}/dep_external/include")
 
+option(SUPPORT_VERIFIER "Output vlogging file" OFF)
+if (SUPPORT_VERIFIER)
+  message(STATUS "Output vlogging file")
+  add_definitions(-DSUPPORT_VERIFIER=1)
+endif()
+
 option(CODEC_CAP "Codec capability check" ON)
 option(BINAURALIZER "Enable binaural rendering" OFF)
 

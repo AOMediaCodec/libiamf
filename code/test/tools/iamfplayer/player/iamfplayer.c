@@ -856,12 +856,12 @@ int main(int argc, char *argv[]) {
       // mp4_input_wav_output(&pas);
       mp4_input_wav_output2(&pas);
     }
+    else {
+      fprintf(stderr, "invalid output mode %d\n", output_mode);
+    }    
 #if SUPPORT_VERIFIER
     if (pas.flags & FLAG_VLOG) vlog_file_close();
 #endif
-    else {
-      fprintf(stderr, "invalid output mode %d\n", output_mode);
-    }
   } else {
     print_usage(argv);
     fprintf(stderr, "invalid output sound system %d\n", sound_system);
