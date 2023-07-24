@@ -17,11 +17,11 @@ test_vector_metadata {
     "3.7/loudness_layout == Stereo",
     "3.7/loudness_layout == 7.1.2",
     "3.7/loudness_layout == 7.1.4",
-    "3.7.6",
-    "7",
-    "7.3.2.1",
-    "7.5.1",
-    "7.5.2"
+    "3.7.6/Layout Syntax and Semantics",
+    "7/IAMF Processing",
+    "7.3.2.1/Rendering a Channel-Based Audio Element to Loudspeakers",
+    "7.5.1/Loudness Normalization",
+    "7.5.2/Limiter"
   ]
   base_test: "test_000209"
 }

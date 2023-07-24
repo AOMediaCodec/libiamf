@@ -10,7 +10,7 @@ test_vector_metadata {
   mp4_fixed_timestamp: "2023-06-27 00:00:00"
   primary_tested_spec_sections: [
     "3.6/num_parameters",
-    "3.6.2",
+    "3.6.2/Scalable Channel Layout Config Syntax and Semantics",
     "3.6.2/loudspeaker_layout == 3.1.2",
     "3.6.2/loudspeaker_layout == 5.1.2",
     "3.6.2/loudspeaker_layout == 7.1.4",
@@ -18,15 +18,15 @@ test_vector_metadata {
     "3.6.2/output_gain_flags",
     "3.6.2/output_gain",
     "3.8/recon_gain_info_parameter_data",
-    "3.8.3",
-    "7",
-    "7.2.1",
-    "7.2.3",
-    "7.6.1",
-    "10.2.2",
-    "10.2.3",
-    "10.2.4",
-    "10.2.5"
+    "3.8.3/Recon Gain Info Parameter Data Syntax and Semantics",
+    "7/IAMF Processing",
+    "7.2.1/Gain",
+    "7.2.3/Recon Gain",
+    "7.6.1/Dynamic Down-mix Matrix",
+    "10.2.2/Annex B-2: Down-mix Mechanism",
+    "10.2.3/Annex B-3: Channel Layout Generation Rule",
+    "10.2.4/Annex B-4: Recon Gain Generation",
+    "10.2.5/Annex B-5: ChannelGroup Generation Rule"
   ]
   base_test: "test_000225"
   override_computed_recon_gains: true

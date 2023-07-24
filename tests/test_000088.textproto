@@ -16,17 +16,17 @@ test_vector_metadata {
     "3.6.1/constant_subblock_duration == 0",
     "3.6.1/num_subblocks",
     "3.6.1/subblock_duration",
-    "3.7.4",
-    "3.7.5",
+    "3.7.4/Element Mix Config Syntax and Semantics",
+    "3.7.5/Output Mix Config Syntax and Semantics",
     "3.8.1/animation_type == STEP",
     "3.8.1/animation_type == LINEAR",
     "3.8.1/animation_type == BEZIER",
-    "5.1",
-    "5.1.2",
-    "7",
+    "5.1/IA Sequence",
+    "5.1.2/IA Data OBUs",
+    "7/IAMF Processing",
     "7.4/animation_type == STEP",
-    "7.5.1",
-    "7.5.2"
+    "7.5.1/Loudness Normalization",
+    "7.5.2/Limiter"
   ]
   base_test: "test_000071"
   partition_mix_gain_parameter_blocks: false
