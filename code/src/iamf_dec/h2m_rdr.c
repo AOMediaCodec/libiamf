@@ -1080,7 +1080,9 @@ int IAMF_element_renderer_get_H2M_matrix(IAMF_HOA_LAYOUT *in,
   return (-1);
 }
 
+#if DISABLE_LFE_HOA == 0
 static float lfefilter_update(lfe_filter_t *lfe_f, float input);
+#endif
 
 // HOA to Multichannel Renderer
 int IAMF_element_renderer_render_H2M(struct h2m_rdr_t *h2mMatrix, float *in[],
@@ -1132,6 +1134,21 @@ int IAMF_element_renderer_render_H2M(struct h2m_rdr_t *h2mMatrix, float *in[],
       }
     }
 
+#if DISABLE_LFE_HOA == 1
+    //////////////
+    // generate lfe signal to lfe channel place
+    if (lfe1 >= 0) {
+      for (j = 0; j < nsamples; j++) {
+        out[lfe1][j] = 0;
+      }
+    }
+    //////////////
+    if (lfe2 >= 0) {
+      for (j = 0; j < nsamples; j++) {
+        out[lfe2][j] = 0;
+      }
+    }
+#else
     //////////////
     // generate lfe signal to lfe channel place
     if (lfe1 >= 0) {
@@ -1143,7 +1160,8 @@ int IAMF_element_renderer_render_H2M(struct h2m_rdr_t *h2mMatrix, float *in[],
             out[lfe1][j] = output * 0.5;
           else
             out[lfe1][j] = output / sqrt(n_size);
-        } else {  // lfe off
+        }
+        else {  // lfe off
           out[lfe1][j] = 0;
         }
       }
@@ -1154,7 +1172,8 @@ int IAMF_element_renderer_render_H2M(struct h2m_rdr_t *h2mMatrix, float *in[],
         if (lfe) {          // lfe on
           if (lfe1 >= 0) {  // already compute lfe
             out[lfe2][j] = out[lfe1][j];
-          } else {  // compute lfe
+          }
+          else {  // compute lfe
             float output;
             output = lfefilter_update(lfe, in[0][j]);  // use W
             if (n_size <= 2)
@@ -1162,26 +1181,19 @@ int IAMF_element_renderer_render_H2M(struct h2m_rdr_t *h2mMatrix, float *in[],
             else
               out[lfe2][j] = output / sqrt(n_size);
           }
-        } else {  // lfe off
+        }
+        else {  // lfe off
           out[lfe2][j] = 0;
         }
       }
     }
+#endif
   }
 
   return (0);
 }
 
-#if DISABLE_LFE_HOA == 1
-void lfefilter_init(lfe_filter_t *lfe_f, float cutoff_freq, float sample_rate) {
-  return;
-}
-
-#define DEFAULT_SAMPLERATE 48000.0f
-static float lfefilter_update(lfe_filter_t *lfe_f, float input) {
-  return 0.0f;
-}
-#else
+#if DISABLE_LFE_HOA == 0
 //**cb_im
 void lfefilter_init(lfe_filter_t *lfe_f, float cutoff_freq, float sample_rate) {
   lfe_f->init = 1;
