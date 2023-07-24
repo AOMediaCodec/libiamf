@@ -845,7 +845,7 @@ int main(int argc, char *argv[]) {
   char * supported_codecs = IAMF_decoder_get_codec_capability();
   if (supported_codecs)
     free(supported_codecs);
-  
+
   if (target.type) {
 #if SUPPORT_VERIFIER
     if (pas.flags & FLAG_VLOG) vlog_file_open(vlog_file);

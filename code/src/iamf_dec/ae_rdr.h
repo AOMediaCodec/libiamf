@@ -60,6 +60,10 @@ typedef enum {
   IAMF_BINAURAL = 0x1020,  // binaural input/output AOM only
 } IAMF_SOUND_SYSTEM;
 
+#ifndef DISABLE_LFE_HOA
+#define DISABLE_LFE_HOA 1
+#endif
+
 #ifndef DISABLE_BINAURALIZER
 #define DISABLE_BINAURALIZER 1
 #endif

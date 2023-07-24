@@ -1172,6 +1172,16 @@ int IAMF_element_renderer_render_H2M(struct h2m_rdr_t *h2mMatrix, float *in[],
   return (0);
 }
 
+#if DISABLE_LFE_HOA == 1
+void lfefilter_init(lfe_filter_t *lfe_f, float cutoff_freq, float sample_rate) {
+  return;
+}
+
+#define DEFAULT_SAMPLERATE 48000.0f
+static float lfefilter_update(lfe_filter_t *lfe_f, float input) {
+  return 0.0f;
+}
+#else
 //**cb_im
 void lfefilter_init(lfe_filter_t *lfe_f, float cutoff_freq, float sample_rate) {
   lfe_f->init = 1;
@@ -1214,4 +1224,5 @@ static float lfefilter_update(lfe_filter_t *lfe_f, float input) {
 
   return (output);
 }
+#endif
 // cb_im**

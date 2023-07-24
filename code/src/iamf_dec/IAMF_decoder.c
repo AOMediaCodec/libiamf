@@ -2611,7 +2611,11 @@ static int iamf_stream_render(IAMF_StreamRenderer *sr, float *in, float *out,
         ret = IAMF_ERR_INTERNAL;
         goto render_end;
       }
+#if DISABLE_LFE_HOA == 1
       hin.lfe_on = 0;
+#else
+      hin.lfe_on = 1;
+#endif
       IAMF_element_renderer_get_H2M_matrix(
           &hin, stream->final_layout->sp.sp_layout.predefined_sp, &h2m);
 
@@ -2783,7 +2787,7 @@ uint32_t iamf_decoder_internal_read_descriptors_OBUs(IAMF_DecoderHandle handle,
     rsize = ret;
     ia_logt("consume size %d, obu type (%d) %s", ret, obu.type,
             IAMF_OBU_type_string(obu.type));
-    if (obu.redundant) {
+    if (obu.redundant && !(~handle->ctx.flags & IAMF_FLAG_DESCRIPTORS)) {
       pos += rsize;
       continue;
     }
