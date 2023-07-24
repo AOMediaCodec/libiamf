@@ -2613,9 +2613,10 @@ static int iamf_stream_render(IAMF_StreamRenderer *sr, float *in, float *out,
       }
 #if DISABLE_LFE_HOA == 1
       hin.lfe_on = 0;
+      IAMF_element_renderer_get_H2M_matrix(
+        &hin, stream->final_layout->sp.sp_layout.predefined_sp, &h2m);
 #else
       hin.lfe_on = 1;
-#endif
       IAMF_element_renderer_get_H2M_matrix(
           &hin, stream->final_layout->sp.sp_layout.predefined_sp, &h2m);
 
@@ -2623,6 +2624,7 @@ static int iamf_stream_render(IAMF_StreamRenderer *sr, float *in, float *out,
         plfe = &stream->final_layout->sp.lfe_f;
         if (plfe->init == 0) lfefilter_init(plfe, 120, stream->sampling_rate);
       }
+#endif
 
       IAMF_element_renderer_render_H2M(&h2m, sin, sout, frame_size, plfe);
 #if DISABLE_BINAURALIZER == 0

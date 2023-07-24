@@ -162,8 +162,10 @@ int IAMF_element_renderer_render_M2M(struct m2m_rdr_t *m2mMatrix, float *in[],
 
 // HOA to Multichannel
 //**cb_im
+#if DISABLE_LFE_HOA == 0
 void lfefilter_init(lfe_filter_t *lfe_f, float cutoff_freq,
                     float sampling_rate);
+#endif
 //**cb_im
 int IAMF_element_renderer_get_H2M_matrix(IAMF_HOA_LAYOUT *in,
                                          IAMF_PREDEFINED_SP_LAYOUT *out,
