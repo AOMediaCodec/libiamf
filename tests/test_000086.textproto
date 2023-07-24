@@ -12,8 +12,8 @@ test_vector_metadata {
     "3.6.2/loudspeaker_layout == 5.1.2",
     "3.6.3/ambisonics_mono_config",
     "3.7.4/default_mix_gain",
-    "4.2",
-    "8.5.1"
+    "4.2/Base Profile",
+    "8.5.1/Loudness Information"
   ]
   base_test: "test_000300"
 }

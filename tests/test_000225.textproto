@@ -16,16 +16,16 @@ test_vector_metadata {
     "3.6.2/output_gain_is_present_flag",
     "3.6.2/output_gain_flags",
     "3.6.2/output_gain",
-    "7",
-    "7.2.1",
-    "7.2.2",
-    "7.3.2",
-    "7.3.2.1",
-    "7.6.1",
-    "10.2.1",
-    "10.2.2",
-    "10.2.3",
-    "10.2.5"
+    "7/IAMF Processing",
+    "7.2.1/Gain",
+    "7.2.2/De-mixer",
+    "7.3.2/Rendering an Audio Element",
+    "7.3.2.1/Rendering a Channel-Based Audio Element to Loudspeakers",
+    "7.6.1/Dynamic Down-mix Matrix",
+    "10.2.1/Annex B-1: Down-mix parameter and Loudness",
+    "10.2.2/Annex B-2: Down-mix Mechanism",
+    "10.2.3/Annex B-3: Channel Layout Generation Rule",
+    "10.2.5/Annex B-5: ChannelGroup Generation Rule"
   ]
   base_test: "test_0000211"
 }

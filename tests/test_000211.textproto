@@ -9,11 +9,11 @@ test_vector_metadata {
   is_valid: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
   primary_tested_spec_sections: [
-    "7",
-    "7.3.2.1",
-    "7.5.1",
-    "7.5.2",
-    "7.6.2"
+    "7/IAMF Processing",
+    "7.3.2.1/Rendering a Channel-Based Audio Element to Loudspeakers",
+    "7.5.1/Loudness Normalization",
+    "7.5.2/Limiter",
+    "7.6.2/Static Down-mix Matrix"
   ]
   base_test: "test_000208"
 }

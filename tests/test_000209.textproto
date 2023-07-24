@@ -12,11 +12,11 @@ test_vector_metadata {
     "3.6/demixing_info",
     "3.6/default_demixing_info_parameter_data",
     "3.6/default_w",
-    "7",
-    "7.3.2.1",
-    "7.5.1",
-    "7.5.2",
-    "10.2.1"
+    "7/IAMF Processing",
+    "7.3.2.1/Rendering a Channel-Based Audio Element to Loudspeakers",
+    "7.5.1/Loudness Normalization",
+    "7.5.2/Limiter",
+    "10.2.1/Annex B-1: Down-mix parameter and Loudness"
   ]
   base_test: "test_000208"
 }
