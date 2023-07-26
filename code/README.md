@@ -24,7 +24,7 @@ There are 2 parts to build: iamf(common&iamf_dec) tool(iamfplayer).
 
 2. build tool in "test/tools/iamfplayer" directory
 ```sh
-% cmake ./-DCMAKE_INSTALL_PREFIX=${BUILD_LIBS} -DBINAURALIZER=ON
+% cmake ./ -DCMAKE_INSTALL_PREFIX=${BUILD_LIBS} -DBINAURALIZER=ON
 % make
 ```
 
