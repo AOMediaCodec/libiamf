@@ -33,6 +33,8 @@ Remark: please ensure that they have same CMAKE_INSTALL_PREFIX.
 
 ### Tools(iamfplayer)
 This tool aims to decode IA bitstream and dump to wav file.
+
+`If want to run binaural cases, please download 'default.tf' file from this link: https://github.com/ebu/bear/releases/download/v0.0.1-pre/default.tf`
 ```sh
 ./iamfplayer <options> <input file>
 options:
