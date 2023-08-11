@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #if defined(__linux__)
 #include <unistd.h>
 #else
+#include <fcntl.h>
 #include <io.h>
 #endif
 #include <stdio.h>
@@ -79,11 +80,13 @@ static uint32_t htonl(uint32_t x) {
 }
 
 static uint64_t htonll(uint64_t x) {
-  return ((((uint64_t)htonl(x)) << 32) + htonl(x >> 32));
+  return ((((uint64_t)htonl((uint32_t)x & 0xFFFFFFFF)) << 32) +
+          htonl((uint32_t)(x >> 32)));
 }
 
 int vlog_file_open(const char* log_file_name) {
   int i;
+  unsigned char bom[] = {0xEF, 0xBB, 0xBF};
   if (log_file.is_open && strcmp(log_file_name, log_file.file_name) == 0) {
     return 0;
   }
@@ -99,6 +102,7 @@ int vlog_file_open(const char* log_file_name) {
 
   {
     log_file.f = fopen(log_file_name, "a");
+    fwrite(bom, 1, 3, log_file.f);
     strcpy(log_file.file_name, log_file_name);
     log_file.is_open = 1;
 
@@ -120,13 +124,13 @@ int vlog_file_close() {
       t_logdata = log_file.head[print_order[i]];
       while (t_logdata) {
         if (t_logdata->is_longtext) {
-          fprintf(log_file.f, "%s", t_logdata->ltext);
+          fwrite(t_logdata->ltext, 1, strlen(t_logdata->ltext), log_file.f);
           free(t_logdata->ltext);
           t_logdata_free = t_logdata;
           t_logdata = t_logdata->next;
           free(t_logdata_free);
         } else {
-          fprintf(log_file.f, "%s", t_logdata->text);
+          fwrite(t_logdata->text, 1, strlen(t_logdata->text), log_file.f);
           t_logdata_free = t_logdata;
           t_logdata = t_logdata->next;
           free(t_logdata_free);

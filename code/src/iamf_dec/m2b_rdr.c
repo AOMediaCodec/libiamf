@@ -45,11 +45,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #include "bear/iamf_bear_api.h"
 // Multichannel to Binaural Renderer(BEAR)
-// yj_son**
-void IAMF_element_renderer_init_M2B(IAMF_SP_LAYOUT* m2b_s,
-                                    uint32_t stream_layout, uint64_t elm_id,
+// **yj_son
+void IAMF_element_renderer_init_M2B(binaural_filter_t* binaural_f,
+                                    uint32_t in_layout, uint64_t elm_id,
                                     int frame_size, int sample_rate) {
-  binaural_filter_t* binaural_f = &m2b_s->binaural_f;
   int i;
 
   if (binaural_f->m2b_init != 1) {
@@ -67,8 +66,7 @@ void IAMF_element_renderer_init_M2B(IAMF_SP_LAYOUT* m2b_s,
     }
     if (i < N_SOURCE_ELM) {
       binaural_f->m2b_source_id[i] = ConfigureBearDirectSpeakerChannel(
-          binaural_f->m2b_api, (int)stream_layout, (size_t)frame_size,
-          sample_rate);
+          binaural_f->m2b_api, (int)in_layout, (size_t)frame_size, sample_rate);
       binaural_f->m2b_elm_id[i] = elm_id;
     }
   }

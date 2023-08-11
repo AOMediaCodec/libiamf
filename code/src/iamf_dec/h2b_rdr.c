@@ -47,23 +47,24 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // HOA to Binaural Renderer(Resonance)
 //**cb_im
-void IAMF_element_renderer_init_H2B(IAMF_SP_LAYOUT* h2b_s, int channels,
-                                    uint64_t elm_id, int nsamples,
-                                    int sample_rate) {
-  binaural_filter_t* binaural_f = &h2b_s->binaural_f;
-  int inchs = channels;
+void IAMF_element_renderer_init_H2B(binaural_filter_t* binaural_f,
+                                    int in_channels, uint64_t elm_id,
+                                    int nsamples, int sample_rate) {
+  int inchs = in_channels;
   int frame_size = nsamples;
   int i;
 
   if (binaural_f->h2b_init != 1) {
     binaural_f->h2b_api =
         CreateResonanceAudioApi2(2, frame_size, sample_rate);  // 2 = outchs
-    for (i = 0; i < N_SOURCE_ELM; i++) {
-      binaural_f->h2b_elm_id[i] = -1;
-      binaural_f->h2b_amb_id[i] = -1;
-      binaural_f->h2b_inchs[i] = -1;
+    if (binaural_f->h2b_api) {
+      for (i = 0; i < N_SOURCE_ELM; i++) {
+        binaural_f->h2b_elm_id[i] = -1;
+        binaural_f->h2b_amb_id[i] = -1;
+        binaural_f->h2b_inchs[i] = -1;
+      }
+      binaural_f->h2b_init = 1;
     }
-    binaural_f->h2b_init = 1;
   }
 
   if (binaural_f->h2b_api) {
@@ -73,7 +74,7 @@ void IAMF_element_renderer_init_H2B(IAMF_SP_LAYOUT* h2b_s, int channels,
     if (i < N_SOURCE_ELM) {
       binaural_f->h2b_amb_id[i] =
           CreateAmbisonicSource(binaural_f->h2b_api, inchs);
-      binaural_f->h2b_inchs[i] = channels;
+      binaural_f->h2b_inchs[i] = in_channels;
       binaural_f->h2b_elm_id[i] = elm_id;
     }
   }
