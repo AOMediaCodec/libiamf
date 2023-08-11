@@ -2335,7 +2335,7 @@ static int32_t iamf_stream_scale_decoder_demix(IAMF_StreamDecoder *decoder,
     }
   }
 
-  if (ctx->dmx_mode > 0)
+  if (ctx->dmx_mode > INVALID_VALUE)
     demixer_set_demixing_info(scale->demixer, ctx->dmx_mode, -1);
 
   return demixer_demixing(scale->demixer, dst, src, frame_size);
@@ -2486,14 +2486,14 @@ IAMF_StreamRenderer *iamf_stream_renderer_open(IAMF_Stream *s,
     sr->renderer.layout = &s->final_layout->sp;
     if (s->final_layout->layout.type == IAMF_LAYOUT_TYPE_BINAURAL) {
       if (s->scheme == AUDIO_ELEMENT_TYPE_CHANNEL_BASED) {
-        uint32_t stream_layout =
-            iamf_layer_layout_get_rendering_id(ctx->layout);
-        IAMF_element_renderer_init_M2B(sr->renderer.layout, stream_layout,
-                                       s->element_id, frame_size,
+        uint32_t in_layout = iamf_layer_layout_get_rendering_id(ctx->layout);
+        IAMF_element_renderer_init_M2B(&sr->renderer.layout->binaural_f,
+                                       in_layout, s->element_id, frame_size,
                                        s->sampling_rate);
       } else if (s->scheme == AUDIO_ELEMENT_TYPE_SCENE_BASED) {
-        IAMF_element_renderer_init_H2B(sr->renderer.layout, s->nb_channels,
-                                       s->element_id, frame_size,
+        int in_channels = s->nb_channels;
+        IAMF_element_renderer_init_H2B(&sr->renderer.layout->binaural_f,
+                                       in_channels, s->element_id, frame_size,
                                        s->sampling_rate);
       }
     }
@@ -2614,16 +2614,16 @@ static int iamf_stream_render(IAMF_StreamRenderer *sr, float *in, float *out,
 #if DISABLE_LFE_HOA == 1
       hin.lfe_on = 0;
       IAMF_element_renderer_get_H2M_matrix(
-        &hin, stream->final_layout->sp.sp_layout.predefined_sp, &h2m);
-#else
-      hin.lfe_on = 1;
-      IAMF_element_renderer_get_H2M_matrix(
           &hin, stream->final_layout->sp.sp_layout.predefined_sp, &h2m);
+#else
+    hin.lfe_on = 1;
+    IAMF_element_renderer_get_H2M_matrix(
+        &hin, stream->final_layout->sp.sp_layout.predefined_sp, &h2m);
 
-      if (hin.lfe_on && iamf_layout_lfe_check(&stream->final_layout->layout)) {
-        plfe = &stream->final_layout->sp.lfe_f;
-        if (plfe->init == 0) lfefilter_init(plfe, 120, stream->sampling_rate);
-      }
+    if (hin.lfe_on && iamf_layout_lfe_check(&stream->final_layout->layout)) {
+      plfe = &stream->final_layout->sp.lfe_f;
+      if (plfe->init == 0) lfefilter_init(plfe, 120, stream->sampling_rate);
+    }
 #endif
 
       IAMF_element_renderer_render_H2M(&h2m, sin, sout, frame_size, plfe);
@@ -3051,16 +3051,28 @@ static float iamf_mix_presentation_get_best_loudness(IAMF_MixPresentation *obj,
   return loudness_db;
 }
 
-static int iamf_mix_presentation_matching_calculation(IAMF_MixPresentation *obj,
+static int iamf_mix_presentation_matching_calculation(IAMF_DataBase *db,
+                                                      IAMF_MixPresentation *obj,
                                                       LayoutInfo *layout) {
-  int score = 0, s;
+  int score = 0, s = 0;
   SubMixPresentation *sub;
+  IAMF_Element *e = 0;
 
   if (obj->num_sub_mixes) {
     /* for (int n = 0; n < obj->num_sub_mixes; ++n) { */
     /* sub = &obj->sub_mixes[n]; */
     sub = &obj->sub_mixes[0];  // support only 1 sub mix.
 
+    if (layout->layout.type == IAMF_LAYOUT_TYPE_BINAURAL) {
+      for (int i = 0; i < sub->nb_elements; i++) {
+        e = iamf_database_get_element(db, sub->conf_s[i].element_id);
+        if (e && e->element_type == AUDIO_ELEMENT_TYPE_CHANNEL_BASED &&
+            e->channels_conf && e->channels_conf->layer_conf_s &&
+            e->channels_conf->layer_conf_s->loudspeaker_layout ==
+                IA_CHANNEL_LAYOUT_BINAURAL)
+          return 100;
+      }
+    }
     if (sub->num_layouts) {
       for (int i = 0; i < sub->num_layouts; ++i) {
         s = iamf_target_layout_matching_calculation(sub->layouts[i], layout);
@@ -3091,8 +3103,8 @@ static IAMF_MixPresentation *iamf_decoder_get_best_mix_presentation(
 
       for (int i = 0; i < db->mixPresentation->count; ++i) {
         obj = IAMF_MIX_PRESENTATION(db->mixPresentation->items[i]);
-        sub_percentage =
-            iamf_mix_presentation_matching_calculation(obj, ctx->output_layout);
+        sub_percentage = iamf_mix_presentation_matching_calculation(
+            db, obj, ctx->output_layout);
         if (max_percentage < sub_percentage) {
           max_percentage = sub_percentage;
           mp = obj;

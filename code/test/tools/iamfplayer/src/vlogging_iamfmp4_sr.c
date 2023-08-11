@@ -77,13 +77,20 @@ static uint16_t bswap16(const uint16_t u16) {
 #endif
 }
 
-static uint16_t bswap64(const uint64_t u64) {
+static uint64_t bswap64(const uint64_t u64) {
 #ifndef WORDS_BIGENDIAN
 #if defined(__GNUC__) && \
     ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 8)))
   return __builtin_bswap64(u64);
 #else
-  return bswap32(u64) + 0ULL << 32 | bswap32(u64 >> 32);
+  return ((u64 << 56) & 0xff00000000000000ULL) |
+         ((u64 << 40) & 0x00ff000000000000ULL) |
+         ((u64 << 24) & 0x0000ff0000000000ULL) |
+         ((u64 << 8) & 0x000000ff00000000ULL) |
+         ((u64 >> 8) & 0x00000000ff000000ULL) |
+         ((u64 >> 24) & 0x0000000000ff0000ULL) |
+         ((u64 >> 40) & 0x000000000000ff00ULL) |
+         ((u64 >> 56) & 0x00000000000000ffULL);
 #endif
 #else
   return u64;
@@ -512,8 +519,6 @@ static void write_trun_atom_log(char** log, void* atom_d, int size,
   int index = 0;
   int sample_count = 0;
   int cnt;
-  int data_offset;
-  uint32_t first_sample_flags;
 
   int len = write_prefix(LOG_MP4BOX, *log);
   len += write_yaml_form(*log + len, 0, "trun_%016x:", atom_addr);
@@ -1102,7 +1107,7 @@ uint64_t read_leb128(const uint8_t* data, uint64_t* pret) {
 static uint32_t read_IAMF_OBU(const uint8_t* data, uint32_t size,
                               IAMF_OBU_t* obu) {
   uint64_t obu_end = 0;
-  int index = 0;
+  uint64_t index = 0;
   uint8_t val;
 
   if (size < IAMF_OBU_MIN_SIZE) {
@@ -1118,7 +1123,7 @@ static uint32_t read_IAMF_OBU(const uint8_t* data, uint32_t size,
   obu->extension = (val & 0x01);
   index++;
 
-  index += read_leb128(data + index, &obu->size);
+  index += (int)read_leb128(data + index, &obu->size);
   obu_end = index + obu->size;
 
   if (index + obu->size > size) {
@@ -1141,7 +1146,7 @@ static uint32_t read_IAMF_OBU(const uint8_t* data, uint32_t size,
   }
 
   obu->payload = (uint8_t*)data + index;
-  return obu_end;
+  return (uint32_t)obu_end;
 }
 
 #define OBU_IA_Codec_Config 0
@@ -1232,8 +1237,7 @@ static void write_iamf_atom_log(char* log, void* atom_d, int size,
 
   // configOBUs
   int ret = 0;
-  int x = 0;
-  int codec_id;
+  uint64_t x = 0;
   IAMF_OBU_t obu;
   uint64_t val64;
 
@@ -1271,7 +1275,7 @@ static void write_iamf_atom_log(char* log, void* atom_d, int size,
       x += read_leb128(obu.payload + x, &val64);
       log += write_yaml_form(log, 0, "- codec_config_id: %u", (int)val64);
 
-      val = queue_rb32(x, obu.payload, obu.size - x);
+      val = queue_rb32((int)x, obu.payload, (int)(obu.size - x));
       x += 4;
 
       switch (val) {
@@ -1292,7 +1296,7 @@ static void write_iamf_atom_log(char* log, void* atom_d, int size,
       x += read_leb128(obu.payload + x, &val64);
       log += write_yaml_form(log, 0, "- num_samples_per_frame: %u", (int)val64);
 
-      val = queue_rb16(x, obu.payload, obu.size - x);
+      val = queue_rb16((int)x, obu.payload, (int)(obu.size - x));
       x += 2;
       log += write_yaml_form(log, 0, "- audio_roll_distance: %d", (int16_t)val);
     }
@@ -1649,8 +1653,8 @@ static void write_sgpd_atom_log(char** log, void* atom_d, int size,
               sprintf(buf2, "0x%02x ", val);
               strcat(buf3, buf2);
             }
-            log +=
-                write_yaml_form(log, 0, "- GroupingEntryVal_%d: %s", cnt, buf3);
+            len += write_yaml_form(*log + len, 0, "- GroupingEntryVal_%d: %s",
+                                   cnt, buf3);
           }
         }
       }

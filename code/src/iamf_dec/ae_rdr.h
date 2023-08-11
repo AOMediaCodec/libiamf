@@ -72,7 +72,7 @@ typedef enum {
 #define N_SOURCE_ELM \
   2  // maximum number of audio element == maximum source id array size
 typedef struct {
-  // *yj_son
+  // **yj_son
   int m2b_init;
   void *m2b_api;
   int m2b_elm_id[N_SOURCE_ELM];
@@ -178,10 +178,10 @@ int IAMF_element_renderer_render_H2M(struct h2m_rdr_t *h2mMatrix, float *in[],
                                      lfe_filter_t *lfe);
 
 #if DISABLE_BINAURALIZER == 0
-// ys_son**
+// **ys_son
 // Multichannel to Binaural
-void IAMF_element_renderer_init_M2B(IAMF_SP_LAYOUT *m2b_s,
-                                    uint32_t stream_layout, uint64_t elm_id,
+void IAMF_element_renderer_init_M2B(binaural_filter_t *binaural_f,
+                                    uint32_t in_layout, uint64_t elm_id,
                                     int frame_size, int sample_rate);
 void IAMF_element_renderer_deinit_M2B(binaural_filter_t *binaural_f,
                                       uint64_t elm_id);
@@ -192,9 +192,9 @@ int IAMF_element_renderer_render_M2B(binaural_filter_t *binaural_f,
 
 //**cb_im
 // HOA to Binaural
-void IAMF_element_renderer_init_H2B(IAMF_SP_LAYOUT *h2b_s, int channels,
-                                    uint64_t elm_id, int frame_size,
-                                    int sample_rate);
+void IAMF_element_renderer_init_H2B(binaural_filter_t *binaural_f,
+                                    int in_channels, uint64_t elm_id,
+                                    int frame_size, int sample_rate);
 void IAMF_element_renderer_deinit_H2B(binaural_filter_t *binaural_f,
                                       uint64_t elm_id);
 int IAMF_element_renderer_render_H2B(binaural_filter_t *binaural_f,
