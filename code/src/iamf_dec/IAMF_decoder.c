@@ -2335,7 +2335,7 @@ static int32_t iamf_stream_scale_decoder_demix(IAMF_StreamDecoder *decoder,
     }
   }
 
-  if (ctx->dmx_mode > 0)
+  if (ctx->dmx_mode > INVALID_VALUE)
     demixer_set_demixing_info(scale->demixer, ctx->dmx_mode, -1);
 
   return demixer_demixing(scale->demixer, dst, src, frame_size);
