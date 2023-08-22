@@ -25,6 +25,11 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+/*
+AOM-IAMF Standard Deliverable Status:
+This software module is out of scope and not part of the IAMF Final Deliverable.
+*/
+
 /**
  * @file h2b_rdr.c
  * @brief HOA to Binaural rendering.
