@@ -100,9 +100,10 @@ Open win32/VS2015/iamf.sln directly.
 
 ## Testing the IAMF
 
+The iamfplayer is a test application to decode an IAMF bitstream or mp4 file with IAMF encapsulation.
+
 ### 1. Build application
 
-iamfplayer is is a test application used to decode IAMF bitstream or mp4 file which is IAMF encapsulation.
 ~~~
     $ cd test/tools/iamfplayer
 
