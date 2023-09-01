@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*
 AOM-IAMF Standard Deliverable Status:
-The following function is out of scope and not part of the IAMF Final Deliverable.
+This software module is out of scope and not part of the IAMF Final Deliverable.
 */
 
 /**
