@@ -118,7 +118,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This IAMF reference software decoder uses the following open source software.
 Each open source software complies with its respective license terms, and the license files
-have been stored in a directory with their respective source code or library used.
+have been stored in a directory with their respective source code or library used. The open 
+source software listed below is not considered to be part of the IAMF Final Deliverable.
 
 
 ```markdown

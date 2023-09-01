@@ -3208,6 +3208,11 @@ static int iamf_decoder_enable_mix_presentation(IAMF_DecoderHandle handle,
   return IAMF_OK;
 }
 
+/*
+AOM-IAMF Standard Deliverable Status:
+The following function is out of scope and not part of the IAMF Final Deliverable.
+*/
+
 static int iamf_loudness_process(float *block, int frame_size, int channels,
                                  float gain) {
   int idx = 0;
