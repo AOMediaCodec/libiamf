@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.6)
 
 project (iamfplayer)
 
@@ -33,8 +33,8 @@ include_directories(
     ${INCLUDE_DEP_EXTERNAL_WAV_DIR}
 )
 link_directories(
-  ${LIB_DIR}
   ${LIB_DIR}/binaural
+  ${LIB_DIR}
 )
 
 
