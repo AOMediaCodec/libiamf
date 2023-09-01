@@ -115,7 +115,7 @@ iamfplayer is is a test application used to decode IAMF bitstream or mp4 file wh
 
 ### 2. Decoder tests
 
-If want to run binaural cases, please download [default.tf](https://github.com/ebu/bear/releases/download/v0.0.1-pre/default.tf) file into your executing directory.
+To produce binaural output, please download the following file and place it in your working directory [default.tf](https://github.com/ebu/bear/releases/download/v0.0.1-pre/default.tf).
 ~~~ 
     ./iamfplayer <options> <input file>
     options:
