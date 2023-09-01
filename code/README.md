@@ -210,7 +210,8 @@ Bug reports can be filed in the Alliance for Open Media
 
 This IAMF reference software decoder uses the following open source software.
 Each open source software complies with its respective license terms, and the license files
-have been stored in a directory with their respective source code or library used.
+have been stored in a directory with their respective source code or library used. The open 
+source software listed below is not considered to be part of the IAMF Final Deliverable.
 
 ~~~
     https://downloads.xiph.org/releases/opus/opus-1.4.tar.gz (code/dep_codecs/lib/opus.license)

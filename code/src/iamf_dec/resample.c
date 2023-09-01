@@ -57,6 +57,11 @@
    The latter both reduces CPU time and makes the algorithm more SIMD-friendly.
 */
 
+/*
+AOM-IAMF Standard Deliverable Status:
+This software module is out of scope and not part of the IAMF Final Deliverable.
+*/
+
 /**
  * @file resample.c
  * @brief Sampling rate conversion.
