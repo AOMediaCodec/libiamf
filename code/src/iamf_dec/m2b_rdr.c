@@ -31,7 +31,7 @@ This software module is out of scope and not part of the IAMF Final Deliverable.
 */
 
 /**
- * @file m2m_rdr.c
+ * @file m2b_rdr.c
  * @brief Multichannels to Binaural rendering.
  * @version 0.1
  * @date Created 03/03/2023
