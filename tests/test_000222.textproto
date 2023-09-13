@@ -16,7 +16,7 @@ test_vector_metadata {
     "7.3.2.1/Rendering a Channel-Based Audio Element to Loudspeakers",
     "7.5.1/Loudness Normalization",
     "7.5.2/Limiter",
-    "10.2.1/Annex B-1: Down-mix parameter and Loudness"
+    "9.1.2.1/Annex A2.1: Down-mix parameter and Loudness"
   ]
   base_test: "test_000221"
 }
