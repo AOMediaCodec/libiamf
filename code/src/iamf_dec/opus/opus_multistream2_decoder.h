@@ -39,13 +39,35 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 typedef struct OpusMS2Decoder OpusMS2Decoder;
 
+/**
+ * @brief     Create an opus decoder.
+ * @param     [in] Fs : the sample rate.
+ * @param     [in] streams : the audio stream count.
+ * @param     [in] coupled_streams : the coupled audio stream count.
+ * @param     [in] flags : pcm storage order.
+ * @param     [in] error : the error code when open an aac decoder.
+ * @return    return an opus decoder handle.
+ */
 OpusMS2Decoder *opus_multistream2_decoder_create(int Fs, int streams,
                                                  int coupled_streams,
                                                  uint32_t flags, int *error);
 
+/**
+ * @brief     Decode opus packet.
+ * @param     [in] st : opus decoder handle.
+ * @param     [in] buffer : the flac packet buffer.
+ * @param     [in] len : the length of flac packet buffer.
+ * @param     [in] pcm : the decoded pcm frame.
+ * @param     [in] frame_size : the frame size of aac.
+ * @return    return the number of decoded samples.
+ */
 int opus_multistream2_decode(OpusMS2Decoder *st, uint8_t *buffer[],
                              uint32_t len[], void *pcm, uint32_t frame_size);
 
+/**
+ * @brief     Destory an opus decoder.
+ * @param     [in] st : opus decoder handle.
+ */
 void opus_multistream2_decoder_destroy(OpusMS2Decoder *st);
 
 #endif /* _OPUS_MULTISTREAM2_DECODER_H_ */

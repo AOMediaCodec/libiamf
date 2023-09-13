@@ -78,15 +78,49 @@ typedef struct AudioEffectPeakLimiter {
 #endif
 } AudioEffectPeakLimiter;
 
+/**
+ * @brief     Create a peak limiter.
+ * @return    return a peak limiter handle.
+ */
 AudioEffectPeakLimiter* audio_effect_peak_limiter_create(void);
-void audio_effect_peak_limiter_init(AudioEffectPeakLimiter*,
+
+/**
+ * @brief     Initialize the peak limiter.
+ * @param     [in] ths : the peak limiter handle
+ * @param     [in] threashold_db : peak threshold in dB
+ * @param     [in] sample_rate : sample rate of audio signal
+ * @param     [in] num_channels : number of channels in frame
+ * @param     [in] atk_sec : attack duration in seconds
+ * @param     [in] atk_sec : release duration in seconds
+ * @param     [in] delay_size : number of samples in delay buffer
+ */
+void audio_effect_peak_limiter_init(AudioEffectPeakLimiter* ths,
                                     float threashold_db, int sample_rate,
                                     int num_channels, float atk_sec,
                                     float rel_sec, int delay_size);
-int audio_effect_peak_limiter_process_block(AudioEffectPeakLimiter*,
+
+/**
+ * @brief     Process the pcm signal with predefined peak limiter.
+ * @param     [in] ths : the peak limiter handle
+ * @param     [in] inblock : the input pcm signal
+ * @param     [in] outblock : the output pcm signal
+ * @param     [in] frame_size : the frame size of one process block
+ * @return    the number of processed samples
+ */
+int audio_effect_peak_limiter_process_block(AudioEffectPeakLimiter* ths,
                                             float* inblock, float* outblock,
                                             int frame_size);
-void audio_effect_peak_limiter_uninit(AudioEffectPeakLimiter*);
-void audio_effect_peak_limiter_destroy(AudioEffectPeakLimiter*);
+
+/**
+ * @brief     De-initialize the peak limiter.
+ * @param     [in] ths : the peak limiter handle
+ */
+void audio_effect_peak_limiter_uninit(AudioEffectPeakLimiter* ths);
+
+/**
+ * @brief     Destroy the peak limiter.
+ * @param     [in] ths : the peak limiter handle
+ */
+void audio_effect_peak_limiter_destroy(AudioEffectPeakLimiter* ths);
 
 #endif /* __AUDIO_PEAK_LIMITER_H_ */

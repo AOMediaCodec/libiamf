@@ -41,11 +41,39 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 typedef struct Downmixer DMRenderer;
 
+/**
+ * @brief     Open a downmix renderer.
+ * @param     [in] in : the input layout of downmix renderer.
+ * @param     [in] out : the output layout of downmix renderer.
+ * @return    return a downmix renderer handle.
+ */
 DMRenderer *DMRenderer_open(IAChannelLayoutType in, IAChannelLayoutType out);
-void DMRenderer_close(DMRenderer *);
 
-int DMRenderer_set_mode_weight(DMRenderer *, int, int);
-int DMRenderer_downmix(DMRenderer *, float *, float *, uint32_t, uint32_t,
-                       uint32_t);
+/**
+ * @brief     Close the downmix renderer.
+ * @param     [in] thisp : the downmix renderer handle.
+ */
+void DMRenderer_close(DMRenderer *thisp);
+
+/**
+ * @brief     Set the demix mode and demix weight index for downmix renderer.
+ * @param     [in] thisp : the downmix renderer handle.
+ * @param     [in] mode : the demix mode.
+ * @param     [in] w_idx : the demix weight index.
+ * @return    @ref IAErrCode.
+ */
+int DMRenderer_set_mode_weight(DMRenderer *thisp, int mode, int w_idx);
+
+/**
+ * @brief     Do downmix rendering from input layout to output layout.
+ * @param     [in] thisp : the downmix renderer handle.
+ * @param     [in] in : the input audio pcm.
+ * @param     [in] out : the output audio pcm.
+ * @param     [in] s : the start downmix position.
+ * @param     [in] size : the defined frame size.
+ * @return    @ref IAErrCode.
+ */
+int DMRenderer_downmix(DMRenderer *thisp, float *in, float *out, uint32_t s,
+                       uint32_t duration, uint32_t size);
 
 #endif /* __DOWNMIX_RENDERER_H_ */
