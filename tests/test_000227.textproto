@@ -18,14 +18,14 @@ test_vector_metadata {
     "3.6.2/output_gain",
     "3.8/recon_gain_info_parameter_data",
     "3.8.3/Recon Gain Info Parameter Data Syntax and Semantics",
+    "3.6.2.1/Channel Layout Generation Rule",
     "7/IAMF Processing",
     "7.2.1/Gain",
     "7.2.3/Recon Gain",
     "7.6.1/Dynamic Down-mix Matrix",
-    "10.2.2/Annex B-2: Down-mix Mechanism",
-    "10.2.3/Annex B-3: Channel Layout Generation Rule",
-    "10.2.4/Annex B-4: Recon Gain Generation",
-    "10.2.5/Annex B-5: ChannelGroup Generation Rule"
+    "9.1.2.2/Annex A2.2: Down-mix Mechanism",
+    "9.1.2.3/Annex A2.3: Recon Gain Generation",
+    "9.1.2.4/Annex A2.4: Channel Group Generation Rule"
   ]
   base_test: "test_000224"
   override_computed_recon_gains: true
