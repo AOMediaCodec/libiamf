@@ -163,8 +163,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -6118
-        digital_peak: -2767
+        integrated_loudness: -4618
+        digital_peak: -630
       }
     }
     layouts {
@@ -177,16 +177,16 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -6046
-        digital_peak: -2786
+        integrated_loudness: -4637
+        digital_peak: -1009
       }
     }
   }
 }
 
 audio_frame_metadata {
-  wav_filename: "waters1.wav"
-  samples_to_trim_at_end: 149
+  wav_filename: "Mechanism_5s.wav"
+  samples_to_trim_at_end: 128
   samples_to_trim_at_start: 0
   audio_element_id: 300
   channel_ids: [0, 1, 2, 3, 4, 5]
