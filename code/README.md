@@ -75,7 +75,7 @@ A dylib (shared object) build of the IAMF library is enabled by default.
 For the purposes of building the IAMF and applications and relative to the
 scope of this guide, all builds for architectures differing from the native host
 architecture will be considered cross compiles. The IAMF CMake build handles
-cross compiling via the use of toolchain files included in the AV1 repository.
+cross compiling via the use of toolchain files included in the repository.
 The toolchain files available at the time of this writing are:
 
 - x86_64-mingw-gcc.cmake
