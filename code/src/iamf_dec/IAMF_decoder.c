@@ -2489,7 +2489,7 @@ IAMF_StreamRenderer *iamf_stream_renderer_open(IAMF_Stream *s,
                                                int frame_size) {
   ChannelLayerContext *ctx = (ChannelLayerContext *)s->priv;
   IAMF_StreamRenderer *sr = IAMF_MALLOCZ(IAMF_StreamRenderer, 1);
-  if (!sr) 0;
+  if (!sr) return 0;
 
   sr->stream = s;
   iamf_stream_renderer_enable_downmix(sr);
