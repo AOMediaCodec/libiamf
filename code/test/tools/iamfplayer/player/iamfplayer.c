@@ -346,7 +346,7 @@ static int bs_input_wav_output(PlayerArgs *pas) {
     return -1;
   }
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__)
   s = strrchr(path, '/');
 #else
   s = strrchr(path, '\\');
@@ -574,7 +574,7 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
     return -1;
   }
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__)
   s = strrchr(path, '/');
 #else
   s = strrchr(path, '\\');

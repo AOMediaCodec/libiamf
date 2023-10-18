@@ -20,7 +20,9 @@ limitations under the License.
 
 #ifdef __linux__
 #define EXPORT_API
-#elif _WIN32
+#elif defined __APPLE__
+#define EXPORT_API
+#elif defined _WIN32
 // EXPORT_API can be used to define the dllimport storage-class attribute.
 #ifdef DLL_EXPORTS
 #define EXPORT_API __declspec(dllexport)

@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @date Created 03/29/2023
  **/
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__)
 #include <unistd.h>
 #else
 #include <fcntl.h>
@@ -74,14 +74,14 @@ static uint32_t get_4cc_codec_id(char a, char b, char c, char d) {
   return ((a) | (b << 8) | (c << 16) | (d << 24));
 }
 
-static uint32_t htonl(uint32_t x) {
+static uint32_t htonl2(uint32_t x) {
   return (x >> 24) | ((x >> 8) & 0x0000FF00) | ((x << 8) & 0x00FF0000) |
          (x << 24);
 }
 
-static uint64_t htonll(uint64_t x) {
-  return ((((uint64_t)htonl((uint32_t)x & 0xFFFFFFFF)) << 32) +
-          htonl((uint32_t)(x >> 32)));
+static uint64_t htonll2(uint64_t x) {
+  return ((((uint64_t)htonl2((uint32_t)x & 0xFFFFFFFF)) << 32) +
+          htonl2((uint32_t)(x >> 32)));
 }
 
 int vlog_file_open(const char* log_file_name) {
@@ -91,7 +91,7 @@ int vlog_file_open(const char* log_file_name) {
     return 0;
   }
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__)
   if (access(log_file_name, 0) != -1) {
 #else
   if (_access(log_file_name, 0) != -1) {
@@ -164,7 +164,7 @@ int vlog_print(LOG_TYPE type, uint64_t key, const char* format, ...) {
   VLOG_DATA *t_logdata, *logdata_new;
 
   va_start(args, format);
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__)
   len = vprintf(format, args) + 1;
 #else
   len = _vscprintf(format, args) + 1;  // terminateing '\0'
@@ -172,7 +172,7 @@ int vlog_print(LOG_TYPE type, uint64_t key, const char* format, ...) {
 
   buffer = (char*)malloc(len * sizeof(char));
   if (buffer) {
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__)
     vsnprintf(buffer, len, format, args);
 #else
     vsprintf_s(buffer, len, format, args);
@@ -283,7 +283,7 @@ int write_yaml_form(char* log, uint8_t indent, const char* format, ...) {
   int len = 0;
 
   va_start(args, format);
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__)
   len = vprintf(format, args) + 1;
   va_start(args, format);
   vsnprintf(log + ret, len, format, args);
@@ -304,7 +304,7 @@ static void write_sequence_header_log(uint64_t idx, void* obu, char* log) {
 
   log += write_prefix(LOG_OBU, log);
   log += write_yaml_form(log, 0, "IaSequenceHeaderOBU_%llu:", idx);
-  log += write_yaml_form(log, 0, "- ia_code: %u", htonl(mc_obu->iamf_code));
+  log += write_yaml_form(log, 0, "- ia_code: %u", htonl2(mc_obu->iamf_code));
   log +=
       write_yaml_form(log, 1, "primary_profile: %u", mc_obu->primary_profile);
   log += write_yaml_form(log, 1, "additional_profile: %u",
@@ -320,7 +320,7 @@ static void write_codec_config_log(uint64_t idx, void* obu, char* log) {
   log +=
       write_yaml_form(log, 0, "- codec_config_id: %llu", cc_obu->codec_conf_id);
   log += write_yaml_form(log, 1, "codec_config:");
-  log += write_yaml_form(log, 2, "codec_id: %u", htonl(cc_obu->codec_id));
+  log += write_yaml_form(log, 2, "codec_id: %u", htonl2(cc_obu->codec_id));
   log += write_yaml_form(log, 2, "num_samples_per_frame: %llu",
                          cc_obu->nb_samples_per_frame);
   log +=
@@ -437,8 +437,8 @@ static void write_codec_config_log(uint64_t idx, void* obu, char* log) {
         bs_read(&b, (uint8_t*)&be_value, 4);
         be_value <<= 32;
 
-        // htonll
-        total_samples_in_stream = htonll(be_value);
+        // htonll2
+        total_samples_in_stream = htonll2(be_value);
 
         bs_read(&b, (uint8_t*)md5_signature, 16);
 
