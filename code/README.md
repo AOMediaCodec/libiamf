@@ -78,10 +78,10 @@ architecture will be considered cross compiles. The CMake build handles
 cross compiling via the use of toolchain files included in the repository.
 The toolchain files available at the time of this writing are:
  
- - arm64-ios.cmake (darwin20.4 version is used in build.sh)
+ - arm64-ios.cmake
  - arm64-linux.cmake
  - x86_64-mingw.cmake
- - x86-macos.cmake (darwin20.4 version is used in build.sh)
+ - x86-macos.cmake
 
 Please note that all [dependent codecs](dep_codecs/README.md) and [external libraries](dep_external/README.md) should have been cross compiling already.
 

@@ -40,10 +40,10 @@ architecture will be considered cross compiles. The CMake build handles
 cross compiling via the use of toolchain files included in the repository.
 The toolchain files available at the time of this writing are:
  
- - arm64-ios.cmake (darwin20.4 version is used in build.sh)
+ - arm64-ios.cmake
  - arm64-linux.cmake
  - x86_64-mingw.cmake
- - x86-macos.cmake (darwin20.4 version is used in build.sh)
+ - x86-macos.cmake
 
 The following example demonstrates use of the x86-macos.cmake toolchain file on
 a x86\_64 MacOS host:
