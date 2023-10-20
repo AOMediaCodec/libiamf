@@ -14,7 +14,10 @@ aux_source_directory (src DIR_IAMFPLAY_SRC)
 set(LIB_DIR  "${CMAKE_INSTALL_PREFIX}/lib")
 set(INCLUDE_IAMF_DIR  "${CMAKE_INSTALL_PREFIX}/include/iamf")
 set(INCLUDE_DEP_EXTERNAL_WAV_DIR  "../../../dep_external/include/wav")
+if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+else()
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,--no-as-need")
+endif()
 
 if(BINAURALIZER)
   message(STATUS "Enable binaural rendering")
@@ -32,11 +35,17 @@ include_directories(
     ${INCLUDE_IAMF_DIR}
     ${INCLUDE_DEP_EXTERNAL_WAV_DIR}
 )
+
+if(BINAURALIZER)
 link_directories(
   ${LIB_DIR}/binaural
   ${LIB_DIR}
 )
-
+else()
+link_directories(
+  ${LIB_DIR}
+)
+endif()
 
 add_executable (iamfplayer player/iamfplayer.c
     ${DIR_IAMFPLAY_PLAYER} ${DIR_IAMFPLAY_SRC})

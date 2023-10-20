@@ -151,52 +151,144 @@ struct h2m_rdr_t {
 };
 
 // Multichannel to Multichannel
+/**
+ * @brief     Get the ear render conversion matrix of multichannel to
+ * multichannel according to predefined direct speaker input and output layout.
+ * @param     [in] in : predefined direct speaker input channel layout.
+ * @param     [in] out : predefined direct speaker output channel layout
+ * @param     [in] outMatrix : conversion matrix.
+ * @return    @0: success,@others: fail
+ */
 int IAMF_element_renderer_get_M2M_matrix(IAMF_SP_LAYOUT *in,
                                          IAMF_SP_LAYOUT *out,
                                          struct m2m_rdr_t *outMatrix);
+
+/**
+ * @brief     Get the ear render conversion matrix of multichannel to
+ * multichannel according to predefined direct speaker input and custom output
+ * layout.
+ * @param     [in] in : custom speaker input layout.
+ * @param     [in] out : custom speaker output layout
+ * @param     [in] outMatrix : conversion matrix.
+ * @return    @0: success,@others: fail
+ */
 int IAMF_element_renderer_get_M2M_custom_matrix(IAMF_SP_LAYOUT *in,
                                                 IAMF_CUSTOM_SP_LAYOUT *out,
                                                 struct m2m_rdr_t *outMatrix);
+
+/**
+ * @brief     Multichannel to Multichannel Renderer.
+ * @param     [in] in : the pcm signal of input.
+ * @param     [in] out : the pcm signal of output
+ * @param     [in] nsamples : the processed samples of pcm signal.
+ * @return    @0: success,@others: fail
+ */
 int IAMF_element_renderer_render_M2M(struct m2m_rdr_t *m2mMatrix, float *in[],
                                      float *out[], int nsamples);
 
 // HOA to Multichannel
-//**cb_im
 #if DISABLE_LFE_HOA == 0
 void lfefilter_init(lfe_filter_t *lfe_f, float cutoff_freq,
                     float sampling_rate);
 #endif
-//**cb_im
+/**
+ * @brief     Get the ear render conversion matrix of hoa to multichannel
+ *            according to hoa input and direct speaker output layout.
+ * @param     [in] in : HOA channel layout.
+ * @param     [in] out : direct speaker output channel layout
+ * @param     [in] outMatrix : conversion matrix.
+ * @return    @0: success,@others: fail
+ */
 int IAMF_element_renderer_get_H2M_matrix(IAMF_HOA_LAYOUT *in,
                                          IAMF_PREDEFINED_SP_LAYOUT *out,
                                          struct h2m_rdr_t *outMatrix);
+
+/**
+ * @brief     Get the ear render conversion matrix of hoa to multichannel
+ *            according to hoa input and custom output layout.
+ * @param     [in] in : custom output channel layout
+ * @param     [in] outMatrix : conversion matrix.
+ * @return    @0: success,@others: fail
+ */
 int IAMF_element_renderer_get_H2M_custom_matrix(
     IAMF_HOA_LAYOUT *in_layout, IAMF_CUSTOM_SP_LAYOUT *out_layout,
     struct h2m_rdr_t *outMatrix);
+
+/**
+ * @brief     Hoa to Multichannel Renderer.
+ * @param     [in] in : the pcm signal of input.
+ * @param     [in] out : the pcm signal of output
+ * @param     [in] nsamples : the processed samples of pcm signal.
+ * @param     [in] lfe : the filter to prcoess lfe channel.
+ * @return    @0: success,@others: fail
+ */
 int IAMF_element_renderer_render_H2M(struct h2m_rdr_t *h2mMatrix, float *in[],
                                      float *out[], int nsamples,
                                      lfe_filter_t *lfe);
 
 #if DISABLE_BINAURALIZER == 0
-// **ys_son
-// Multichannel to Binaural
+// Multichannel to Binaural(BEAR)
+/**
+ * @brief     Initialize the conversion filter of multichannel to binaural
+ *            according to predefined direct speaker input layout.
+ * @param     [in] binaural_f : the binaural filter.
+ * @param     [in] in_layout : predefined direct speaker input channel layout
+ * @param     [in] elm_id : the element id.
+ * @param     [in] frame_size : the size of one pcm frame.
+ * @param     [in] sample_rate : the sample rate of pcm signal.
+ */
 void IAMF_element_renderer_init_M2B(binaural_filter_t *binaural_f,
                                     uint32_t in_layout, uint64_t elm_id,
                                     int frame_size, int sample_rate);
+
+/**
+ * @brief     De-initialize the conversion filter of multichannel to binaural.
+ * @param     [in] binaural_f : the binaural filter.
+ * @param     [in] elm_id : the element id.
+ */
 void IAMF_element_renderer_deinit_M2B(binaural_filter_t *binaural_f,
                                       uint64_t elm_id);
+
+/**
+ * @brief     Multichannel to Binaural Renderer.
+ * @param     [in] binaural_f : the binaural filter.
+ * @param     [in] elm_id : the element id.
+ * @param     [in] in : the input pcm signal.
+ * @param     [in] in : the output pcm signal.
+ */
 int IAMF_element_renderer_render_M2B(binaural_filter_t *binaural_f,
                                      uint64_t elm_id, float *in[], float *out[],
                                      int nsamples);
-// ys_son**
 
-//**cb_im
-// HOA to Binaural
+// HOA to Binaural(Resonance)
+/**
+ * @brief     Initialize the conversion filter of hoa to binaural according to
+ * hoa input.
+ * @param     [in] binaural_f : the binaural filter.
+ * @param     [in] in_channels : the channels of input hoa.
+ * @param     [in] elm_id : the element id.
+ * @param     [in] frame_size : the size of one pcm frame.
+ * @param     [in] sample_rate : the sample rate of pcm signal.
+ */
 void IAMF_element_renderer_init_H2B(binaural_filter_t *binaural_f,
                                     int in_channels, uint64_t elm_id,
                                     int frame_size, int sample_rate);
+
+/**
+ * @brief     De-initialize the conversion filter of hoa to binaural.
+ * @param     [in] binaural_f : the binaural filter.
+ * @param     [in] elm_id : the element id.
+ */
 void IAMF_element_renderer_deinit_H2B(binaural_filter_t *binaural_f,
                                       uint64_t elm_id);
+
+/**
+ * @brief     HOA to Binaural Renderer.
+ * @param     [in] binaural_f : the binaural filter.
+ * @param     [in] elm_id : the element id.
+ * @param     [in] in : the input pcm signal.
+ * @param     [in] in : the output pcm signal.
+ */
 int IAMF_element_renderer_render_H2B(binaural_filter_t *binaural_f,
                                      uint64_t elm_id, float *in[], float *out[],
                                      int nsamples);

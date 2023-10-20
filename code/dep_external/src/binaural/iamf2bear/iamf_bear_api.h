@@ -35,14 +35,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef IANF_BEAR_API_H_
 #define IANF_BEAR_API_H_
 
-#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __linux__
 #define EXPORT_API
-#elif defined __APPLE__
-#define EXPORT_API
-#elif defined _WIN32
+#elif _WIN32
 // EXPORT_API can be used to define the dllimport storage-class attribute.
 #ifdef DLL_EXPORTS
 #define EXPORT_API __declspec(dllexport)
@@ -52,22 +49,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-EXPORT_API void* CreateBearAPI(char* tf_data_path);
-EXPORT_API void DestoryBearAPI(void* pv_thiz);
-EXPORT_API int ConfigureBearDirectSpeakerChannel(void* pv_thiz, int layout,
-                                                 size_t nsample_per_frame,
-                                                 int sample_rate);
-EXPORT_API int SetBearDirectSpeakerChannel(void* pv_thiz, int source_id,
-                                           float** in);
-// EXPORT_API int ConfigureBearObjectChannel(...);
-// EXPORT_API void SetBearObjectChannel(...);
-// EXPORT_API int ConfigureBearHOAChannel(...);
-// EXPORT_API void SetBearHOAChannel(...);
-EXPORT_API void DestoryBearChannel(void* pv_thiz, int source_id);
-EXPORT_API int GetBearRenderedAudio(void* pv_thiz, int source_id, float** out);
+EXPORT_API void* CreateBearAPI(char *tf_data_path);
+EXPORT_API void DestoryBearAPI(void*  pv_thiz);
+EXPORT_API int ConfigureBearDirectSpeakerChannel(void*  pv_thiz, int layout, size_t nsample_per_frame, int sample_rate);
+EXPORT_API int SetBearDirectSpeakerChannel(void* pv_thiz, int source_id, float **in);
+//EXPORT_API int ConfigureBearObjectChannel(...);
+//EXPORT_API void SetBearObjectChannel(...);
+//EXPORT_API int ConfigureBearHOAChannel(...);
+//EXPORT_API void SetBearHOAChannel(...);
+EXPORT_API void DestoryBearChannel(void*  pv_thiz, int source_id);
+EXPORT_API int GetBearRenderedAudio(void*  pv_thiz, int source_id, float **out);
 
 #ifdef __cplusplus
 }

@@ -72,22 +72,24 @@ A dylib (shared object) build of the IAMF library is enabled by default.
 
 ### Cross compiling
 
-For the purposes of building the IAMF and applications and relative to the
+For the purposes of building the codec and applications and relative to the
 scope of this guide, all builds for architectures differing from the native host
-architecture will be considered cross compiles. The IAMF CMake build handles
-cross compiling via the use of toolchain files included in the AV1 repository.
+architecture will be considered cross compiles. The CMake build handles
+cross compiling via the use of toolchain files included in the repository.
 The toolchain files available at the time of this writing are:
+ 
+ - arm64-ios.cmake
+ - arm64-linux.cmake
+ - x86_64-mingw.cmake
+ - x86-macos.cmake
 
-- x86_64-mingw-gcc.cmake
+Please note that all [dependent codecs](dep_codecs/README.md) and [external libraries](dep_external/README.md) should have been cross compiling already.
 
-NOTE: Only x86_64 mingw cross compiling is available currently, in a future version we can consider adding more.  
-Please note that all dependent codec and external libraries should have been cross compiling already.
-
-The following example demonstrates use of the x86_64-mingw-gcc.cmake toolchain file on
-a x86\_64 Windows host:
+The following example demonstrates use of the x86-macos.cmake toolchain file on
+a x86\_64 MacOS host:
 
 ~~~
-    $ cmake ./ -DCMAKE_TOOLCHAIN_FILE=build/cmake/toolchains/x86_64-mingw-gcc.cmake
+    $ cmake ./ -DCMAKE_TOOLCHAIN_FILE=build/cmake/toolchains/x86-macos.cmake
     $ make
 ~~~
 

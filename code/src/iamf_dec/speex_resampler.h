@@ -72,7 +72,6 @@ extern "C" {
     struct SpeexResamplerState_ {
         float *buffer;
         uint32_t rest_flag;
-        uint32_t rest_size;
 
         uint32_t in_rate;
         uint32_t out_rate;

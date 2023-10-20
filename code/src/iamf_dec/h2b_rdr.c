@@ -44,14 +44,13 @@ This software module is out of scope and not part of the IAMF Final Deliverable.
 #endif
 
 #if DISABLE_BINAURALIZER == 0
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__)
 #else
 #pragma comment(lib, "iamf2resonance.lib")
 #endif
 #include "resonance/iamf_resonance_api.h"
 
 // HOA to Binaural Renderer(Resonance)
-//**cb_im
 void IAMF_element_renderer_init_H2B(binaural_filter_t* binaural_f,
                                     int in_channels, uint64_t elm_id,
                                     int nsamples, int sample_rate) {
@@ -134,5 +133,4 @@ int IAMF_element_renderer_render_H2B(binaural_filter_t* binaural_f,
     }
   }
 }
-// cb_im**
 #endif

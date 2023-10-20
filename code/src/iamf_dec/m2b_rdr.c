@@ -31,7 +31,7 @@ This software module is out of scope and not part of the IAMF Final Deliverable.
 */
 
 /**
- * @file m2m_rdr.c
+ * @file m2b_rdr.c
  * @brief Multichannels to Binaural rendering.
  * @version 0.1
  * @date Created 03/03/2023
@@ -44,13 +44,12 @@ This software module is out of scope and not part of the IAMF Final Deliverable.
 #endif
 
 #if DISABLE_BINAURALIZER == 0
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__)
 #else
 #pragma comment(lib, "iamf2bear.lib")
 #endif
 #include "bear/iamf_bear_api.h"
 // Multichannel to Binaural Renderer(BEAR)
-// **yj_son
 void IAMF_element_renderer_init_M2B(binaural_filter_t* binaural_f,
                                     uint32_t in_layout, uint64_t elm_id,
                                     int frame_size, int sample_rate) {
@@ -122,5 +121,4 @@ int IAMF_element_renderer_render_M2B(binaural_filter_t* binaural_f,
   }
   return -1;
 }
-// yj_son**
 #endif
