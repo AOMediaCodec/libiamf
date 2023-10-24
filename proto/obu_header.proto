@@ -12,17 +12,14 @@ syntax = "proto2";
 
 package libiamf_proto;
 
-import "obu_header.proto";
-
-enum ProfileVerson {
-  PROFILE_VERSION_INVALID = 0;
-  PROFILE_VERSION_SIMPLE = 1;
-  PROFILE_VERSION_BASE = 2;
-}
-
-message IASequenceHeaderObuMetadata {
-  optional uint32 ia_code = 1;
-  optional ProfileVerson primary_profile = 2;
-  optional ProfileVerson additional_profile = 3;
-  optional ObuHeaderMetadata obu_header = 4;
+message ObuHeaderMetadata {
+  reserved 1;
+  optional bool obu_redundant_copy = 2 [default = false];
+  optional bool obu_trimming_status_flag = 3 [default = false];
+  optional bool obu_extension_flag = 4 [default = false];
+  reserved 5;
+  optional uint32 num_samples_to_trim_at_end = 6 [default = 0];
+  optional uint32 num_samples_to_trim_at_start = 7 [default = 0];
+  optional uint32 extension_header_size = 8 [default = 0];
+  optional bytes extension_header_bytes = 9 [default = ""];
 }
