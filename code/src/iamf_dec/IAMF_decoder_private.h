@@ -38,6 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdint.h>
 
 #include "IAMF_OBU.h"
+#include "IAMF_decoder.h"
 #include "IAMF_core_decoder.h"
 #include "IAMF_defines.h"
 #include "IAMF_types.h"

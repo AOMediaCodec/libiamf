@@ -2487,7 +2487,6 @@ int iamf_stream_renderer_enable_downmix(IAMF_StreamRenderer *sr) {
 IAMF_StreamRenderer *iamf_stream_renderer_open(IAMF_Stream *s,
                                                IAMF_MixPresentation *mp,
                                                int frame_size) {
-  ChannelLayerContext *ctx = (ChannelLayerContext *)s->priv;
   IAMF_StreamRenderer *sr = IAMF_MALLOCZ(IAMF_StreamRenderer, 1);
   if (!sr) return 0;
 
@@ -2496,6 +2495,7 @@ IAMF_StreamRenderer *iamf_stream_renderer_open(IAMF_Stream *s,
   iamf_stream_renderer_update_info(sr, mp, frame_size);
 
 #if DISABLE_BINAURALIZER == 0
+  ChannelLayerContext *ctx = (ChannelLayerContext *)s->priv;
   if (s->final_layout) {
     sr->renderer.layout = &s->final_layout->sp;
     if (s->final_layout->layout.type == IAMF_LAYOUT_TYPE_BINAURAL) {
