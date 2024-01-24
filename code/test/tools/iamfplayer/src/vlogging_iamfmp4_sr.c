@@ -1161,11 +1161,6 @@ static void write_iamd_atom_log(char* log, void* atom_d, int size,
 static void write_iamf_atom_log(char* log, void* atom_d, int size,
                                 uint64_t atom_addr) {
   /*
-  <Address Value = "0x00000000000001E3" / >
-  <HeaderSize Value = "8" / >
-  <DataSize Value = "152" / >
-  <Size Value = "160" / >
-  <ParserReadBytes Value = "160" / >
   <Reserved - 32bits Value = "0x00000000" / >
   <Reserved - 16bits Value = "0x0000" / >
   <DataReferenceIndex Value = "1" / >
@@ -1177,7 +1172,7 @@ static void write_iamf_atom_log(char* log, void* atom_d, int size,
   <CompressionID Value = "0" / >
   <PacketSize Value = "0" / >
   <SampleRate Value = "16000" / >
-  configOBUs
+  IAConfigurationBox
   */
   uint32_t val;
   int index = 0;
@@ -1235,11 +1230,35 @@ static void write_iamf_atom_log(char* log, void* atom_d, int size,
   index += 4;
   log += write_yaml_form(log, 0, "- SampleRate: %u", val >> 16);
 
+  write_postfix(LOG_MP4BOX, log);
+}
+
+static void write_iacb_atom_log(char* log, void* atom_d, int size,
+                                uint64_t atom_addr) {
+  /*
+  <configurationVersion = "1" / >
+  <configOBUs_size = "254" / >
+  configOBUs
+  */
+  uint64_t val64;
+  int index = 0;
+
+  log += write_prefix(LOG_MP4BOX, log);
+  log += write_yaml_form(log, 0, "iacb_%016x:", atom_addr);
+
+  // configurationVersion
+  val64 = queue_rb8(index, atom_d, size - index);
+  index += 1;
+  log += write_yaml_form(log, 0, "- configurationVersion: %u", (int)val64);
+
+  // configOBUs_size
+  index += read_leb128((const uint8_t*)atom_d + index, &val64);
+  log += write_yaml_form(log, 0, "- configOBUs_size: %u", (int)val64);
+
   // configOBUs
   int ret = 0;
   uint64_t x = 0;
   IAMF_OBU_t obu;
-  uint64_t val64;
 
   // log += write_prefix(LOG_MP4BOX, log);
   // log += write_yaml_form(log, 0, "iamd_%016x:", atom_addr);
@@ -1275,10 +1294,10 @@ static void write_iamf_atom_log(char* log, void* atom_d, int size,
       x += read_leb128(obu.payload + x, &val64);
       log += write_yaml_form(log, 0, "- codec_config_id: %u", (int)val64);
 
-      val = queue_rb32((int)x, obu.payload, (int)(obu.size - x));
+      val64 = queue_rb32((int)x, obu.payload, (int)(obu.size - x));
       x += 4;
 
-      switch (val) {
+      switch (val64) {
         case CODEC_ID('O', 'p', 'u', 's'):
           log += write_yaml_form(log, 0, "- codec_id: Opus");
           break;
@@ -1296,9 +1315,10 @@ static void write_iamf_atom_log(char* log, void* atom_d, int size,
       x += read_leb128(obu.payload + x, &val64);
       log += write_yaml_form(log, 0, "- num_samples_per_frame: %u", (int)val64);
 
-      val = queue_rb16((int)x, obu.payload, (int)(obu.size - x));
+      val64 = queue_rb16((int)x, obu.payload, (int)(obu.size - x));
       x += 2;
-      log += write_yaml_form(log, 0, "- audio_roll_distance: %d", (int16_t)val);
+      log +=
+          write_yaml_form(log, 0, "- audio_roll_distance: %d", (int16_t)val64);
     }
   }
   write_postfix(LOG_MP4BOX, log);
@@ -1748,6 +1768,9 @@ int vlog_atom(uint32_t atom_type, void* atom_d, int size, uint64_t atom_addr) {
     /* Immersive audio atom */
     case MP4BOX_IAMF:
       write_iamf_atom_log(log, atom_d, size, atom_addr);
+      break;
+    case MP4BOX_IACB:
+      write_iacb_atom_log(log, atom_d, size, atom_addr);
       break;
 
     case MP4BOX_MDAT:

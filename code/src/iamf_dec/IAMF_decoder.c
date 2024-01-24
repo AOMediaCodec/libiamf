@@ -2817,7 +2817,8 @@ uint32_t iamf_decoder_internal_read_descriptors_OBUs(IAMF_DecoderHandle handle,
     rsize = ret;
     ia_logt("consume size %d, obu type (%d) %s", ret, obu.type,
             IAMF_OBU_type_string(obu.type));
-    if (obu.redundant && !(~handle->ctx.flags & IAMF_FLAG_DESCRIPTORS)) {
+    if ((obu.redundant && !(~handle->ctx.flags & IAMF_FLAG_DESCRIPTORS)) ||
+        IAMF_OBU_is_reserved_OBU(&obu)) {
       pos += rsize;
       continue;
     }

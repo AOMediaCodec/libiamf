@@ -76,6 +76,7 @@ enum _mp4box_type {
 
   /* Immersive audio atom */
   MP4BOX_IAMF = atom_type('i', 'a', 'm', 'f'),
+  MP4BOX_IACB = atom_type('i', 'a', 'c', 'b'),
 };
 
 int vlog_atom(uint32_t atom_type, void* atom_d, int size, uint64_t atom_addr);
