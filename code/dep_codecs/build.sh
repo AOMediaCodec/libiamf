@@ -42,7 +42,7 @@ function show_help()
 Configuration:
   -h, --help                     Display this help and exit
   --x86_64-mingw_toolchain       Use mingw-gcc X86_64 toolchain.
-  --arm64-linux_toolchain        Use IOS Arm64 toolchain.
+  --arm64-linux_toolchain        Use Linux Arm64 toolchain.
   --x86-macos_toolchain          Use MacOS X86 toolchain.
   --arm64-ios_toolchain          Use IOS Arm64 toolchain.
 EOF

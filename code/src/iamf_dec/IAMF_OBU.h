@@ -409,6 +409,7 @@ struct ObjectSync {
 
 uint32_t IAMF_OBU_split(const uint8_t *data, uint32_t size, IAMF_OBU *obu);
 int IAMF_OBU_is_descrptor_OBU(IAMF_OBU *obu);
+int IAMF_OBU_is_reserved_OBU(IAMF_OBU *obu);
 uint64_t IAMF_OBU_get_object_id(IAMF_OBU *obu);
 const char *IAMF_OBU_type_string(IAMF_OBU_Type type);
 IAMF_Object *IAMF_object_new(IAMF_OBU *obu, IAMF_ObjectParameter *param);

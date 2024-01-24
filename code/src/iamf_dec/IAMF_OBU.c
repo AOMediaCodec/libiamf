@@ -147,6 +147,15 @@ int IAMF_OBU_is_descrptor_OBU(IAMF_OBU *obu) {
   return 0;
 }
 
+int IAMF_OBU_is_reserved_OBU(IAMF_OBU *obu) {
+  IAMF_OBU_Type type = obu->type;
+
+  if (type > IAMF_OBU_AUDIO_FRAME_ID17 && type < IAMF_OBU_SEQUENCE_HEADER) {
+    return 1;
+  }
+  return 0;
+}
+
 uint64_t IAMF_OBU_get_object_id(IAMF_OBU *obu) {
   if (obu->type == IAMF_OBU_PARAMETER_BLOCK) {
     BitStream b;
