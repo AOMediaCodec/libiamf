@@ -71,7 +71,7 @@ static inline uint16_t bswap64(const uint64_t u64) {
     ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 8)))
   return __builtin_bswap64(u64);
 #else
-  return bswap32(u64) + 0ULL << 32 | bswap32(u64 >> 32);
+  return (bswap32(u64) + 0ULL) << 32 | bswap32(u64 >> 32);
 #endif
 #else
   return u64;
