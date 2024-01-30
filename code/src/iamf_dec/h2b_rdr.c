@@ -132,5 +132,6 @@ int IAMF_element_renderer_render_H2B(binaural_filter_t* binaural_f,
       }
     }
   }
+  return -1;
 }
 #endif
