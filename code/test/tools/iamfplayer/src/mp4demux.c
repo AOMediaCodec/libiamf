@@ -507,8 +507,6 @@ int mov_read_iamf(mp4r_t *mp4r, int size) {
 #endif
 
   int sel_a_trak;
-  int offset;
-  int tag;
   void *csc;
   IAMFHeader *header;
 
@@ -955,7 +953,6 @@ static int mov_read_trun(mp4r_t *mp4r, int size) {
 #endif
   int cnt;
   uint32_t vf;
-  uint32_t sample_size;
   uint32_t sample_count;
   uint32_t offset = 0;
 
@@ -1114,8 +1111,8 @@ static avio_context g_head[] = {
 static avio_context g_moov[] = {
     {MOV_ATOM_NAME, "moov"}, {MOV_ATOM_DATA, mov_read_moov}, {0}};
 
-static avio_context moov_probe[] = {
-    {MOV_ATOM_NAME, "moov"}, {MOV_ATOM_DATA, mov_moov_probe}, {0}};
+// static avio_context moov_probe[] = {
+//     {MOV_ATOM_NAME, "moov"}, {MOV_ATOM_DATA, mov_moov_probe}, {0}};
 
 static avio_context moof_probe[] = {
     {MOV_ATOM_NAME, "moof"}, {MOV_ATOM_DATA, mov_moof_probe}, {0}};
@@ -1199,7 +1196,6 @@ int mov_read_moov(mp4r_t *mp4r, int sizemax) {
   uint32_t atomsize;
   avio_context *old_atom = mp4r->atom;
   int err, ret = sizemax;
-  int ntrack = 0;
 
 #if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(sizemax);
@@ -1244,7 +1240,6 @@ int mov_read_moov(mp4r_t *mp4r, int sizemax) {
 static int mp4demux_clean_tracks(mp4r_t *mp4r);
 int mp4demux_audio(mp4r_t *mp4r, int trakn, int *delta) {
   audio_rtr_t *atr = mp4r->a_trak;
-  int ret = 0, atomsize;
   int idx = atr[trakn].frame.current - atr[trakn].frame.ents_offset;
 
   if (idx > atr[trakn].frame.ents) {
@@ -1285,7 +1280,6 @@ int mp4demux_parse(mp4r_t *mp4r, int trak) {
     int atomsize = INT_MAX;
     int ret;
     uint64_t pos = ftell(mp4r->fin);
-    uint64_t next_moov = 0;
     uint64_t size;
 
     fseek(mp4r->fin, 0, SEEK_END);

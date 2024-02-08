@@ -379,7 +379,6 @@ static int bs_input_wav_output(PlayerArgs *pas) {
     goto end;
   }
 
-  float limiter_threshold = IAMF_decoder_peak_limiter_get_threshold(dec);
   if (pas->flags & FLAG_DISABLE_LIMITER)
     IAMF_decoder_peak_limiter_enable(dec, 0);
   else
@@ -540,15 +539,12 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
   uint32_t size = 0;
   char out[NAME_LENGTH] = {0};
   char meta_n[NAME_LENGTH] = {0};
-  int used = 0, end = 0;
+  int end = 0;
   int ret = 0;
-  int state = 0;
-  uint32_t rsize = 0;
   void *pcm = NULL;
   IAMF_DecoderHandle dec;
   int channels;
   int count = 0, samples = 0;
-  uint64_t frsize = 0;
   const char *s = 0, *d;
   int entno = 0;
   int64_t sample_offs;
@@ -606,7 +602,6 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
     return -1;
   }
 
-  float limiter_threshold = IAMF_decoder_peak_limiter_get_threshold(dec);
   if (pas->flags & FLAG_DISABLE_LIMITER)
     IAMF_decoder_peak_limiter_enable(dec, 0);
   else
@@ -743,7 +738,6 @@ int main(int argc, char *argv[]) {
   int args;
   int output_mode = 0;
   int input_mode = 0;
-  int tc = 0;
   int sound_system = -1;
   char *f = 0;
   Layout target;
@@ -863,7 +857,7 @@ int main(int argc, char *argv[]) {
     }
     else {
       fprintf(stderr, "invalid output mode %d\n", output_mode);
-    }    
+    }
 #if SUPPORT_VERIFIER
     if (pas.flags & FLAG_VLOG) vlog_file_close();
 #endif
