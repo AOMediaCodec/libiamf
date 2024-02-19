@@ -379,6 +379,9 @@ static int bs_input_wav_output(PlayerArgs *pas) {
     goto end;
   }
 
+  float limiter_threshold = IAMF_decoder_peak_limiter_get_threshold(dec);
+  fprintf(stderr, "The default threshold of limiter: %f db\n",
+          limiter_threshold);
   if (pas->flags & FLAG_DISABLE_LIMITER)
     IAMF_decoder_peak_limiter_enable(dec, 0);
   else
@@ -602,6 +605,9 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
     return -1;
   }
 
+  float limiter_threshold = IAMF_decoder_peak_limiter_get_threshold(dec);
+  fprintf(stderr, "The default threshold of limiter: %f db\n",
+          limiter_threshold);
   if (pas->flags & FLAG_DISABLE_LIMITER)
     IAMF_decoder_peak_limiter_enable(dec, 0);
   else
