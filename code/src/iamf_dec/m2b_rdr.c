@@ -112,9 +112,9 @@ int IAMF_element_renderer_render_M2B(binaural_filter_t* binaural_f,
     for (i = 0; i < N_SOURCE_ELM; i++) {
       if (binaural_f->m2b_elm_id[i] == elm_id) {
         SetBearDirectSpeakerChannel(binaural_f->m2b_api,
-                                    binaural_f->m2b_source_id[i], in);
+                                    binaural_f->m2b_source_id[i], sin);
         GetBearRenderedAudio(binaural_f->m2b_api, binaural_f->m2b_source_id[i],
-                             out);
+                             sout);
         return 0;
       }
     }
