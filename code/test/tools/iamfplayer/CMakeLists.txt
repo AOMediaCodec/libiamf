@@ -16,7 +16,7 @@ set(INCLUDE_IAMF_DIR  "${CMAKE_INSTALL_PREFIX}/include/iamf")
 set(INCLUDE_DEP_EXTERNAL_WAV_DIR  "../../../dep_external/include/wav")
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 else()
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,--no-as-need")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,--no-as-need -Werror=unused-variable")
 endif()
 
 if(BINAURALIZER)

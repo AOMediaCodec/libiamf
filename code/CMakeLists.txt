@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.6)
 project (iamf)
 message(STATUS "start build iamf")
 
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -Werror=unused-variable")
 SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 option(BUILD_SHARED_LIBS "Build shared library" ON)
