@@ -1199,7 +1199,6 @@ int IAMF_element_renderer_render_H2M(struct h2m_rdr_t *h2mMatrix, float *in[],
 }
 
 #if DISABLE_LFE_HOA == 0
-//**cb_im
 void lfefilter_init(lfe_filter_t *lfe_f, float cutoff_freq, float sample_rate) {
   lfe_f->init = 1;
   float delta_time = 1 / sample_rate + 1.0e-10;
@@ -1242,4 +1241,3 @@ static float lfefilter_update(lfe_filter_t *lfe_f, float input) {
   return (output);
 }
 #endif
-// cb_im**

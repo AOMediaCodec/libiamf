@@ -57,10 +57,10 @@ form of a makefile build is the following:
 ### Configuration options
 
 The IAMF library has few configuration options, There are one option which is used to enable binaural rendering:
-    Build binaural rendering configuration options. These have the form `BINAURALIZER`.  
+    Build binaural rendering configuration options. These have the form `MULTICHANNEL_BINAURALIZER` and `HOA_BINAURALIZER`.
 	(If binaural rendering is not enabled, there is no need to provide external libraries)
 ~~~
-    $ cmake ./ -DBINAURALIZER=ON
+    $ cmake ./ -DMULTICHANNEL_BINAURALIZER=ON -DHOA_BINAURALIZER=ON
     $ make
 ~~~
 
@@ -121,7 +121,7 @@ The iamfplayer is a test application to decode an IAMF bitstream or mp4 file wit
 
     $ cmake -DCMAKE_INSTALL_PREFIX=${BUILD_LIBS} .
     # ${BUILD_LIBS} is the iamf library and header files installing directory.
-    # If enable binaural rendering, add option `BINAURALIZER`
+    # If enable binaural rendering, add option `MULTICHANNEL_BINAURALIZER` and `HOA_BINAURALIZER`
 
     $ make
 ~~~

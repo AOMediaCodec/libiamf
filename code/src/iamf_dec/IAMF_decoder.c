@@ -68,10 +68,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define STR(str) _STR(str)
 #define _STR(str) #str
 
-#ifndef DISABLE_BINAURALIZER
-#define DISABLE_BINAURALIZER 1
-#endif
-
 #define SR 0
 #if SR
 extern void iamf_rec_stream_log(int eid, int chs, float *in, int size);
@@ -2497,21 +2493,33 @@ IAMF_StreamRenderer *iamf_stream_renderer_open(IAMF_Stream *s,
   iamf_stream_renderer_enable_downmix(sr);
   iamf_stream_renderer_update_info(sr, mp, frame_size);
 
-#if DISABLE_BINAURALIZER == 0
-  ChannelLayerContext *ctx = (ChannelLayerContext *)s->priv;
+#if ENABLE_HOA_TO_BINAURAL || ENABLE_MULTICHANNEL_TO_BINAURAL
   if (s->final_layout) {
     sr->renderer.layout = &s->final_layout->sp;
     if (s->final_layout->layout.type == IAMF_LAYOUT_TYPE_BINAURAL) {
       if (s->scheme == AUDIO_ELEMENT_TYPE_CHANNEL_BASED) {
+#if ENABLE_MULTICHANNEL_TO_BINAURAL
+        ChannelLayerContext *ctx = (ChannelLayerContext *)s->priv;
         uint32_t in_layout = iamf_layer_layout_get_rendering_id(ctx->layout);
         IAMF_element_renderer_init_M2B(&sr->renderer.layout->binaural_f,
                                        in_layout, s->element_id, frame_size,
                                        s->sampling_rate);
+#else
+        ia_loge(
+            "Channel based audio but multichannel to binaural disabled, use "
+            "default rendering");
+#endif
       } else if (s->scheme == AUDIO_ELEMENT_TYPE_SCENE_BASED) {
+#if ENABLE_HOA_TO_BINAURAL
         int in_channels = s->nb_channels;
         IAMF_element_renderer_init_H2B(&sr->renderer.layout->binaural_f,
                                        in_channels, s->element_id, frame_size,
                                        s->sampling_rate);
+#else
+        ia_loge(
+            "Scene based audio but HOA to binaural disabled, use default "
+            "rendering");
+#endif
       }
     }
   }
@@ -2524,18 +2532,22 @@ void iamf_stream_renderer_close(IAMF_StreamRenderer *sr) {
 
   if (sr->downmixer) DMRenderer_close(sr->downmixer);
 
-#if DISABLE_BINAURALIZER == 0
+#if ENABLE_HOA_TO_BINAURAL || ENABLE_MULTICHANNEL_TO_BINAURAL
   IAMF_Stream *s = sr->stream;
   if (s->final_layout &&
       s->final_layout->layout.type == IAMF_LAYOUT_TYPE_BINAURAL) {
     if (s->scheme == AUDIO_ELEMENT_TYPE_CHANNEL_BASED) {
+#if ENABLE_MULTICHANNEL_TO_BINAURAL
       IAMF_element_renderer_deinit_M2B(&sr->renderer.layout->binaural_f,
                                        s->element_id);
       ia_logd("deinit M2B");
+#endif
     } else if (s->scheme == AUDIO_ELEMENT_TYPE_SCENE_BASED) {
+#if ENABLE_HOA_TO_BINAURAL
       IAMF_element_renderer_deinit_H2B(&sr->renderer.layout->binaural_f,
                                        s->element_id);
       ia_logd("deinit H2B");
+#endif
     }
   }
 #endif
@@ -2580,7 +2592,7 @@ static int iamf_stream_render(IAMF_StreamRenderer *sr, float *in, float *out,
   for (int i = 0; i < inchs; ++i) sin[i] = &in[frame_size * i];
 
   if (stream->scheme == AUDIO_ELEMENT_TYPE_CHANNEL_BASED) {
-#if DISABLE_BINAURALIZER == 0
+#if ENABLE_MULTICHANNEL_TO_BINAURAL
     if (stream->final_layout->layout.type == IAMF_LAYOUT_TYPE_BINAURAL &&
         sr->headphones_rendering_mode == 1) {
       IAMF_element_renderer_render_M2B(&sr->renderer.layout->binaural_f,
@@ -2621,7 +2633,7 @@ static int iamf_stream_render(IAMF_StreamRenderer *sr, float *in, float *out,
       IAMF_element_renderer_render_M2M(&m2m, sin, sout, frame_size);
     }
   } else if (stream->scheme == AUDIO_ELEMENT_TYPE_SCENE_BASED) {
-#if DISABLE_BINAURALIZER == 0
+#if ENABLE_HOA_TO_BINAURAL
     if (stream->final_layout->layout.type == IAMF_LAYOUT_TYPE_BINAURAL) {
       IAMF_element_renderer_render_H2B(&sr->renderer.layout->binaural_f,
                                        stream->element_id, sin, sout,
@@ -2652,7 +2664,7 @@ static int iamf_stream_render(IAMF_StreamRenderer *sr, float *in, float *out,
 #endif
 
       IAMF_element_renderer_render_H2M(&h2m, sin, sout, frame_size, plfe);
-#if DISABLE_BINAURALIZER == 0
+#if ENABLE_HOA_TO_BINAURAL
     }
 #endif
   }
