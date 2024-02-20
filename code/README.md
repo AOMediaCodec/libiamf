@@ -170,7 +170,7 @@ We are using the Google C Coding Style defined by the
 
 The coding style used by this project is enforced with clang-format using the
 configuration contained in the
-[.clang-format](https://chromium.googlesource.com/webm/aom/+/main/.clang-format)
+[.clang-format](.clang-format)
 file in the root of the repository.
 
 Before pushing changes for review you can format your code with:
