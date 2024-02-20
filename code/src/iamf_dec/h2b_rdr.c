@@ -39,11 +39,7 @@ This software module is out of scope and not part of the IAMF Final Deliverable.
 
 #include "ae_rdr.h"
 
-#ifndef DISABLE_BINAURALIZER
-#define DISABLE_BINAURALIZER 1
-#endif
-
-#if DISABLE_BINAURALIZER == 0
+#if ENABLE_HOA_TO_BINAURAL
 #if defined(__linux__) || defined(__APPLE__)
 #else
 #pragma comment(lib, "iamf2resonance.lib")

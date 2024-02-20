@@ -64,28 +64,32 @@ typedef enum {
 #define DISABLE_LFE_HOA 1
 #endif
 
-#ifndef DISABLE_BINAURALIZER
-#define DISABLE_BINAURALIZER 1
+// BINAURAL feature
+#ifndef ENABLE_HOA_TO_BINAURAL
+#define ENABLE_HOA_TO_BINAURAL 0
 #endif
 
-#if DISABLE_BINAURALIZER == 0
+#ifndef ENABLE_MULTICHANNEL_TO_BINAURAL
+#define ENABLE_MULTICHANNEL_TO_BINAURAL 0
+#endif
+
+#if ENABLE_HOA_TO_BINAURAL || ENABLE_MULTICHANNEL_TO_BINAURAL
 #define N_SOURCE_ELM \
   2  // maximum number of audio element == maximum source id array size
 typedef struct {
-  // **yj_son
+#if ENABLE_MULTICHANNEL_TO_BINAURAL
   int m2b_init;
   void *m2b_api;
   int m2b_elm_id[N_SOURCE_ELM];
   int m2b_source_id[N_SOURCE_ELM];
-  // yj_son**
-
-  //**cb_im
+#endif
+#if ENABLE_HOA_TO_BINAURAL
   int h2b_init;
   void *h2b_api;
   int h2b_elm_id[N_SOURCE_ELM];
   int h2b_amb_id[N_SOURCE_ELM];
   int h2b_inchs[N_SOURCE_ELM];
-  // cb_im**
+#endif
 } binaural_filter_t;
 #endif
 
@@ -112,10 +116,8 @@ typedef struct {
     IAMF_CUSTOM_SP_LAYOUT *custom_sp;
   } sp_layout;
   lfe_filter_t lfe_f;  // for H2M lfe
-#if DISABLE_BINAURALIZER == 0
-  //**cb_im
+#if ENABLE_HOA_TO_BINAURAL || ENABLE_MULTICHANNEL_TO_BINAURAL
   binaural_filter_t binaural_f;
-  //**cb_im
 #endif
 } IAMF_SP_LAYOUT;
 
@@ -226,7 +228,7 @@ int IAMF_element_renderer_render_H2M(struct h2m_rdr_t *h2mMatrix, float *in[],
                                      float *out[], int nsamples,
                                      lfe_filter_t *lfe);
 
-#if DISABLE_BINAURALIZER == 0
+#if ENABLE_MULTICHANNEL_TO_BINAURAL
 // Multichannel to Binaural(BEAR)
 /**
  * @brief     Initialize the conversion filter of multichannel to binaural
@@ -259,7 +261,9 @@ void IAMF_element_renderer_deinit_M2B(binaural_filter_t *binaural_f,
 int IAMF_element_renderer_render_M2B(binaural_filter_t *binaural_f,
                                      uint64_t elm_id, float *in[], float *out[],
                                      int nsamples);
+#endif
 
+#if ENABLE_HOA_TO_BINAURAL
 // HOA to Binaural(Resonance)
 /**
  * @brief     Initialize the conversion filter of hoa to binaural according to
@@ -292,7 +296,6 @@ void IAMF_element_renderer_deinit_H2B(binaural_filter_t *binaural_f,
 int IAMF_element_renderer_render_H2B(binaural_filter_t *binaural_f,
                                      uint64_t elm_id, float *in[], float *out[],
                                      int nsamples);
-// cb_im**
 #endif
 
 #endif

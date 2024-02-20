@@ -23,11 +23,18 @@ if (SUPPORT_VERIFIER)
 endif()
 
 option(CODEC_CAP "Codec capability check" ON)
-option(BINAURALIZER "Enable binaural rendering" OFF)
+option(MULTICHANNEL_BINAURALIZER "Enable multichannel binaural rendering" OFF)
+option(HOA_BINAURALIZER "Enable HOA binaural rendering" OFF)
 
-if(BINAURALIZER)
-  message(STATUS "Enable binaural rendering")
-  add_definitions(-DDISABLE_BINAURALIZER=0)
+
+if(MULTICHANNEL_BINAURALIZER)
+  message(STATUS "Enable multichannel binaural rendering")
+  add_definitions(-DENABLE_MULTICHANNEL_TO_BINAURAL=1)
+endif()
+
+if(HOA_BINAURALIZER)
+  message(STATUS "Enable HOA binaural rendering")
+  add_definitions(-DENABLE_HOA_TO_BINAURAL=1)
 endif()
 
 if(CODEC_CAP)
@@ -139,7 +146,7 @@ else()
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/iamf)
 endif()
 
-if(BINAURALIZER)
+if(MULTICHANNEL_BINAURALIZER OR HOA_BINAURALIZER)
   install(DIRECTORY ${EXTER_LIB_DIR}/binaural
         DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 endif()
