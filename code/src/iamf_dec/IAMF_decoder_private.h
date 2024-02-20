@@ -38,8 +38,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdint.h>
 
 #include "IAMF_OBU.h"
-#include "IAMF_decoder.h"
 #include "IAMF_core_decoder.h"
+#include "IAMF_decoder.h"
 #include "IAMF_defines.h"
 #include "IAMF_types.h"
 #include "ae_rdr.h"
@@ -297,6 +297,12 @@ typedef struct IAMF_Mixer {
   Frame **frames;
 } IAMF_Mixer;
 
+typedef struct IAMF_Resampler {
+  float *buffer;
+  uint32_t rest_flag;
+  SpeexResamplerState *speex_resampler;
+} IAMF_Resampler;
+
 typedef struct IAMF_Presentation {
   IAMF_MixPresentation *obj;
 
@@ -304,7 +310,7 @@ typedef struct IAMF_Presentation {
   uint32_t nb_streams;
   IAMF_StreamDecoder **decoders;
   IAMF_StreamRenderer **renderers;
-  SpeexResamplerState *resampler;
+  IAMF_Resampler *resampler;
   IAMF_Mixer mixer;
   uint64_t output_gain_id;
   Frame frame;
