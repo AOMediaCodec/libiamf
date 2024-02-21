@@ -177,7 +177,7 @@ mix_presentation_metadata {
       }
       loudness {
         info_type: 0
-        integrated_loudness: -3832
+        integrated_loudness: -3831
         digital_peak: 0
       }
     }
