@@ -1,6 +1,6 @@
 # How to Contribute
 
-We welcome community contributions to `libiamf`. Thank you for your time! By contributing to the project, you agree to the license, patent and copyright terms in the AOM License and Patent License  and to the release of your contribution under these terms. See [LICENSE](LICENSE.md) and [PATENTS](PATENTS.md) for details.
+We welcome community contributions to `libiamf`. Thank you for your time! By contributing to the project, you agree to the license, patent and copyright terms in the AOM License and Patent License and to the release of your contribution under these terms. See [LICENSE](LICENSE) and [PATENTS](PATENTS) for details.
 
 ## Contributor agreement
 
