@@ -104,7 +104,7 @@ static int getmodulepath(char *path, int buffsize)
 #endif
   for (i = count - 1; i >= 0; --i) {
     if (path[i] == '\\' || path[i] == '/') {
-      path[i] = NULL;
+      path[i] = '\0';
       return (strlen(path));
     }
   }
