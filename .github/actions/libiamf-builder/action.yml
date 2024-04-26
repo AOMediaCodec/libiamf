@@ -1,0 +1,13 @@
+name: libiamf-builder
+
+description: Build libiamf.
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        cd code
+        cmake .
+        make
+
