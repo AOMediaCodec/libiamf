@@ -32,11 +32,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * @date Created 03/29/2023
  **/
 
-#if defined(__linux__) || defined(__APPLE__)
-#include <unistd.h>
-#else
+#if defined(_WIN32)
 #include <fcntl.h>
 #include <io.h>
+#else
+#include <unistd.h>   
 #endif
 #include <stdio.h>
 #include <stdlib.h>
