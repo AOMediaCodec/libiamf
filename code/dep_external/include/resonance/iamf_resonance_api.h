@@ -18,17 +18,15 @@ limitations under the License.
 #ifndef RESONANCE_AUDIO_API_RESONANCE_AUDIO_API2_H_
 #define RESONANCE_AUDIO_API_RESONANCE_AUDIO_API2_H_
 
-#ifdef __linux__
-#define EXPORT_API
-#elif defined __APPLE__
-#define EXPORT_API
-#elif defined _WIN32
+#if defined(_WIN32)
 // EXPORT_API can be used to define the dllimport storage-class attribute.
 #ifdef DLL_EXPORTS
 #define EXPORT_API __declspec(dllexport)
 #else
 #define EXPORT_API __declspec(dllimport)
 #endif
+#else
+#define EXPORT_API
 #endif
 //#include "api/resonance_audio_api.h"
 #include <stddef.h>  // size_t declaration.

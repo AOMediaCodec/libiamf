@@ -91,10 +91,10 @@ int vlog_file_open(const char* log_file_name) {
     return 0;
   }
 
-#if defined(__linux__) || defined(__APPLE__)
-  if (access(log_file_name, 0) != -1) {
-#else
+#if defined(_WIN32)
   if (_access(log_file_name, 0) != -1) {
+#else
+  if (access(log_file_name, 0) != -1) {
 #endif
     // already exist
     if (remove(log_file_name) == -1) return -1;
@@ -164,18 +164,18 @@ int vlog_print(LOG_TYPE type, uint64_t key, const char* format, ...) {
   VLOG_DATA *t_logdata, *logdata_new;
 
   va_start(args, format);
-#if defined(__linux__) || defined(__APPLE__)
-  len = vprintf(format, args) + 1;
-#else
+#if defined(_WIN32)
   len = _vscprintf(format, args) + 1;  // terminateing '\0'
+#else
+  len = vprintf(format, args) + 1;
 #endif
 
   buffer = (char*)malloc(len * sizeof(char));
   if (buffer) {
-#if defined(__linux__) || defined(__APPLE__)
-    vsnprintf(buffer, len, format, args);
-#else
+#if defined(_WIN32)
     vsprintf_s(buffer, len, format, args);
+#else
+    vsnprintf(buffer, len, format, args);
 #endif
   }
   va_end(args);
@@ -283,13 +283,13 @@ int write_yaml_form(char* log, uint8_t indent, const char* format, ...) {
   int len = 0;
 
   va_start(args, format);
-#if defined(__linux__) || defined(__APPLE__)
+#if defined(_WIN32)
+  len = _vscprintf(format, args) + 1;  // terminateing '\0'
+  vsprintf_s(log + ret, len, format, args);
+#else
   len = vprintf(format, args) + 1;
   va_start(args, format);
   vsnprintf(log + ret, len, format, args);
-#else
-  len = _vscprintf(format, args) + 1;  // terminateing '\0'
-  vsprintf_s(log + ret, len, format, args);
 #endif
   va_end(args);
 
