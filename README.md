@@ -8,9 +8,4 @@ The reference implementation includes only the decoder. The description of each 
 
 The source code within this repository that implements the normative portions of the IAMF specification is intended to form the IAMF Reference Implementation approved as an AOM Final Deliverable. Any additional functionality within this repository, including functionality that implements non-normative portions of the IAMF specification, is NOT intended to form part of this IAMF Reference Implementation.
 
-# Changes since v1.0.0 release
-
-- <a href="https://github.com/AOMediaCodec/libiamf/pull/82">MP4 Update according to https://github.com/AOMediaCodec/iamf/pull/794.</a>
-- <a href="https://github.com/AOMediaCodec/libiamf/pull/81">Decoder Update according to https://github.com/AOMediaCodec/iamf/pull/794 and https://github.com/AOMediaCodec/iamf/pull/795.</a>
-- <a href="https://github.com/AOMediaCodec/libiamf/pull/76">Add CONTRIBUTING.md for contributor agreement.</a>
-- <a href="https://github.com/AOMediaCodec/libiamf/pull/72">Remove vestigial sync.proto.</a>
+# Changes since v1.0.0-errata
