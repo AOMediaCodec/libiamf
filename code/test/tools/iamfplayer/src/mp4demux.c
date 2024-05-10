@@ -806,7 +806,8 @@ int mov_read_stsz(mp4r_t *mp4r, int size) {
         mp4r->a_trak[sel_a_trak].bitbuf.data = (uint8_t *)_drealloc(
             mp4r->a_trak[sel_a_trak].bitbuf.data,
             mp4r->a_trak[sel_a_trak].frame.maxsize + 1, __FILE__, __LINE__);
-        atr[sel_a_trak].frame.maxsize = fsize;
+        mp4r->a_trak[sel_a_trak].bitbuf_size = atr[sel_a_trak].frame.maxsize =
+            fsize;
       }
       atr[sel_a_trak].frame.sizes[cnt] = fsize;
     } else {
@@ -1359,15 +1360,18 @@ int mp4demux_parse(mp4r_t *mp4r, int trak) {
     }
     /* printf("moof size %d\n", atomsize); */
 
-    if (mp4r->next_moov > 0 && mp4r->next_moov < mp4r->next_moof) {
+    if (mp4r->next_moof > 0) {
       for (int i = 0; i < mp4r->num_a_trak; i++) {
         /* fprintf(stderr, "* Trak %d : allocate buffer size %d.\n", i, */
         /* mp4r->a_trak[i].frame.maxsize); */
-        mp4r->a_trak[i].bitbuf.data = (uint8_t *)_drealloc(
-            mp4r->a_trak[i].bitbuf.data, mp4r->a_trak[i].frame.maxsize + 1,
-            __FILE__, __LINE__);
-        if (!mp4r->a_trak[i].bitbuf.data) {
-          return ERR_FAIL;
+        if (mp4r->a_trak[i].bitbuf_size < mp4r->a_trak[i].frame.maxsize) {
+          mp4r->a_trak[i].bitbuf.data = (uint8_t *)_drealloc(
+              mp4r->a_trak[i].bitbuf.data, mp4r->a_trak[i].frame.maxsize + 1,
+              __FILE__, __LINE__);
+          if (!mp4r->a_trak[i].bitbuf.data) {
+            return ERR_FAIL;
+          }
+          mp4r->a_trak[i].bitbuf_size = mp4r->a_trak[i].frame.maxsize;
         }
       }
     }
@@ -1519,6 +1523,8 @@ mp4r_t *mp4demux_open(const char *name, FILE *logger) {
     if (!mp4r->a_trak[i].bitbuf.data) {
       goto err;
     }
+    mp4r->a_trak[i].bitbuf_size =
+        mp4r->a_trak[i].frame.maxsize + mp4r->a_trak[i].csc_maxsize;
   }
 
   //////////////////////////
