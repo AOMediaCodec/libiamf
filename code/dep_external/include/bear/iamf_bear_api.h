@@ -38,17 +38,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stddef.h>
 #include <stdint.h>
 
-#ifdef __linux__
-#define EXPORT_API
-#elif defined __APPLE__
-#define EXPORT_API
-#elif defined _WIN32
+#if defined(_WIN32)
 // EXPORT_API can be used to define the dllimport storage-class attribute.
 #ifdef DLL_EXPORTS
 #define EXPORT_API __declspec(dllexport)
 #else
 #define EXPORT_API __declspec(dllimport)
 #endif
+#else
+#define EXPORT_API
 #endif
 
 #ifdef __cplusplus

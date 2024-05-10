@@ -34,10 +34,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define _CRT_SECURE_NO_WARNINGS
 #define DLL_EXPORTS
 
-#ifdef __linux__
-#include <unistd.h>
-#elif _WIN32
+#if defined(_WIN32)
 #include <windows.h>
+#else
+#include <unistd.h>
 #endif
 #include <memory.h>
 #include <stdio.h>
@@ -49,15 +49,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using namespace bear;
 using namespace ear;
 
-#ifdef __linux__
-#define EXPORT_API
-#elif _WIN32
+#if defined(_WIN32)
 // EXPORT_API can be used to define the dllimport storage-class attribute.
 #ifdef DLL_EXPORTS
 #define EXPORT_API __declspec(dllexport)
 #else
 #define EXPORT_API __declspec(dllimport)
 #endif
+#else
+#define EXPORT_API
 #endif
 
 #define N_SOURCE_CHANNELS 16
@@ -96,11 +96,11 @@ typedef enum {
 
 static int getmodulepath(char *path, int buffsize)
 {
-  int count, i;
-#ifdef __linux__
-  count = readlink("/proc/self/exe", path, buffsize);
-#elif _WIN32
+  int count = 0, i = 0;
+#if defined(_WIN32)
   count = GetModuleFileName(NULL, path, buffsize);
+#else
+  count = readlink("/proc/self/exe", path, buffsize);    
 #endif
   for (i = count - 1; i >= 0; --i) {
     if (path[i] == '\\' || path[i] == '/') {
