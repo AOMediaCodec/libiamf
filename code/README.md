@@ -112,12 +112,12 @@ Please note that all [dependent codecs](dep_codecs/README.md) and [dependent ext
 
 ## Testing the IAMF
 
-The iamfplayer is a test application to decode an IAMF bitstream or mp4 file with IAMF encapsulation.
+The iamfdec is a test application to decode an IAMF bitstream or mp4 file with IAMF encapsulation.
 
 ### 1. Build application
 
 ~~~
-    $ cd test/tools/iamfplayer
+    $ cd test/tools/iamfdec
 
     $ cmake -DCMAKE_INSTALL_PREFIX=${BUILD_LIBS} .
     # ${BUILD_LIBS} is the iamf library and header files installing directory.
@@ -130,13 +130,15 @@ The iamfplayer is a test application to decode an IAMF bitstream or mp4 file wit
 
 To produce binaural output, please download the following file and place it in your working directory [default.tf](https://github.com/ebu/bear/releases/download/v0.0.1-pre/default.tf).
 ~~~ 
-    ./iamfplayer <options> <input file>
+    ./iamfdec <options> <input file>
     options:
     -i[0-1]    0 : IAMF bitstream input.(default)
-               1 : mp4 input.
-    -o2        2 : pcm output.
-    -r [rate]    : audio signal sampling rate, 48000 is the default.
-    -s[0~11,b]   : output layout, the sound system A~J and extensions (Upper + Middle + Bottom).
+               1 : MP4 input.
+    -o[2-3]    2 : WAVE output, same path as binary.(default)
+               3 [path]
+                 : WAVE output, user setting path.
+    -r [rate]    : Audio signal sampling rate, 48000 is the default.
+    -s[0~11,b]   : Output layout, the sound system A~J and extensions (Upper + Middle + Bottom).
                0 : Sound system A (0+2+0)
                1 : Sound system B (0+5+0)
                2 : Sound system C (2+5+0)
@@ -153,14 +155,15 @@ To produce binaural output, please download the following file and place it in y
                b : Binaural.
     -p [dB]      : Peak threshold in dB.
     -l [LKFS]    : Normalization loudness in LKFS.
-    -d [bit]     : Bit depth of pcm output.
+    -d [bit]     : Bit depth of WAVE output.
     -mp [id]     : Set mix presentation id.
     -m           : Generate a metadata file with the suffix .met.
     -disable_limiter
                  : Disable peak limiter.
 
-    Example:  ./iamfplayer -o2 -s9 simple_profile.iamf
-              ./iamfplayer -i1 -o2 -s9 simple_profile.mp4
+    Example:  ./iamfdec -o2 -s9 simple_profile.iamf
+              ./iamfdec -i1 -o2 -s9 simple_profile.mp4
+              ./iamfdec -i1 -o3 /tmp/out.wav -s9 simple_profile.mp4
 ~~~
 
 ## Coding style
