@@ -98,9 +98,9 @@ a x86\_64 MacOS host:
 ### Microsoft Visual Studio builds
 
 Building the IAMF library in Microsoft Visual Studio is supported. Visual
-Studio 2015 (14.0) solution has been provided.
+Studio 2022(v143) solution has been provided.
 
-Open win32/VS2015/iamf.sln directly.
+Open win64/VS2022/iamf.sln directly.
 
 ### MacOS builds
 Please note that all [dependent codecs](dep_codecs/README.md) and [dependent externals](dep_external/src/binaural/README.md) should have been MacOS compiled already.
