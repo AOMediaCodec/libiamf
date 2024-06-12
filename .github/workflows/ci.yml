@@ -10,3 +10,21 @@ jobs:
         uses: actions/checkout@v4
       - name: Build
         uses: ./.github/actions/libiamf-builder
+  macos-arm64:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Build
+        uses: ./.github/actions/libiamf-builder
+        with:
+          build-options: -DCODEC_CAP=off
+  macos-amd64:
+    runs-on: macos-12
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Build
+        uses: ./.github/actions/libiamf-builder
+        with:
+          build-options: -DCODEC_CAP=off
