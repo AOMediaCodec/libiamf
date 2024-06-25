@@ -23,74 +23,74 @@
 #OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-set -e
+rm -rf build
+mkdir build
+cd build
 
-PROGDIR=`pwd`
-VISR_DIR="$( cd "$(dirname "$0")" ; pwd -P )/visr"
+git clone https://github.com/pybind/pybind11
+
+git clone https://github.com/ebu/bear
+
+git clone https://github.com/resonance-audio/resonance-audio
+
+BOOST_DIR="$( cd "$(dirname "$0")" ; pwd -P )/../boost_1_82_0"
+PYBIND_DIR="$( cd "$(dirname "$0")" ; pwd -P )/pybind11"
+VISR_DIR="$( cd "$(dirname "$0")" ; pwd -P )/../rd-audio-visr-public-master"
 BEAR_DIR="$( cd "$(dirname "$0")" ; pwd -P )/bear"
 RESONANCE_DIR="$( cd "$(dirname "$0")" ; pwd -P )/resonance-audio"
-EXTERNALS_DIR="$( cd "$(dirname "$0")" ; pwd -P )/../.."
-IAMF2BEAR_DIR="$( cd "$(dirname "$0")" ; pwd -P )/iamf2bear"
-IAMF2RESONANCE_DIR="$( cd "$(dirname "$0")" ; pwd -P )/iamf2resonance"
+BINAURAL_LIB_DIR="$( cd "$(dirname "$0")" ; pwd -P )/../../../lib/binaural"
+IAMF2BEAR_DIR="$( cd "$(dirname "$0")" ; pwd -P )/../iamf2bear"
+IAMF2RESONANCE_DIR="$( cd "$(dirname "$0")" ; pwd -P )/../iamf2resonance"
 
-
-declare -a CONFIG_FLAGS_BEAR
-declare -a CONFIG_FLAGS_BEAR2
 declare -a CONFIG_FLAGS_VISR
+CONFIG_FLAGS=""
+CONFIG_FLAGS_BEAR=""
+CONFIG_FLAGS_VISR="-DBUILD_PYTHON_BINDINGS=ON -DBUILD_DOCUMENTATION=OFF -DBUILD_AUDIOINTERFACES_PORTAUDIO=OFF -DBUILD_USE_SNDFILE_LIBRARY=OFF"
+CONFIG_FLAGS_VISR2=""
+CONFIG_FLAGS_LIB=""
 
-CONFIG_FLAGS_BEAR="-DBUILD_PYTHON_BINDINGS=OFF"
-CONFIG_FLAGS_BEAR2="$VISR_DIR/build/cmake"
-CONFIG_FLAGS_VISR="-DBUILD_PYTHON_BINDINGS=OFF -DBUILD_DOCUMENTATION=OFF -DBUILD_AUDIOINTERFACES_PORTAUDIO=OFF -DBUILD_USE_SNDFILE_LIBRARY=OFF"
+echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>boost Compile<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+cd $BOOST_DIR
+./bootstrap.sh --with-libraries=filesystem,system,thread --with-toolset=gcc
+./b2 toolset=gcc
+cp -f stage/lib/libboost_system.so.1.82.0 $BINAURAL_LIB_DIR
+cp -f stage/lib/libboost_filesystem.so.1.82.0 $BINAURAL_LIB_DIR
+cp -f stage/lib/libboost_thread.so.1.82.0 $BINAURAL_LIB_DIR
 
-#Delete old libraries
-rm -rf $EXTERNALS_DIR/lib/binaural/*
+echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>pybind11 Compile<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+cd $PYBIND_DIR
+cmake -B build $CONFIG_FLAGS
+cd build
+make -j12
 
-CLEAN=yes
-DOWNLOAD=yes
-
-if [ $CLEAN = yes ] ; then
-	echo "Cleaning: $VISR_DIR"
-	rm -f -r $VISR_DIR
-
-	echo "Cleaning: $BEAR_DIR"
-	rm -f -r $BEAR_DIR
-
-	echo "Cleaning: $RESONANCE_DIR"
-	rm -f -r $RESONANCE_DIR
-  [ "$DOWNLOAD" = "yes" ] || exit 0
-fi
-
-cd $PROGDIR
-git clone -b visr --single-branch https://github.com/ebu/bear.git visr
 echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>VISR Compile<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 cd $VISR_DIR
 sed -i '1 i set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)' src/libefl/CMakeLists.txt
-rm -f -r build
-cmake -B build . $CONFIG_FLAGS_VISR  -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=NEVER
-cmake --build build
-cmake --install build --prefix $IAMF2BEAR_DIR
+cmake -B build . $CONFIG_FLAGS_VISR
+cd build
+cmake --build . $CONFIG_FLAGS_VISR2
+sudo make install
+cp -f lib/libefl.so $BINAURAL_LIB_DIR
+cp -f lib/libobjectmodel.so $BINAURAL_LIB_DIR
+cp -f lib/libpanning.so $BINAURAL_LIB_DIR
+cp -f lib/libpml.so $BINAURAL_LIB_DIR
+cp -f lib/librbbl.so $BINAURAL_LIB_DIR
+cp -f lib/librcl.so $BINAURAL_LIB_DIR
+cp -f lib/librrl.so $BINAURAL_LIB_DIR
+cp -f lib/libvisr.so $BINAURAL_LIB_DIR
 
-cd $PROGDIR
-git clone https://github.com/ebu/bear
 echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>BEAR Compile<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 cd $BEAR_DIR
-git submodule update --init --recursive
+git submodule update --init --recursive 
 cd visr_bear
-rm -f -r build
-cmake -B build . $CONFIG_FLAGS_BEAR -DVISR_DIR=$CONFIG_FLAGS_BEAR2
-cmake --build build --clean-first
-cmake --install build --prefix $IAMF2BEAR_DIR
+export PYBIND11_DIR=$PYBIND_DIR
+cmake -B build . $CONFIG_FLAGS_BEAR
+cd build
+make -j12
+cp -f src/libbear.a $IAMF2BEAR_DIR
+cp -f submodules/libear/src/libear.a $IAMF2BEAR_DIR
 
-
-echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>iamf2bear Compile<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-cd $IAMF2BEAR_DIR
-cmake . -DCMAKE_INSTALL_PREFIX=$EXTERNALS_DIR
-make
-make install
-
-cd $PROGDIR
-git clone https://github.com/resonance-audio/resonance-audio
-echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>Resonance Compile<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>resonance Compile<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 cd $RESONANCE_DIR
 ./third_party/clone_core_deps.sh
 rm -rf third_party/eigen
@@ -98,10 +98,14 @@ cp -rf ../bear/visr_bear/submodules/libear/submodules/eigen third_party/
 ./build.sh -t=RESONANCE_AUDIO_API -p=Debug
 cp -rf install/resonance_audio $IAMF2RESONANCE_DIR
 
-echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>iamf2resonance Compile<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-cd $IAMF2RESONANCE_DIR
-cmake . -DCMAKE_INSTALL_PREFIX=$EXTERNALS_DIR
+echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>libiamf2bear Compile<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+cd $IAMF2BEAR_DIR
+cmake . $CONFIG_FLAGS_LIB
 make
-make install
+cp -f libiamf2bear.so $BINAURAL_LIB_DIR
 
-
+echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>libiamf2resonance Compile<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+cd $IAMF2RESONANCE_DIR
+cmake . $CONFIG_FLAGS_LIB
+make
+cp -f libiamf2resonance.so $BINAURAL_LIB_DIR

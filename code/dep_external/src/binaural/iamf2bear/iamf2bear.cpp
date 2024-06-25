@@ -40,13 +40,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <unistd.h>
 #endif
 #include <memory.h>
-#if defined(__APPLE__)
-#include <mach-o/dyld.h>
-#endif
 #include <stdio.h>
 
-#include "bear/api.hpp"
-#include "bear/variable_block_size.hpp"
+#include "../include/bear/api.hpp"
+#include "../include/bear/variable_block_size.hpp"
 #include "ear/ear.hpp"
 #include "iamf_bear_api.h"
 using namespace bear;
@@ -102,12 +99,8 @@ static int getmodulepath(char *path, int buffsize)
   int count = 0, i = 0;
 #if defined(_WIN32)
   count = GetModuleFileName(NULL, path, buffsize);
-#elifdef __APPLE__
-  uint32_t size = MAX_PATH;
-  _NSGetExecutablePath(path, &size); 
-  count = size;
 #else
-  count = readlink("/proc/self/exe", path, buffsize);
+  count = readlink("/proc/self/exe", path, buffsize);    
 #endif
   for (i = count - 1; i >= 0; --i) {
     if (path[i] == '\\' || path[i] == '/') {
@@ -128,10 +121,10 @@ extern "C" EXPORT_API void *CreateBearAPI(char *tf_data_path)
     if (tf_data_path == NULL || strlen(tf_data_path) >= sizeof(thiz->tf_data)) {
       if (getmodulepath(mod_path, sizeof(mod_path)) > 0) {
         strcpy(thiz->tf_data, mod_path);
-#if defined(_WIN32)
-        strcat(thiz->tf_data, "\\default.tf");
-#else
+#ifdef __linux__
         strcat(thiz->tf_data, "/default.tf");
+#elif _WIN32
+        strcat(thiz->tf_data, "\\default.tf");
 #endif
       } else {
         free(thiz);

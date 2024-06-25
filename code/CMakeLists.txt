@@ -96,12 +96,6 @@ link_directories (
     ${CODEC_LIB_DIR}
 )
 
-if(MULTICHANNEL_BINAURALIZER OR HOA_BINAURALIZER)
-link_directories(
-  ${EXTER_LIB_DIR}/binaural
-)
-endif()
-
 if(BUILD_SHARED_LIBS)
   add_library(${PROJECT_NAME} SHARED ${DIR_DEP_EXTERNAL_WAV} ${DIR_IAMF_COMMON}
     ${DIR_IAMF_DEC_OPUS} ${DIR_IAMF_DEC_AAC} ${DIR_IAMF_DEC_FLAC} ${DIR_IAMF_DEC_PCM} ${DIR_IAMF_DEC})
@@ -118,12 +112,6 @@ if(BUILD_SHARED_LIBS)
     target_link_libraries (${PROJECT_NAME} FLAC)
   endif()
 
-  if(MULTICHANNEL_BINAURALIZER)
-    target_link_libraries (${PROJECT_NAME} iamf2bear)
-  endif()
-  if(HOA_BINAURALIZER)
-    target_link_libraries (${PROJECT_NAME} iamf2resonance)
-  endif()
 else()
   add_library(${PROJECT_NAME} STATIC ${DIR_DEP_EXTERNAL_WAV} ${DIR_IAMF_COMMON}
     ${DIR_IAMF_DEC_OPUS} ${DIR_IAMF_DEC_AAC} ${DIR_IAMF_DEC_PCM}
