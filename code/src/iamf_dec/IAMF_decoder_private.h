@@ -209,6 +209,8 @@ typedef struct IAMF_Stream {
   uint64_t trimming_end;
 
   uint32_t max_frame_size;
+
+  uint8_t headphones_rendering_mode;
 } IAMF_Stream;
 
 typedef struct ScalableChannelDecoder {

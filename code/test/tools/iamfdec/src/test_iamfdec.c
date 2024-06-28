@@ -72,7 +72,8 @@ static void print_usage(char *argv[]) {
   fprintf(stderr, "options:\n");
   fprintf(stderr, "-i[0-1]    0 : IAMF bitstream input.(default)\n");
   fprintf(stderr, "           1 : MP4 input.\n");
-  fprintf(stderr, "-o[2-3]    2 : WAVE output, same path as binary.(default)\n");
+  fprintf(stderr,
+          "-o[2-3]    2 : WAVE output, same path as binary.(default)\n");
   fprintf(stderr,
           "           3 [path]\n"
           "             : WAVE output, user setting path.\n");
@@ -821,7 +822,7 @@ int main(int argc, char *argv[]) {
         fprintf(stdout, "sampling rate : %u\n", pas.rate);
       } else if (!strcmp(argv[args], "-mp")) {
         pas.mix_presentation_id = strtoull(argv[++args], NULL, 10);
-        fprintf(stdout, "select mix presentation id %" PRId64,
+        fprintf(stdout, "select mix presentation id %" PRId64 "\n",
                 pas.mix_presentation_id);
       } else if (!strcmp(argv[args], "-disable_limiter")) {
         pas.flags |= FLAG_DISABLE_LIMITER;

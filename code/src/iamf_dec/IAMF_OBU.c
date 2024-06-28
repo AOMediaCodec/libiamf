@@ -445,9 +445,9 @@ IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
       uint64_t size = bs_getAleb128(&b);
       bs_skipABytes(&b, size);
       ia_loge("Don't support parameter type %" PRIu64
-              " in Audio Element, parameter "
-              "definition bytes %" PRIu64 ".",
-              type, size);
+              " in Audio Element %" PRId64
+              ", parameter definition bytes %" PRIu64 ".",
+              elem->element_id, type, size);
       continue;
     }
 
@@ -473,6 +473,7 @@ IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
 
   if (elem->element_type == AUDIO_ELEMENT_TYPE_CHANNEL_BASED) {
     ScalableChannelLayoutConf *chs_conf;
+    int channels = 0;
     chs_conf = IAMF_MALLOCZ(ScalableChannelLayoutConf, 1);
     if (!chs_conf) {
       ia_loge(
@@ -484,8 +485,8 @@ IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
 
     val = bs_get32b(&b, 3);
     bs_skip(&b, 5);
-    chs_conf->nb_layers = val;
-    ia_logd("scalable channel layers %d", chs_conf->nb_layers);
+    chs_conf->num_layers = val;
+    ia_logd("scalable channel layers %d", chs_conf->num_layers);
     if (val) {
       ChannelLayerConf *layer_conf_s;
       layer_conf_s = IAMF_MALLOCZ(ChannelLayerConf, val);
@@ -502,6 +503,22 @@ IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
         layer_conf_s[i].recon_gain_flag = bs_get32b(&b, 1);
         layer_conf_s[i].nb_substreams = bs_getA8b(&b);
         layer_conf_s[i].nb_coupled_substreams = bs_getA8b(&b);
+        channels += (layer_conf_s[i].nb_substreams +
+                     layer_conf_s[i].nb_coupled_substreams);
+        if (chs_conf->nb_layers == i) {
+          uint8_t loudspeaker_layout = layer_conf_s[i].loudspeaker_layout;
+          if (ia_channel_layout_type_check(loudspeaker_layout) &&
+              (layer_conf_s[i].nb_substreams > 0) &&
+              (ia_channel_layout_get_channels_count(loudspeaker_layout) ==
+               channels)) {
+            ++chs_conf->nb_layers;
+          } else {
+            ia_logw("element (%" PRId64
+                    ") Layer %d: Invalid loudspeaker layout %d",
+                    elem->element_id, i, layer_conf_s[i].loudspeaker_layout);
+          }
+        }
+
         ia_logd(
             "\tlayer[%d] info: layout %d, output gain %d, recon gain %d, "
             "sub-streams count %d, coupled sub-streams %d",
@@ -525,6 +542,7 @@ IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
                   g->output_gain_flag & U8_MASK, g->output_gain & U16_MASK);
         }
       }
+      ia_logd("valid scalable channel layers %d", chs_conf->nb_layers);
     }
   } else if (elem->element_type == AUDIO_ELEMENT_TYPE_SCENE_BASED) {
     AmbisonicsConf *conf = IAMF_MALLOCZ(AmbisonicsConf, 1);
@@ -617,7 +635,7 @@ void iamf_element_free(IAMF_Element *obj) {
       obj->channels_conf) {
     ScalableChannelLayoutConf *conf = obj->channels_conf;
     if (conf->layer_conf_s) {
-      for (int i = 0; i < conf->nb_layers; ++i) {
+      for (int i = 0; i < conf->num_layers; ++i) {
         IAMF_FREE(conf->layer_conf_s[i].output_gain_info);
       }
       free(conf->layer_conf_s);
@@ -855,7 +873,8 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
           layouts[i] = TARGET_LAYOUT(b);
           ia_logd("\tLayout %d > binaural.", i);
         } else {
-          ia_logw("Undefine layout type %d.", type);
+          ia_logw("Undefine layout type %d in mix presentation %" PRId64 ".",
+                  type, mixp->mix_presentation_id);
         }
         bs_align(&b);
 

@@ -570,9 +570,9 @@ static void write_audio_element_log(uint64_t idx, void* obu, char* log) {
   if (ae_obu->element_type == AUDIO_ELEMENT_TYPE_CHANNEL_BASED) {
     log += write_yaml_form(log, 1, "scalable_channel_layout_config:");
     log += write_yaml_form(log, 2, "num_layers: %u",
-                           ae_obu->channels_conf->nb_layers);
+                           ae_obu->channels_conf->num_layers);
     log += write_yaml_form(log, 2, "channel_audio_layer_configs:");
-    for (uint32_t i = 0; i < ae_obu->channels_conf->nb_layers; ++i) {
+    for (uint32_t i = 0; i < ae_obu->channels_conf->num_layers; ++i) {
       ChannelLayerConf* layer_conf = &ae_obu->channels_conf->layer_conf_s[i];
       log += write_yaml_form(log, 2, "- loudspeaker_layout: %u",
                              layer_conf->loudspeaker_layout);
