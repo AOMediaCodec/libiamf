@@ -210,7 +210,8 @@ typedef struct ChannelLayerConf {
 } ChannelLayerConf;
 
 struct ScalableChannelLayoutConf {
-  uint32_t nb_layers;
+  uint32_t nb_layers;   // max valid layers
+  uint32_t num_layers;  // total layers
   ChannelLayerConf *layer_conf_s;
 };
 
