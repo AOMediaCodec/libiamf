@@ -19,7 +19,7 @@ limitations under the License.
 #define DLL_EXPORTS
 
 #include "resonance_audio_api.h"
-#include "resonance_audio_api2.h"
+#include "iamf_resonance_api.h"
 
 namespace vraudio {
 
