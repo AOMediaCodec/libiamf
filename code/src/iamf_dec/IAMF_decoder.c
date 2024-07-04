@@ -94,9 +94,10 @@ static int32_t FLOAT2INT24(float x) {
 
 static int32_t FLOAT2INT32(float x) {
   x = x * 2147483648.f;
-  x = MAX(x, -2147483648.f);
-  x = MIN(x, 2147483647.f);
-  return (int32_t)lrintf(x);
+  if (x > -2147483648.f && x < 2147483647.f)
+    return (int32_t)lrintf(x);
+  else
+    return (x > 0.0f ? 2147483647 : (-2147483647 - 1));
 }
 
 static void iamf_decoder_plane2stride_out(void *dst, const float *src,
@@ -1183,6 +1184,16 @@ static int iamf_database_element_add(IAMF_DataBase *db, IAMF_Object *obj) {
   return ret;
 }
 
+static struct {
+  uint32_t max_elements;
+  uint32_t max_channels;
+} _profile_limit[IAMF_PROFILE_COUNT] = {
+    {IAMF_SIMPLE_PROFILE_MIX_PRESENTATION_MAX_ELEMENTS,
+     IAMF_SIMPLE_PROFILE_MIX_PRESENTATION_MAX_CHANNELS},
+    {IAMF_BASE_PROFILE_MIX_PRESENTATION_MAX_ELEMENTS,
+     IAMF_BASE_PROFILE_MIX_PRESENTATION_MAX_CHANNELS},
+};
+
 static int iamf_database_mix_presentation_is_valid(IAMF_DataBase *db,
                                                    IAMF_MixPresentation *mp) {
   int ret = IAMF_OK;
@@ -1193,7 +1204,7 @@ static int iamf_database_mix_presentation_is_valid(IAMF_DataBase *db,
 
   if (mp->num_sub_mixes < IAMF_MIX_PRESENTATION_MAX_SUBS) return 0;
   sub = mp->sub_mixes;
-  if (sub->nb_elements > IAMF_MIX_PRESENTATION_MAX_ELEMENTS) return 0;
+  if (sub->nb_elements > _profile_limit[db->profile].max_elements) return 0;
 
   for (int e = 0; e < sub->nb_elements; ++e) {
     econf = &sub->conf_s[e];
@@ -1222,10 +1233,10 @@ static int iamf_database_mix_presentation_is_valid(IAMF_DataBase *db,
   }
 
   if (ret != IAMF_OK) return !ret;
-  if (channels > IAMF_MIX_PRESENTATION_MAX_CHANNELS) {
+  if (channels > _profile_limit[db->profile].max_channels) {
     ia_logw("Mix Presentation %" PRId64 " has %d channels, more than %u",
             mp->mix_presentation_id, channels,
-            IAMF_MIX_PRESENTATION_MAX_CHANNELS);
+            _profile_limit[db->profile].max_channels);
     return 0;
   }
 
@@ -1261,6 +1272,7 @@ int iamf_database_init(IAMF_DataBase *db) {
   db->mixPresentation = iamf_object_set_new(iamf_object_free);
   db->eViewer.freeF = free;
   db->pViewer.freeF = iamf_parameter_item_free;
+  db->profile = IAMF_PROFILE_DEFAULT;
 
   if (!db->codecConf || !db->element || !db->mixPresentation) {
     iamf_database_reset(db);
@@ -1288,13 +1300,27 @@ static int iamf_database_add_object(IAMF_DataBase *db, IAMF_Object *obj) {
   if (!obj) return IAMF_ERR_BAD_ARG;
 
   switch (obj->type) {
-    case IAMF_OBU_SEQUENCE_HEADER:
+    case IAMF_OBU_SEQUENCE_HEADER: {
+      IAMF_Version *version = (IAMF_Version *)obj;
+
+      if (version->primary_profile > db->profile) {
+        ia_loge("Unimplemented profile %u", version->primary_profile);
+        free(obj);
+        ret = IAMF_ERR_UNIMPLEMENTED;
+        break;
+      }
+
+      if (version->additional_profile < db->profile)
+        db->profile = version->additional_profile;
+
       if (db->version) {
         ia_logw("WARNING : Receive Multiple START CODE OBUs !!!");
         free(db->version);
       }
+
       db->version = obj;
       break;
+    }
     case IAMF_OBU_CODEC_CONFIG:
       ret = iamf_object_set_add(db->codecConf, (void *)obj);
       break;
