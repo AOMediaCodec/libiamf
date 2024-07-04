@@ -92,7 +92,12 @@ typedef struct MixFactors {
   int w_idx_offset;
 } MixFactors;
 
-typedef enum { IAMF_PROFILE_SIMPLE, IAMF_PROFILE_BASE } IAMF_Profile;
+typedef enum {
+  IAMF_PROFILE_SIMPLE,
+  IAMF_PROFILE_BASE,
+  IAMF_PROFILE_DEFAULT = IAMF_PROFILE_BASE,
+  IAMF_PROFILE_COUNT,
+} IAMF_Profile;
 
 #define U8_MASK 0xFF
 #define U16_MASK 0xFFFF
@@ -111,5 +116,16 @@ typedef enum { IAMF_PROFILE_SIMPLE, IAMF_PROFILE_BASE } IAMF_Profile;
 #define IA_CH_CATE_SURROUND 0x100
 #define IA_CH_CATE_WEIGHT 0X200
 #define IA_CH_CATE_TOP 0X400
+
+#define IAMF_AMBISONICS_MAX_CHANNELS 16
+#define IAMF_MIX_PRESENTATION_MAX_SUBS 1
+/// @brief should be able to reconstruct one Audio Element. in simple profile.
+#define IAMF_SIMPLE_PROFILE_MIX_PRESENTATION_MAX_ELEMENTS 1
+/// @brief should be able to handle up to 16 channels in simple profile.
+#define IAMF_SIMPLE_PROFILE_MIX_PRESENTATION_MAX_CHANNELS 16
+/// @brief should be able to mix two Audio Elements in base profile.
+#define IAMF_BASE_PROFILE_MIX_PRESENTATION_MAX_ELEMENTS 2
+/// @brief should be able to handle up to 18 channels in base profile.
+#define IAMF_BASE_PROFILE_MIX_PRESENTATION_MAX_CHANNELS 18
 
 #endif /* IAMF_TYPES_H_ */

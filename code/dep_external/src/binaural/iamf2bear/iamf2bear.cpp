@@ -102,7 +102,7 @@ static int getmodulepath(char *path, int buffsize)
   int count = 0, i = 0;
 #if defined(_WIN32)
   count = GetModuleFileName(NULL, path, buffsize);
-#elifdef __APPLE__
+#elif defined(__APPLE__)
   uint32_t size = MAX_PATH;
   _NSGetExecutablePath(path, &size); 
   count = size;
@@ -231,17 +231,17 @@ extern "C" EXPORT_API int ConfigureBearDirectSpeakerChannel(void *pv_thiz,
                                         std::make_pair(-180.0, 180.0),
                                         std::make_pair(-90.0, 90.0),
                                         true},
-                                Channel{"M+110",
-                                        PolarPosition{110.0, 0.0},
-                                        PolarPosition{110.0, 0.0},
-                                        std::make_pair(100.0, 120.0),
-                                        std::make_pair(0.0, 15.0),
+                                Channel{"U+030",
+                                        PolarPosition{30.0, 30.0},
+                                        PolarPosition{30.0, 30.0},
+                                        std::make_pair(30.0, 45.0),
+                                        std::make_pair(30.0, 55.0),
                                         false},
-                                Channel{"M-110",
-                                        PolarPosition{-110.0, 0.0},
-                                        PolarPosition{-110.0, 0.0},
-                                        std::make_pair(-120.0, -100.0),
-                                        std::make_pair(0.0, 15.0),
+                                Channel{"U-030",
+                                        PolarPosition{-30.0, 30.0},
+                                        PolarPosition{-30.0, 30.0},
+                                        std::make_pair(-45.0, -30.0),
+                                        std::make_pair(30.0, 55.0),
                                         false},
                             }};
 

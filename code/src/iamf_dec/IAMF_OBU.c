@@ -247,8 +247,8 @@ uint32_t iamf_obu_get_payload_size(IAMF_OBU *obu) {
   return obu->size - (uint32_t)(obu->payload - obu->data);
 }
 
-static int _valid_profile(uint8_t profile) {
-  return profile == IAMF_PROFILE_SIMPLE || profile == IAMF_PROFILE_BASE;
+static int _valid_profile(uint8_t primary, uint8_t addional) {
+  return primary < IAMF_PROFILE_COUNT && primary <= addional;
 }
 
 IAMF_Version *iamf_version_new(IAMF_OBU *obu) {
@@ -273,9 +273,11 @@ IAMF_Version *iamf_version_new(IAMF_OBU *obu) {
       "%u.",
       (char *)&ver->iamf_code, ver->primary_profile, ver->additional_profile);
 
-  if (!_valid_profile(ver->primary_profile)) {
-    ia_loge("ia sequence header object: Invalid profile %u",
-            ver->primary_profile);
+  if (!_valid_profile(ver->primary_profile, ver->additional_profile)) {
+    ia_loge(
+        "ia sequence header object: Invalid primary profile %u or additional "
+        "profile %u.",
+        ver->primary_profile, ver->additional_profile);
     goto version_fail;
   }
 
@@ -755,11 +757,6 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
       ia_loge(
           "Mix Presentation Object: num_audio_elements should not be set to "
           "0.");
-      goto mix_presentation_fail;
-    } else if (val > 2) {
-      ia_logw(
-          "Mix Presentation Object: Do not support num_audio_elements more "
-          "than 2.");
       goto mix_presentation_fail;
     }
 

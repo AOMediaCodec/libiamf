@@ -136,6 +136,8 @@ typedef struct IAMF_DataBase {
 
   Viewer eViewer;
   Viewer pViewer;
+
+  IAMF_Profile profile;
 } IAMF_DataBase;
 
 /* <<<<<<<<<<<<<<<<<< DATABASE <<<<<<<<<<<<<<<<<< */
