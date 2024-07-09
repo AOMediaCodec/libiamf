@@ -117,7 +117,6 @@ typedef enum {
 #define IA_CH_CATE_WEIGHT 0X200
 #define IA_CH_CATE_TOP 0X400
 
-#define IAMF_AMBISONICS_MAX_CHANNELS 16
 #define IAMF_MIX_PRESENTATION_MAX_SUBS 1
 /// @brief should be able to reconstruct one Audio Element. in simple profile.
 #define IAMF_SIMPLE_PROFILE_MIX_PRESENTATION_MAX_ELEMENTS 1
