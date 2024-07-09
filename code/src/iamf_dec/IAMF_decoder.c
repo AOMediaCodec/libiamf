@@ -600,6 +600,7 @@ static int32_t iamf_stream_scale_decoder_demix(IAMF_StreamDecoder *decoder,
                                                uint32_t frame_size);
 static int iamf_stream_ambisonics_decoder_decode(IAMF_StreamDecoder *decoder,
                                                  float *pcm);
+static uint32_t iamf_stream_ambisionisc_order(int channels);
 
 /* >>>>>>>>>>>>>>>>>> DATABASE >>>>>>>>>>>>>>>>>> */
 
@@ -698,14 +699,13 @@ static int iamf_element_is_valid(IAMF_Element *e) {
   } else if (e->element_type == AUDIO_ELEMENT_TYPE_SCENE_BASED) {
     int channels = e->ambisonics_conf->substream_count +
                    e->ambisonics_conf->coupled_substream_count;
-    if ((e->ambisonics_conf->output_channel_count >
-         IAMF_AMBISONICS_MAX_CHANNELS) ||
-        (channels > IAMF_AMBISONICS_MAX_CHANNELS)) {
+    if ((iamf_stream_ambisionisc_order(
+             e->ambisonics_conf->output_channel_count) == UINT32_MAX) ||
+        (channels > e->ambisonics_conf->output_channel_count)) {
       ia_logw(
-          "Invalid output channel count %d or invalid channels %d in "
-          "ambisonics mode, it is more than %d",
-          e->ambisonics_conf->output_channel_count, channels,
-          IAMF_AMBISONICS_MAX_CHANNELS);
+          "Invalid output channel count %d or input channel count %d more than "
+          "output in ambisonics mode",
+          e->ambisonics_conf->output_channel_count, channels);
       ret = IAMF_ERR_UNIMPLEMENTED;
     }
   } else
