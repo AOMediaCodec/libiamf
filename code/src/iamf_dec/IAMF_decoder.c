@@ -40,6 +40,7 @@
 #define INVALID_TIMESTAMP 0xFFFFFFFF
 #define OUTPUT_SAMPLERATE 48000
 #define SPEEX_RESAMPLER_QUALITY 4
+#define MAX_LIMITED_NORMALIZATION_LOUDNESS 0.0f
 
 #define IAMF_DECODER_CONFIG_MIX_PRESENTATION 0x1
 #define IAMF_DECODER_CONFIG_OUTPUT_LAYOUT 0x2
@@ -3676,7 +3677,7 @@ static int iamf_decoder_internal_decode(IAMF_DecoderHandle handle,
       swap((void **)&f->data, (void **)&out);
     }
 
-    if (ctx->normalization_loudness) {
+    if (ctx->normalization_loudness < MAX_LIMITED_NORMALIZATION_LOUDNESS) {
       iamf_loudness_process(
           f->data, real_frame_size, ctx->output_layout->channels,
           db2lin(ctx->normalization_loudness - ctx->loudness));
@@ -3919,6 +3920,8 @@ IAMF_DecoderHandle IAMF_decoder_open(void) {
     handle->ctx.threshold_db = LIMITER_MaximumTruePeak;
     handle->ctx.loudness = 1.0f;
     handle->ctx.sampling_rate = OUTPUT_SAMPLERATE;
+    handle->ctx.normalization_loudness =
+        MAX_LIMITED_NORMALIZATION_LOUDNESS;
     handle->ctx.status = IAMF_DECODER_STATUS_INIT;
     handle->ctx.mix_presentation_id = INVALID_ID;
     handle->limiter = audio_effect_peak_limiter_create();
