@@ -154,7 +154,7 @@ To produce binaural output, please download the following file and place it in y
               12 : Sound system mono (0+1+0)
                b : Binaural.
     -p [dB]      : Peak threshold in dB.
-    -l [LKFS]    : Normalization loudness in LKFS.
+    -l [LKFS]    : Normalization loudness(<0) in LKFS.
     -d [bit]     : Bit depth of WAVE output.
     -mp [id]     : Set mix presentation id.
     -m           : Generate a metadata file with the suffix .met.
