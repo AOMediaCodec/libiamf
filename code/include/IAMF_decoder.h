@@ -136,6 +136,8 @@ char *IAMF_decoder_get_codec_capability();
  *            adjusted to the setting target.
  * @param     [in] handle : iamf decoder handle.
  * @param     [in] loundness : target normalization loudness in LKFS.
+ *                             0 dose not do normalization,
+ *                             others(<0) target value of normalization.
  * @return    @ref IAErrCode.
  */
 int IAMF_decoder_set_normalization_loudness(IAMF_DecoderHandle handle,
@@ -225,7 +227,6 @@ typedef struct IAMF_extradata {
 
 /**
  * @brief     Set the start timestamp and time base to decoder.
- *            max frame size could be gotten.
  * @param     [in] handle : iamf decoder handle.
  * @param     [in] pts : the start timestamp.
  * @param     [in] time_base : the time base used for pts.

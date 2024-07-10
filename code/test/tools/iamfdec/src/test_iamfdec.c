@@ -101,7 +101,7 @@ static void print_usage(char *argv[]) {
   fprintf(stderr, "          12 : Sound system mono (0+1+0)\n");
   fprintf(stderr, "           b : Binaural.\n");
   fprintf(stderr, "-p [dB]      : Peak threshold in dB.\n");
-  fprintf(stderr, "-l [LKFS]    : Normalization loudness in LKFS.\n");
+  fprintf(stderr, "-l [LKFS]    : Normalization loudness(<0) in LKFS.\n");
   fprintf(stderr, "-d [bit]     : Bit depth of WAVE output.\n");
   fprintf(stderr, "-mp [id]     : Set mix presentation id.\n");
   fprintf(stderr,
