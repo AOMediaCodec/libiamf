@@ -8,7 +8,7 @@
 # source code in the PATENTS file, you can obtain it at
 # www.aomedia.org/license/patent.
 
-# proto-file: third_party/libiamf/cli/proto/user_metadata.proto
+# proto-file: third_party/iamf_tools/iamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
 test_vector_metadata {
@@ -17,6 +17,7 @@ test_vector_metadata {
     "AAC with an invalid roll distance."
   file_name_prefix: "test_000091"
   is_valid: false
+  validate_user_loudness: true
   mp4_fixed_timestamp: "2023-07-17 00:00:00"
   primary_tested_spec_sections: [
     "3.5/audio_roll_distance != -1",
@@ -26,7 +27,6 @@ test_vector_metadata {
 }
 
 ia_sequence_header_metadata {
-  ia_code: 0x69616d66  # "iamf"
   primary_profile: PROFILE_VERSION_SIMPLE
   additional_profile: PROFILE_VERSION_SIMPLE
 }
@@ -34,27 +34,15 @@ ia_sequence_header_metadata {
 codec_config_metadata {
   codec_config_id: 200
   codec_config {
-    codec_id: 0x6d703461  # "mp4a"
+    codec_id: CODEC_ID_AAC_LC
     num_samples_per_frame: 1024
     audio_roll_distance: 0
     decoder_config_aac: {
-      decoder_config_descriptor_tag: 0x04
-      object_type_indication: 0x40
-      stream_type: 0x05
-      upstream: 0
       buffer_size_db: 0
       max_bitrate: 0
       average_bit_rate: 0
       decoder_specific_info {
-        decoder_specific_info_descriptor_tag: 0x05
-        audio_object_type: 2
         sample_frequency_index: AAC_SAMPLE_FREQUENCY_INDEX_48000
-        channel_configuration: 2
-      }
-      ga_specific_config {
-        frame_length_flag: false
-        depends_on_core_coder: false
-        extension_flag: false
       }
       aac_encoder_metadata {
         bitrate_mode: 0  #  Constant bit rate mode.
@@ -78,7 +66,7 @@ audio_element_metadata {
     reserved: 0
     channel_audio_layer_configs: [
       {
-        loudspeaker_layout: 1  # Stereo
+        loudspeaker_layout: LOUDSPEAKER_LAYOUT_STEREO
         output_gain_is_present_flag: 0
         recon_gain_is_present_flag: 0
         reserved_a: 0
@@ -144,7 +132,7 @@ mix_presentation_metadata {
         }
       }
       loudness {
-        info_type: 0
+        info_type_bit_masks: []
         integrated_loudness: -5393
         digital_peak: -5394
       }

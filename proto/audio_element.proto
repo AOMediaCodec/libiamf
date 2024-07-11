@@ -27,7 +27,8 @@ message ParamDefinitionExtension {
 }
 
 message AudioElementParam {
-  optional uint32 param_definition_type = 1;
+  optional uint32 deprecated_param_definition_type = 1 [deprecated = true];
+  optional ParamDefinitionType param_definition_type = 5;
   oneof param_definition {
     DemixingParamDefinition demixing_param = 2;
     ReconGainParamDefinition recon_gain_param = 3;
@@ -35,8 +36,27 @@ message AudioElementParam {
   }
 }
 
+// Valid proto enums start at index 1, which are different from the
+// corresponding enums in C++, e.g. kLayoutMono = 0.
+enum LoudspeakerLayout {
+  LOUDSPEAKER_LAYOUT_INVALID = 0;
+  LOUDSPEAKER_LAYOUT_MONO = 1;
+  LOUDSPEAKER_LAYOUT_STEREO = 2;
+  LOUDSPEAKER_LAYOUT_5_1_CH = 3;
+  LOUDSPEAKER_LAYOUT_5_1_2_CH = 4;
+  LOUDSPEAKER_LAYOUT_5_1_4_CH = 5;
+  LOUDSPEAKER_LAYOUT_7_1_CH = 6;
+  LOUDSPEAKER_LAYOUT_7_1_2_CH = 7;
+  LOUDSPEAKER_LAYOUT_7_1_4_CH = 8;
+  LOUDSPEAKER_LAYOUT_3_1_2_CH = 9;
+  LOUDSPEAKER_LAYOUT_BINAURAL = 10;
+  LOUDSPEAKER_LAYOUT_RESERVED_BEGIN = 11;
+  LOUDSPEAKER_LAYOUT_RESERVED_END = 16;
+}
+
 message ChannelAudioLayerConfig {
-  optional uint32 loudspeaker_layout = 1;
+  optional uint32 deprecated_loudspeaker_layout = 1 [deprecated = true];
+  optional LoudspeakerLayout loudspeaker_layout = 10;
   optional uint32 output_gain_is_present_flag = 2;
   optional uint32 recon_gain_is_present_flag = 3;
   optional uint32 reserved_a = 4;

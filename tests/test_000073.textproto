@@ -8,7 +8,7 @@
 # source code in the PATENTS file, you can obtain it at
 # www.aomedia.org/license/patent.
 
-# proto-file: third_party/libiamf/cli/proto/user_metadata.proto
+# proto-file: third_party/iamf_tools/iamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
 test_vector_metadata {
@@ -17,6 +17,7 @@ test_vector_metadata {
     "being 5.1."
   file_name_prefix: "test_000073"
   is_valid: true
+  validate_user_loudness: true
   mp4_fixed_timestamp: "2023-05-12 00:00:00"
   primary_tested_spec_sections: [
     "3.6.2/channel_audio_layer_config",
@@ -30,7 +31,6 @@ test_vector_metadata {
 }
 
 ia_sequence_header_metadata {
-  ia_code: 0x69616d66  # "iamf"
   primary_profile: PROFILE_VERSION_SIMPLE
   additional_profile: PROFILE_VERSION_SIMPLE
 }
@@ -38,7 +38,7 @@ ia_sequence_header_metadata {
 codec_config_metadata {
   codec_config_id: 200
   codec_config {
-    codec_id: 0x664c6143  # "fLaC"
+    codec_id: CODEC_ID_FLAC
     num_samples_per_frame: 512
     audio_roll_distance: 0
     decoder_config_flac: {
@@ -51,13 +51,9 @@ codec_config_metadata {
         stream_info {
           minimum_block_size: 512
           maximum_block_size: 512
-          minimum_frame_size: 0
-          maximum_frame_size: 0
           sample_rate: 48000
-          number_of_channels: 1  # Flac interprets this as 2 channels.
           bits_per_sample: 15  # Flac interprets this as 16 bits.
           total_samples_in_stream: 647851
-          md5_signature: "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         }
       }
       flac_encoder_metadata {
@@ -76,7 +72,7 @@ audio_element_metadata {
   audio_substream_ids: [0, 1, 2, 3]
   num_parameters: 1
   audio_element_params {
-    param_definition_type: 1  #PARAMETER_DEFINITION_DEMIXING
+    param_definition_type: PARAM_DEFINITION_TYPE_DEMIXING
     demixing_param: {
       param_definition {
         parameter_id: 998  # Non-existent; default will be used
@@ -98,7 +94,7 @@ audio_element_metadata {
     reserved: 0
     channel_audio_layer_configs: [
       {
-        loudspeaker_layout: 1  # Stereo
+        loudspeaker_layout: LOUDSPEAKER_LAYOUT_STEREO
         output_gain_is_present_flag: 0
         recon_gain_is_present_flag: 0
         reserved_a: 0
@@ -106,7 +102,7 @@ audio_element_metadata {
         coupled_substream_count: 1
       },
       {
-        loudspeaker_layout: 2  # 5.1
+        loudspeaker_layout: LOUDSPEAKER_LAYOUT_5_1_CH
         output_gain_is_present_flag: 0
         recon_gain_is_present_flag: 0
         reserved_a: 0
@@ -172,7 +168,7 @@ mix_presentation_metadata {
         }
       }
       loudness {
-        info_type: 0
+        info_type_bit_masks: []
         integrated_loudness: -4618
         digital_peak: -630
       }
@@ -186,7 +182,7 @@ mix_presentation_metadata {
         }
       }
       loudness {
-        info_type: 0
+        info_type_bit_masks: []
         integrated_loudness: -4637
         digital_peak: -1009
       }

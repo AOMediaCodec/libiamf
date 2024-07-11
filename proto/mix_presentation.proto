@@ -31,6 +31,8 @@ enum HeadPhonesRenderingMode {
   HEADPHONES_RENDERING_MODE_INVALID = 0;
   HEADPHONES_RENDERING_MODE_STEREO = 1;
   HEADPHONES_RENDERING_MODE_BINAURAL = 2;
+  HEADPHONES_RENDERING_MODE_RESERVED_2 = 3;
+  HEADPHONES_RENDERING_MODE_RESERVED_3 = 4;
 }
 
 message RenderingConfig {
@@ -68,6 +70,7 @@ enum SoundSystem {
   SOUND_SYSTEM_10_2_7_0 = 11;
   SOUND_SYSTEM_11_2_3_0 = 12;
   SOUND_SYSTEM_12_0_1_0 = 13;
+  SOUND_SYSTEM_13_6_9_0 = 14;
 }
 
 message LoudspeakersSsConventionLayout {
@@ -80,10 +83,11 @@ message LoudspeakersReservedOrBinauralLayout {
 }
 
 enum LayoutType {
-  LAYOUT_TYPE_RESERVED_0 = 0;
-  LAYOUT_TYPE_RESERVED_1 = 1;
-  LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION = 2;
-  LAYOUT_TYPE_BINAURAL = 3;
+  LAYOUT_TYPE_INVALID = 0;
+  LAYOUT_TYPE_RESERVED_0 = 1;
+  LAYOUT_TYPE_RESERVED_1 = 2;
+  LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION = 3;
+  LAYOUT_TYPE_BINAURAL = 4;
 }
 
 message Layout {
@@ -96,7 +100,7 @@ message Layout {
 }
 
 enum AnchorType {
-  ANCHOR_TYPE_NOT_DEFINED = 0;
+  ANCHOR_TYPE_INVALID = 0;
   ANCHOR_TYPE_UNKNOWN = 1;
   ANCHOR_TYPE_DIALOGUE = 2;
   ANCHOR_TYPE_ALBUM = 3;
@@ -112,8 +116,21 @@ message AnchoredLoudness {
   repeated AnchorElement anchor_elements = 2;
 }
 
+enum LoudnessInfoTypeBitMask {
+  LOUDNESS_INFO_TYPE_INVALID = 0;
+  LOUDNESS_INFO_TYPE_TRUE_PEAK = 1;
+  LOUDNESS_INFO_TYPE_ANCHORED_LOUDNESS = 2;
+  LOUDNESS_INFO_TYPE_RESERVED_4 = 4;
+  LOUDNESS_INFO_TYPE_RESERVED_8 = 8;
+  LOUDNESS_INFO_TYPE_RESERVED_16 = 16;
+  LOUDNESS_INFO_TYPE_RESERVED_32 = 32;
+  LOUDNESS_INFO_TYPE_RESERVED_64 = 64;
+  LOUDNESS_INFO_TYPE_RESERVED_128 = 128;
+}
+
 message LoudnessInfo {
-  optional uint32 info_type = 1;
+  optional uint32 deprecated_info_type = 1 [deprecated = true];
+  repeated LoudnessInfoTypeBitMask info_type_bit_masks = 8 [packed = true];
   optional int32 integrated_loudness = 2;
   optional int32 digital_peak = 3;
   optional int32 true_peak = 4;

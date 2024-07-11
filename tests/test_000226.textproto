@@ -8,15 +8,16 @@
 # source code in the PATENTS file, you can obtain it at
 # www.aomedia.org/license/patent.
 
-# proto-file: third_party/libiamf/cli/proto/user_metadata.proto
+# proto-file: third_party/iamf_tools/iamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
 test_vector_metadata {
   human_readable_description:
     "A 2-layer IAMF stream scalable encoded with the "
-    "channel layouts: 5.1.2ch/7.1.4ch"
+    "channel layouts: 5.1.2ch/7.1.4ch."
   file_name_prefix: "test_000226"
   is_valid: true
+  validate_user_loudness: true
   mp4_fixed_timestamp: "2023-06-23 00:00:00"
   primary_tested_spec_sections: [
     "3.6.2/channel_audio_layer_config",
@@ -36,7 +37,6 @@ test_vector_metadata {
 }
 
 ia_sequence_header_metadata {
-  ia_code: 0x69616d66  # "iamf"
   primary_profile: PROFILE_VERSION_SIMPLE
   additional_profile: PROFILE_VERSION_SIMPLE
 }
@@ -44,7 +44,7 @@ ia_sequence_header_metadata {
 codec_config_metadata {
   codec_config_id: 200
   codec_config {
-    codec_id: 0x6970636d  # "ipcm"
+    codec_id: CODEC_ID_LPCM
     num_samples_per_frame: 1024
     audio_roll_distance: 0
     decoder_config_lpcm {
@@ -64,7 +64,7 @@ audio_element_metadata {
   audio_substream_ids: [0, 1, 2, 3, 4, 5, 6]
   num_parameters: 1
   audio_element_params {
-    param_definition_type: 1  #PARAMETER_DEFINITION_DEMIXING
+    param_definition_type: PARAM_DEFINITION_TYPE_DEMIXING
     demixing_param: {
       param_definition {
         parameter_id: 999  # Non-existent; default will be used
@@ -86,7 +86,7 @@ audio_element_metadata {
     reserved: 0
     channel_audio_layer_configs: [
       {
-        loudspeaker_layout: 3  # 5.1.2 [L5/R5, Ls5/Rs5, Ltf2/Rtf2, C, LFE]
+        loudspeaker_layout: LOUDSPEAKER_LAYOUT_5_1_2_CH  # [L5/R5, Ls5/Rs5, Ltf2/Rtf2, C, LFE]
         output_gain_is_present_flag: 1
         recon_gain_is_present_flag: 0
         reserved_a: 0
@@ -96,7 +96,7 @@ audio_element_metadata {
         output_gain: 359
       },
       {
-        loudspeaker_layout: 7  # 7.1.4 [Lss7/Rss7, Ltf4/Rtf4]
+        loudspeaker_layout: LOUDSPEAKER_LAYOUT_7_1_4_CH  # 7.1.4 [Lss7/Rss7, Ltf4/Rtf4]
         output_gain_is_present_flag: 1
         recon_gain_is_present_flag: 0
         reserved_a: 0
@@ -164,7 +164,7 @@ mix_presentation_metadata {
         }
       }
       loudness {
-        info_type: 0
+        info_type_bit_masks: []
         integrated_loudness: -4013
         digital_peak: 0
       }
@@ -178,7 +178,7 @@ mix_presentation_metadata {
         }
       }
       loudness {
-        info_type: 0
+        info_type_bit_masks: []
         integrated_loudness: -4017
         digital_peak: -694
       }
@@ -192,7 +192,7 @@ mix_presentation_metadata {
         }
       }
       loudness {
-        info_type: 0
+        info_type_bit_masks: []
         integrated_loudness: -4636
         digital_peak: -1009
       }
