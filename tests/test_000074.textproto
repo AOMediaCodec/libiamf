@@ -8,7 +8,7 @@
 # source code in the PATENTS file, you can obtain it at
 # www.aomedia.org/license/patent.
 
-# proto-file: third_party/libiamf/cli/proto/user_metadata.proto
+# proto-file: third_party/iamf_tools/iamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
 test_vector_metadata {
@@ -17,6 +17,7 @@ test_vector_metadata {
     "`ambisonics_mode` = `MONO`."
   file_name_prefix: "test_000074"
   is_valid: true
+  validate_user_loudness: true
   mp4_fixed_timestamp: "2023-05-12 00:00:00"
   primary_tested_spec_sections: [
     "3.6.3/ambisonics_mono_config",
@@ -27,7 +28,6 @@ test_vector_metadata {
 }
 
 ia_sequence_header_metadata {
-  ia_code: 0x69616d66  # "iamf"
   primary_profile: PROFILE_VERSION_SIMPLE
   additional_profile: PROFILE_VERSION_SIMPLE
 }
@@ -35,7 +35,7 @@ ia_sequence_header_metadata {
 codec_config_metadata {
   codec_config_id: 200
   codec_config {
-    codec_id: 0x664c6143  # "fLaC"
+    codec_id: CODEC_ID_FLAC
     num_samples_per_frame: 64
     audio_roll_distance: 0
     decoder_config_flac: {
@@ -48,13 +48,9 @@ codec_config_metadata {
         stream_info {
           minimum_block_size: 64
           maximum_block_size: 64
-          minimum_frame_size: 0
-          maximum_frame_size: 0
           sample_rate: 48000
-          number_of_channels: 1  # Flac interprets this as 2 channels.
           bits_per_sample: 15  # Flac interprets this as 16 bits.
           total_samples_in_stream: 24000
-          md5_signature: "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         }
       }
       flac_encoder_metadata {
@@ -137,7 +133,7 @@ mix_presentation_metadata {
         }
       }
       loudness {
-        info_type: 0
+        info_type_bit_masks: []
         integrated_loudness: -5209
         digital_peak: -4109
       }

@@ -14,6 +14,16 @@ package libiamf_proto;
 
 import "parameter_data.proto";
 
+// Valid proto enums start at index 1, which are different from the
+// corresponding enums in C++, e.g. kParameterDefinitionMixGain = 0.
+enum ParamDefinitionType {
+  PARAM_DEFINITION_TYPE_INVALID = 0;
+  PARAM_DEFINITION_TYPE_MIX_GAIN = 1;
+  PARAM_DEFINITION_TYPE_DEMIXING = 2;
+  PARAM_DEFINITION_TYPE_RECON_GAIN = 3;
+  PARAM_DEFINITION_TYPE_RESERVED_3 = 4;
+}
+
 message ParamDefinition {
   optional uint32 parameter_id = 1;
   optional uint32 parameter_rate = 2;
