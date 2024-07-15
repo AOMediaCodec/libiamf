@@ -21,7 +21,7 @@
 #include <fcntl.h>
 #include <io.h>
 #else
-#include <unistd.h>   
+#include <unistd.h>
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -738,6 +738,7 @@ static void write_mix_presentation_log(uint64_t idx, void* obu, char* log) {
 
     log += write_yaml_form(log, 2, "layouts:");
     for (uint64_t j = 0; j < submix->num_layouts; ++j) {
+      if (!submix->layouts[j]) continue;
       // layout
       log += write_yaml_form(log, 2, "- loudness_layout:");
 

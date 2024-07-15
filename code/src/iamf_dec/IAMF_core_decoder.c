@@ -93,8 +93,11 @@ static int iamf_core_decoder_convert_mono(IAMF_CoreDecoder *ths, float *out,
 
   memset(out, 0, sizeof(float) * frame_size * ths->ctx->channels);
   for (int i = 0; i < ths->ctx->channels; ++i) {
-    memcpy(&out[frame_size * i], &in[frame_size * map[i]],
-        frame_size * sizeof(float));
+    if (map[i] != 255)
+      memcpy(&out[frame_size * i], &in[frame_size * map[i]],
+             frame_size * sizeof(float));
+    else
+      memset(&out[frame_size * i], 0, frame_size * sizeof(float));
   }
   return IAMF_OK;
 }
@@ -261,10 +264,9 @@ int iamf_core_decoder_decode(IAMF_CoreDecoder *ths, uint8_t *buffer[],
     return ths->cdec->decode(ctx, buffer, size, count, out, frame_size);
 
   if (!ths->buffer) {
-    int c = ctx->coupled_streams + ctx->streams;
     float *block = 0;
 
-    block = IAMF_MALLOC(float, c *frame_size);
+    block = IAMF_MALLOC(float, ctx->channels *frame_size);
     if (!block) return IAMF_ERR_ALLOC_FAIL;
     ths->buffer = block;
   }
