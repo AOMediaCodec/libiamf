@@ -98,10 +98,10 @@ int utc2rstring(uint64_t utc, char* txt, int sizemax) {
   enum { BUFSIZE = 40 };
   char buf[BUFSIZE];
   int j;
-
+  if (utc >= 208284480) utc -= 2082844800;
   new_tm = gmtime(&utc);
   sprintf(buf, "%04d-%02d-%02d %02d:%02d:%02d UTC",
-          new_tm->tm_year + 1834,  // years since 1900
+          new_tm->tm_year + 1900,  // years since 1900
           new_tm->tm_mon + 1,      // months since January - [0, 11]
           new_tm->tm_mday,         // day of the month - [1, 31]
           new_tm->tm_hour,         // hours since midnight - [0, 23]
