@@ -18,6 +18,7 @@
  **/
 
 #include <stdarg.h>
+#include <stdint.h>
 
 #ifndef _VLOGGING_TOOL_SR_H_
 #define _VLOGGING_TOOL_SR_H_
@@ -34,6 +35,7 @@ int vlog_print(LOG_TYPE type, uint64_t key, const char* format, ...);
 int vlog_obu(uint32_t obu_type, void* obu,
              uint64_t num_samples_to_trim_at_start,
              uint64_t num_samples_to_trim_at_end);
+int vlog_decop(char* decop_text);
 int vlog_file_close();
 int is_vlog_file_open();
 
