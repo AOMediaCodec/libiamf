@@ -231,7 +231,7 @@ int write_prefix(LOG_TYPE type, char* buf) {
       len = sprintf(buf, "#1\n");
       break;
     case LOG_DECOP:
-      len = sprintf(buf, "$0\n");
+      len = sprintf(buf, "#2\n");
       break;
     default:
       break;
@@ -246,12 +246,8 @@ int write_postfix(LOG_TYPE type, char* buf) {
   switch (type) {
     case LOG_OBU:
     case LOG_MP4BOX:
-      len = sprintf(buf, "##\n");
-      break;
     case LOG_DECOP:
-      len = sprintf(buf, "$$\n");
-      break;
-    default:
+      len = sprintf(buf, "##\n");
       break;
   }
 
@@ -510,6 +506,7 @@ static void write_audio_element_log(uint64_t idx, void* obu, char* log) {
     log += write_yaml_form(log, 1, "audio_element_params:");
     for (uint64_t i = 0; i < ae_obu->nb_parameters; ++i) {
       ParameterBase* param = ae_obu->parameters[i];
+      if (!param) continue;
       log +=
           write_yaml_form(log, 1, "- param_definition_type: %llu", param->type);
 
@@ -570,9 +567,9 @@ static void write_audio_element_log(uint64_t idx, void* obu, char* log) {
   if (ae_obu->element_type == AUDIO_ELEMENT_TYPE_CHANNEL_BASED) {
     log += write_yaml_form(log, 1, "scalable_channel_layout_config:");
     log += write_yaml_form(log, 2, "num_layers: %u",
-                           ae_obu->channels_conf->num_layers);
+                           ae_obu->channels_conf->nb_layers);
     log += write_yaml_form(log, 2, "channel_audio_layer_configs:");
-    for (uint32_t i = 0; i < ae_obu->channels_conf->num_layers; ++i) {
+    for (uint32_t i = 0; i < ae_obu->channels_conf->nb_layers; ++i) {
       ChannelLayerConf* layer_conf = &ae_obu->channels_conf->layer_conf_s[i];
       log += write_yaml_form(log, 2, "- loudspeaker_layout: %u",
                              layer_conf->loudspeaker_layout);
@@ -982,4 +979,20 @@ int vlog_obu(uint32_t obu_type, void* obu,
   }
 
   return vlog_print(LOG_OBU, key, log);
+}
+
+int vlog_decop(char* decop_text) {
+  if (!is_vlog_file_open()) return -1;
+
+  static uint64_t decop_log_count = 0;
+  static char log_b[LOG_BUFFER_SIZE];
+  char* log = log_b;
+  uint64_t key = decop_log_count++;
+
+  log += write_prefix(LOG_DECOP, log);
+  log += write_yaml_form(log, 0, "DECOP_%llu:", decop_log_count);
+  log += write_yaml_form(log, 0, "- text: %s", decop_text);
+  write_postfix(LOG_DECOP, log);
+
+  return vlog_print(LOG_DECOP, key, log_b);
 }

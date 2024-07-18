@@ -449,7 +449,7 @@ IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
       ia_loge("Don't support parameter type %" PRIu64
               " in Audio Element %" PRId64
               ", parameter definition bytes %" PRIu64 ".",
-              elem->element_id, type, size);
+              type, elem->element_id, size);
       continue;
     }
 
@@ -1020,10 +1020,10 @@ IAMF_Parameter *iamf_parameter_new(IAMF_OBU *obu,
   para->id = bs_getAleb128(&b);
 
   if (!objParam || !objParam->param_base) {
-    ia_loge("parameter object(%" PRIu64
-            "): Invalid object parameters for Parameter "
-            "Object.",
-            para->id);
+    // ia_loge("parameter object(%" PRIu64
+    //         "): Invalid object parameters for Parameter "
+    //         "Object.",
+    //         para->id);
     goto parameter_fail;
   }
 
