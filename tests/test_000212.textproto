@@ -160,7 +160,7 @@ audio_frame_metadata {
   samples_to_trim_at_end: 648
   samples_to_trim_at_start: 312
   audio_element_id: 300
-  channel_ids: [2]  # Center
+  channel_ids: [2]  # Centre
   channel_labels: ["M"]
 }
 
