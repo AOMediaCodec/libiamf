@@ -330,7 +330,7 @@ IAMF_CodecConf *iamf_codec_conf_new(IAMF_OBU *obu) {
           conf->nb_samples_per_frame, conf->roll_distance);
 
   if (!_valid_codec(conf->codec_id)) {
-    ia_loge("codec configure object: id %" PRIu64 ", invalid codec %.4s",
+    ia_logw("codec configure object: id %" PRIu64 ", invalid codec %.4s",
             conf->codec_conf_id, (char *)&conf->codec_id);
     goto codec_conf_fail;
   }
@@ -446,7 +446,7 @@ IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
     } else {
       uint64_t size = bs_getAleb128(&b);
       bs_skipABytes(&b, size);
-      ia_loge("Don't support parameter type %" PRIu64
+      ia_logw("Don't support parameter type %" PRIu64
               " in Audio Element %" PRId64
               ", parameter definition bytes %" PRIu64 ".",
               type, elem->element_id, size);
@@ -596,7 +596,7 @@ IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
           conf->substream_count + conf->coupled_substream_count,
           conf->mapping_size);
     } else {
-      ia_loge("audio element object: id %" PRIu64
+      ia_logw("audio element object: id %" PRIu64
               ", invalid ambisonics mode %" PRIu64,
               elem->element_id, conf->ambisonics_mode);
       goto element_fail;
@@ -604,7 +604,7 @@ IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
   } else {
     uint64_t size = bs_getAleb128(&b);
     bs_skipABytes(&b, size);
-    ia_loge("audio element object: id %" PRIu64
+    ia_logw("audio element object: id %" PRIu64
             ", Don't support type %u, element config "
             "bytes %" PRIu64,
             elem->element_id, elem->element_type, size);
@@ -712,11 +712,12 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
           mixp->mix_presentation_id, mixp->num_labels, mixp->num_sub_mixes);
 
   if (!mixp->num_sub_mixes) {
-    ia_loge("Mix Presentation Object: num_sub_mixes should not be set to 0.");
+    ia_logw("Mix Presentation Object: num_sub_mixes should not be set to 0.");
     goto mix_presentation_fail;
-  } else if (mixp->num_sub_mixes > 1) {
+  } else if (mixp->num_sub_mixes > IAMF_MIX_PRESENTATION_MAX_SUBS) {
     ia_logw(
-        "Mix Presentation Object: Do not support num_sub_mixes more than 1.");
+        "Mix Presentation Object: Do not support num_sub_mixes more than %u.",
+        IAMF_MIX_PRESENTATION_MAX_SUBS);
     goto mix_presentation_fail;
   }
 
