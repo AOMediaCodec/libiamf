@@ -1203,9 +1203,14 @@ static int iamf_database_mix_presentation_is_valid(IAMF_DataBase *db,
   int channels = 0;
   ElementItem *pi = 0;
 
-  if (mp->num_sub_mixes < IAMF_MIX_PRESENTATION_MAX_SUBS) return 0;
   sub = mp->sub_mixes;
-  if (sub->nb_elements > _profile_limit[db->profile].max_elements) return 0;
+  if (sub->nb_elements > _profile_limit[db->profile].max_elements) {
+    ia_logw("Too many elements %" PRIu64
+            " (should be <= %u) in mix presentation %" PRIu64 " for profile %u",
+            sub->nb_elements, _profile_limit[db->profile].max_elements,
+            mp->mix_presentation_id, db->profile);
+    return 0;
+  }
 
   for (int e = 0; e < sub->nb_elements; ++e) {
     econf = &sub->conf_s[e];
@@ -3014,6 +3019,7 @@ uint32_t iamf_decoder_internal_read_descriptors_OBUs(IAMF_DecoderHandle handle,
         }
       }
     } else {
+      handle->ctx.flags |= IAMF_FLAG_FRAME_START;
       if (!(~handle->ctx.flags & IAMF_FLAG_DESCRIPTORS))
         handle->ctx.flags |= IAMF_FLAG_CONFIG;
       break;
@@ -3128,7 +3134,7 @@ int32_t iamf_decoder_internal_add_descrptor_OBU(IAMF_DecoderHandle handle,
   db = &handle->ctx.db;
   obj = IAMF_object_new(obu, 0);
   if (!obj) {
-    ia_loge("fail to new object for %s(%d)", IAMF_OBU_type_string(obu->type),
+    ia_logw("fail to new object for %s(%d)", IAMF_OBU_type_string(obu->type),
             obu->type);
     return IAMF_ERR_ALLOC_FAIL;
   }
@@ -3920,8 +3926,7 @@ IAMF_DecoderHandle IAMF_decoder_open(void) {
     handle->ctx.threshold_db = LIMITER_MaximumTruePeak;
     handle->ctx.loudness = 1.0f;
     handle->ctx.sampling_rate = OUTPUT_SAMPLERATE;
-    handle->ctx.normalization_loudness =
-        MAX_LIMITED_NORMALIZATION_LOUDNESS;
+    handle->ctx.normalization_loudness = MAX_LIMITED_NORMALIZATION_LOUDNESS;
     handle->ctx.status = IAMF_DECODER_STATUS_INIT;
     handle->ctx.mix_presentation_id = INVALID_ID;
     handle->limiter = audio_effect_peak_limiter_create();
@@ -4061,10 +4066,10 @@ int iamf_decoder_internal_configure(IAMF_DecoderHandle handle,
     } else {
       ret = IAMF_ERR_INTERNAL;
       if (ctx->mix_presentation_id != INVALID_ID)
-        ia_loge("Fail to find the mix presentation %" PRId64 " obu.",
+        ia_logw("Fail to find the mix presentation %" PRId64 " obu.",
                 ctx->mix_presentation_id);
       else
-        ia_loge("Fail to find the valid mix presentation obu, try again.");
+        ia_logw("Fail to find the valid mix presentation obu, try again.");
     }
   }
 
@@ -4078,6 +4083,10 @@ int IAMF_decoder_configure(IAMF_DecoderHandle handle, const uint8_t *data,
 
   if (rsize) {
     *rsize = rs;
+    if ((ret != IAMF_OK && ret != IAMF_ERR_BUFFER_TOO_SMALL) ||
+        (ret == IAMF_ERR_BUFFER_TOO_SMALL &&
+         (handle->ctx.flags & IAMF_FLAG_FRAME_START)))
+      ia_loge("fail to configure decoder.");
     return ret;
   }
 
@@ -4089,6 +4098,8 @@ int IAMF_decoder_configure(IAMF_DecoderHandle handle, const uint8_t *data,
     ia_logd("configure with complete descriptor OBUs.");
     ret = iamf_decoder_internal_configure(handle, 0, 0, 0);
   }
+
+  if (ret != IAMF_OK) ia_loge("fail to configure decoder.");
 
   return ret;
 }
