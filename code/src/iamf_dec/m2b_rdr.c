@@ -64,7 +64,7 @@ void IAMF_element_renderer_deinit_M2B(binaural_filter_t* binaural_f,
     for (i = 0; i < N_SOURCE_ELM; i++) {
       if (binaural_f->m2b_elm_id[i] == elm_id) {
         if (binaural_f->m2b_source_id[i] >= 0) {
-          DestoryBearChannel(binaural_f->m2b_api, binaural_f->m2b_source_id[i]);
+          DestroyBearChannel(binaural_f->m2b_api, binaural_f->m2b_source_id[i]);
           binaural_f->m2b_elm_id[i] = -1;
           binaural_f->m2b_source_id[i] = -1;
         }
@@ -76,7 +76,7 @@ void IAMF_element_renderer_deinit_M2B(binaural_filter_t* binaural_f,
       }
     }
     if (i == N_SOURCE_ELM) {
-      DestoryBearAPI(binaural_f->m2b_api);
+      DestroyBearAPI(binaural_f->m2b_api);
       binaural_f->m2b_init = 0;
     }
   }

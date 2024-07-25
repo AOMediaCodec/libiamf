@@ -39,7 +39,7 @@ extern "C" {
 #endif
 
 EXPORT_API void* CreateBearAPI(char* tf_data_path);
-EXPORT_API void DestoryBearAPI(void* pv_thiz);
+EXPORT_API void DestroyBearAPI(void* pv_thiz);
 EXPORT_API int ConfigureBearDirectSpeakerChannel(void* pv_thiz, int layout,
                                                  size_t nsample_per_frame,
                                                  int sample_rate);
@@ -49,7 +49,7 @@ EXPORT_API int SetBearDirectSpeakerChannel(void* pv_thiz, int source_id,
 // EXPORT_API void SetBearObjectChannel(...);
 // EXPORT_API int ConfigureBearHOAChannel(...);
 // EXPORT_API void SetBearHOAChannel(...);
-EXPORT_API void DestoryBearChannel(void* pv_thiz, int source_id);
+EXPORT_API void DestroyBearChannel(void* pv_thiz, int source_id);
 EXPORT_API int GetBearRenderedAudio(void* pv_thiz, int source_id, float** out);
 
 #ifdef __cplusplus

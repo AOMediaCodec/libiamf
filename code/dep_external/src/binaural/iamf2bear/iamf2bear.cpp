@@ -154,7 +154,7 @@ extern "C" EXPORT_API void *CreateBearAPI(char *tf_data_path)
   }
 }
 
-extern "C" EXPORT_API void DestoryBearAPI(void *pv_thiz)
+extern "C" EXPORT_API void DestroyBearAPI(void *pv_thiz)
 {
   int i;
   BearAPIImplement *thiz = (BearAPIImplement *)pv_thiz;
@@ -374,7 +374,7 @@ extern "C" EXPORT_API int SetBearDirectSpeakerChannel(void *pv_thiz, int source_
   return (-1);
 }
 
-extern "C" EXPORT_API void DestoryBearChannel(void *pv_thiz, int source_id)
+extern "C" EXPORT_API void DestroyBearChannel(void *pv_thiz, int source_id)
 {
   BearAPIImplement *thiz = (BearAPIImplement *)pv_thiz;
 
