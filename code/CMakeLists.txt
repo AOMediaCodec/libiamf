@@ -8,7 +8,7 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 option(BUILD_SHARED_LIBS "Build shared library" ON)
 
-add_definitions(-DIAMF_RIMARY_PROFILE=001)
+add_definitions(-DIAMF_PRIMARY_PROFILE=001)
 add_definitions(-DIAMF_ADDITIONAL_PROFILE=001)
 
 set(CODEC_LIB_DIR  "${PROJECT_SOURCE_DIR}/dep_codecs/lib")
@@ -26,6 +26,13 @@ option(CODEC_CAP "Codec capability check" ON)
 option(MULTICHANNEL_BINAURALIZER "Enable multichannel binaural rendering" OFF)
 option(HOA_BINAURALIZER "Enable HOA binaural rendering" OFF)
 
+if (CMAKE_BUILD_TYPE)
+  string(TOLOWER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
+  if ("${BUILD_TYPE}" STREQUAL "debug")
+    add_definitions(-DIA_DBG)
+    message(STATUS "Debug mode.")
+  endif()
+endif()
 
 if(MULTICHANNEL_BINAURALIZER)
   message(STATUS "Enable multichannel binaural rendering")
