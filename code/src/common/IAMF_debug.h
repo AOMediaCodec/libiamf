@@ -48,7 +48,7 @@
 #define IA_DBG_D 0x08
 #define IA_DBG_T 0x10
 
-#define IA_DBG_LEVEL 0
+#define IA_DBG_LEVEL (IA_DBG_E | IA_DBG_W)
 
 #ifdef IA_DEV
 #include "IAMF_debug_dev.h"
