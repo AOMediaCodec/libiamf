@@ -13,8 +13,8 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A 2-layer IAMF stream encoded using Opus with the last layer "
-    "being 5.1 and a 32-bit input wav file."
+    "A 2-layer IAMF stream encoded by normalizing the input 32-bit wav file to "
+    "the range [-1.0, 1.0] then encoding it with the Opus float API."
   file_name_prefix: "test_000098"
   is_valid: true
   validate_user_loudness: true
@@ -29,6 +29,7 @@ test_vector_metadata {
     "3.11.1/OPUS Specific"
   ]
   base_test: "test_000049"
+  output_wav_file_bit_depth_override: 16
 }
 
 ia_sequence_header_metadata {
@@ -49,7 +50,7 @@ codec_config_metadata {
       opus_encoder_metadata {
         target_bitrate_per_channel: 48000
         application: APPLICATION_AUDIO
-        use_float_api: false
+        use_float_api: true
       }
     }
   }

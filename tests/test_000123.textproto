@@ -15,9 +15,9 @@ test_vector_metadata {
   human_readable_description:
     "A 7.1.4 + TOA IAMF stream encoded using Opus and with two Mix "
     "Presentations. The first Mix Presentation uses both Audio Elements. The "
-    "second Mix Presentation uses only the 7.1.4 Audio Element. The primary "
+    "second Mix Presentation uses only the TOA Audio Element. The primary "
     "profile is set to Base and the additional profile is set to "
-    " Base-Enhanced."
+    "Base-Enhanced."
   file_name_prefix: "test_000123"
   is_valid: true
   validate_user_loudness: true
