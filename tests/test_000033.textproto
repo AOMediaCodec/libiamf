@@ -17,6 +17,7 @@ test_vector_metadata {
     "libopus."
   file_name_prefix: "test_000033"
   is_valid: true
+  is_valid_to_decode: true
   validate_user_loudness: true
   mp4_fixed_timestamp: "2023-05-05 00:00:00"
   primary_tested_spec_sections: [

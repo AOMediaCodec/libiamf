@@ -17,6 +17,7 @@ test_vector_metadata {
     "`ambisonics_mode` = `MONO` and a binaural layout."
   file_name_prefix: "test_000096"
   is_valid: true
+  is_valid_to_decode: true
   validate_user_loudness: true
   mp4_fixed_timestamp: "2023-07-17 00:00:00"
   primary_tested_spec_sections: [

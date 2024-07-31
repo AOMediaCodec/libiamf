@@ -17,6 +17,7 @@ test_vector_metadata {
     "the range [-1.0, 1.0] then encoding it with the Opus float API."
   file_name_prefix: "test_000098"
   is_valid: true
+  is_valid_to_decode: true
   validate_user_loudness: true
   mp4_fixed_timestamp: "2023-11-14 00:00:00"
   primary_tested_spec_sections: [

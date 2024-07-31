@@ -17,6 +17,7 @@ test_vector_metadata {
     "trimming."
   file_name_prefix: "test_000005"
   is_valid: true
+  is_valid_to_decode: true
   validate_user_loudness: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
   primary_tested_spec_sections: ["3.2/num_samples_to_trim_at_end"]

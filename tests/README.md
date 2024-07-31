@@ -13,10 +13,16 @@ several files associated with it.
 
 ## .textproto files
 
-These file describe metadata about the test vector.
+Theses file describe metadata about the test vector to encode an
+[IA Sequence](https://aomediacodec.github.io/iamf/#standalone-ia-sequence).
 
--   `is_valid`: True for conformant bitstreams ("should-pass"). False for
-    non-conformant bitstreams ("should-fail").
+-   `is_valid`: True when the encoder can produce an IA Sequence where all mixes
+    would be understood by a compliant decoder. False when one or more mixes
+    exercise fields or features which would cause mixes to be ignored.
+-   `is_valid_to_decode`: True when an IAMF-compliant decoder could decode at
+    least least one mix of the associated IA Sequence ("should-pass"). False
+    when all mixes are non-conformant and would fail to be decoded
+    ("should-false").
 -   `human_readable_descriptions`: A short description of what is being tested
     and why.
 -   `mp4_fixed_timestamp`: The timestamp within the MP4 file. Can be safely

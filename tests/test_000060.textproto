@@ -15,6 +15,7 @@ test_vector_metadata {
   human_readable_description: "A stereo IAMF stream with two language labels."
   file_name_prefix: "test_000060"
   is_valid: true
+  is_valid_to_decode: true
   validate_user_loudness: true
   mp4_fixed_timestamp: "2023-06-20 00:00:00"
   primary_tested_spec_sections: [

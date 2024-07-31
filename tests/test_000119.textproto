@@ -19,6 +19,7 @@ test_vector_metadata {
     "imaginary `codec_id` uses the same syntax as LPCM."
   file_name_prefix: "test_000119"
   is_valid: false
+  is_valid_to_decode: false
   partition_mix_gain_parameter_blocks: false
   validate_user_loudness: true
   mp4_fixed_timestamp: "2024-07-17 00:00:00"
