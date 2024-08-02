@@ -13,11 +13,12 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A stereo IAMF stream. It is invalid because it has one frame of samples "
-    "fully trimmed off the end."
+    "A stereo IAMF stream. It has one frame of samples fully trimmed off the "
+    "end."
   file_name_prefix: "test_000017"
+  # TODO(b/356905554): Allow encoding fully trimmed frames.
   is_valid: false
-  is_valid_to_decode: false
+  is_valid_to_decode: true
   validate_user_loudness: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
   primary_tested_spec_sections: [
