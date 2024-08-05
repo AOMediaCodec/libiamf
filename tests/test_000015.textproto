@@ -8,22 +8,22 @@
 # source code in the PATENTS file, you can obtain it at
 # www.aomedia.org/license/patent.
 
-# proto-file: third_party/libiamf/cli/proto/user_metadata.proto
+# proto-file: third_party/iamf_tools/iamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
 test_vector_metadata {
   human_readable_description:
     "A stereo IAMF stream that includes an extra parameter block which is not "
-    "used by any audio element."
+    "used by any audio element or mix presentation."
   file_name_prefix: "test_000015"
   is_valid: true
+  validate_user_loudness: true
   mp4_fixed_timestamp: "2023-04-19 00:00:00"
   primary_tested_spec_sections: ["3.8/parameter_id"]
   base_test: "test_000005"
 }
 
 ia_sequence_header_metadata {
-  ia_code: 0x69616d66  # "iamf"
   primary_profile: PROFILE_VERSION_SIMPLE
   additional_profile: PROFILE_VERSION_SIMPLE
 }
@@ -31,7 +31,7 @@ ia_sequence_header_metadata {
 codec_config_metadata {
   codec_config_id: 200
   codec_config {
-    codec_id: 0x6970636d  # "ipcm"
+    codec_id: CODEC_ID_LPCM
     num_samples_per_frame: 64
     audio_roll_distance: 0
     decoder_config_lpcm {
@@ -55,7 +55,7 @@ audio_element_metadata {
     reserved: 0
     channel_audio_layer_configs: [
       {
-        loudspeaker_layout: 1  # Stereo
+        loudspeaker_layout: LOUDSPEAKER_LAYOUT_STEREO
         output_gain_is_present_flag: 0
         recon_gain_is_present_flag: 0
         reserved_a: 0
@@ -121,7 +121,7 @@ mix_presentation_metadata {
         }
       }
       loudness {
-        info_type: 0
+        info_type_bit_masks: []
         integrated_loudness: -13733
         digital_peak: -12879
       }
@@ -158,24 +158,20 @@ parameter_block_metadata {
   ]
 }
 
-parameter_block_metadata {
-  parameter_id: 101
-  start_timestamp: 0
-  duration: 8000
-  num_subblocks: 1
-  constant_subblock_duration: 8000
-  subblocks: [
-    {
-      mix_gain_parameter_data {
-        animation_type: ANIMATE_STEP
-        param_data {
-          step {
-            start_point_value: 1
-          }
-        }
-      }
-    }
-  ]
+arbitrary_obu_metadata {
+  insertion_hook: INSERTION_HOOK_AFTER_DESCRIPTORS
+  obu_type: OBU_IA_PARAMETER_BLOCK
+  obu_header {
+    obu_redundant_copy: false
+    obu_trimming_status_flag: false
+    obu_extension_flag: false
+  }
+
+  # `parameter_id` = 0x65`.
+  # `animation_type` = 0x00`.
+  # `param_data` = 0xbbcc`.
+  payload: "\x65\x00\xbb\xcc"
+
 }
 
 temporal_delimiter_metadata {

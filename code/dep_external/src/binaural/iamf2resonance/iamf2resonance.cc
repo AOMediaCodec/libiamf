@@ -38,7 +38,7 @@ namespace vraudio {
     // class construction.
     //static const SourceId ` = -1;
 
-    extern "C" EXPORT_API void DestoryResonanceAudioApi2(void* pv_thiz)
+    extern "C" EXPORT_API void DestroyResonanceAudioApi2(void* pv_thiz)
     {
         ResonanceAudioApi* thiz = (ResonanceAudioApi*)pv_thiz;
         delete thiz;

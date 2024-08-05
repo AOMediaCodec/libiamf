@@ -8,7 +8,7 @@
 # source code in the PATENTS file, you can obtain it at
 # www.aomedia.org/license/patent.
 
-# proto-file: third_party/libiamf/cli/proto/user_metadata.proto
+# proto-file: third_party/iamf_tools/iamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
 test_vector_metadata {
@@ -17,6 +17,7 @@ test_vector_metadata {
     "blocks."
   file_name_prefix: "test_000222"
   is_valid: true
+  validate_user_loudness: true
   mp4_fixed_timestamp: "2023-06-23 00:00:00"
   primary_tested_spec_sections: [
     "3.6.2/loudspeaker_layout == 7.1.4",
@@ -29,10 +30,10 @@ test_vector_metadata {
     "9.1.2.1/Annex A2.1: Down-mix parameter and Loudness"
   ]
   base_test: "test_000221"
+  output_wav_file_bit_depth_override: 16
 }
 
 ia_sequence_header_metadata {
-  ia_code: 0x69616d66  # "iamf"
   primary_profile: PROFILE_VERSION_SIMPLE
   additional_profile: PROFILE_VERSION_SIMPLE
 }
@@ -40,19 +41,17 @@ ia_sequence_header_metadata {
 codec_config_metadata {
   codec_config_id: 200
   codec_config {
-    codec_id: 0x4f707573  # "Opus"
+    codec_id: CODEC_ID_OPUS
     num_samples_per_frame: 960
     audio_roll_distance: -4
     decoder_config_opus {
       version: 1
-      output_channel_count: 2
       pre_skip: 312
       input_sample_rate: 48000
-      output_gain: 0
-      mapping_family: 0
       opus_encoder_metadata {
         target_bitrate_per_channel: 48000
         application: APPLICATION_AUDIO
+        use_float_api: false
       }
     }
   }
@@ -67,7 +66,7 @@ audio_element_metadata {
   audio_substream_ids: [0, 1, 2, 3, 4, 5, 6]
   num_parameters: 1
   audio_element_params {
-    param_definition_type: 1  #PARAMETER_DEFINITION_DEMIXING
+    param_definition_type: PARAM_DEFINITION_TYPE_DEMIXING
     demixing_param: {
       param_definition {
         parameter_id: 100  # demixing parameter will be used.
@@ -89,7 +88,7 @@ audio_element_metadata {
     reserved: 0
     channel_audio_layer_configs: [
       {
-        loudspeaker_layout: 7  # 7.1.4
+        loudspeaker_layout: LOUDSPEAKER_LAYOUT_7_1_4_CH
         output_gain_is_present_flag: 0
         recon_gain_is_present_flag: 0
         reserved_a: 0
@@ -155,7 +154,7 @@ mix_presentation_metadata {
         }
       }
       loudness {
-        info_type: 0
+        info_type_bit_masks: []
         integrated_loudness: -4013
         digital_peak: 0
       }
@@ -169,7 +168,7 @@ mix_presentation_metadata {
         }
       }
       loudness {
-        info_type: 0
+        info_type_bit_masks: []
         integrated_loudness: -3695
         digital_peak: -798
       }
@@ -183,7 +182,7 @@ mix_presentation_metadata {
         }
       }
       loudness {
-        info_type: 0
+        info_type_bit_masks: []
         integrated_loudness: -3839
         digital_peak: 0
       }
@@ -197,7 +196,7 @@ mix_presentation_metadata {
         }
       }
       loudness {
-        info_type: 0
+        info_type_bit_masks: []
         integrated_loudness: -4637
         digital_peak: -1009
       }

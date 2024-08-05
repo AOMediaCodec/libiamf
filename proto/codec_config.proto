@@ -15,7 +15,7 @@ package libiamf_proto;
 import "obu_header.proto";
 
 // Valid proto enums start at index 1, which are different from the
-// corresponding enums in C, e.g. kLpcmBigEndian = 0.
+// corresponding enums in C++, e.g. kLpcmBigEndian = 0.
 enum LpcmFormatFlags {
   LPCM_INVALID = 0;
   LPCM_BIG_ENDIAN = 1;
@@ -39,19 +39,21 @@ enum OpusApplicationFlag {
 message OpusEncoderMetadata {
   optional int32 target_bitrate_per_channel = 1;
   optional OpusApplicationFlag application = 2;
+  optional bool use_float_api = 3 [default = true];
+  optional float coupling_rate_adjustment = 4 [default = 1.0];
 }
 
 message OpusDecoderConfig {
   optional uint32 version = 1;
-  optional uint32 output_channel_count = 2;
+  optional uint32 output_channel_count = 2 [default = 2];
   optional uint32 pre_skip = 3;
   optional uint32 input_sample_rate = 4;
-  optional int32 output_gain = 5;
-  optional uint32 mapping_family = 6;
+  optional int32 output_gain = 5 [default = 0];
+  optional uint32 mapping_family = 6 [default = 0];
   optional OpusEncoderMetadata opus_encoder_metadata = 7;
 }
 
-enum AacSampleFrequencyIndex {
+enum SampleFrequencyIndex {
   AAC_SAMPLE_FREQUENCY_INDEX_INVALID = 0;
   AAC_SAMPLE_FREQUENCY_INDEX_96000 = 1;
   AAC_SAMPLE_FREQUENCY_INDEX_88200 = 2;
@@ -80,23 +82,23 @@ message AacEncoderMetadata {
 
 message AacDecoderSpecificInfo {
   optional uint32 decoder_specific_info_descriptor_tag = 5 [default = 0x05];
-  optional uint32 audio_object_type = 1;
-  optional AacSampleFrequencyIndex sample_frequency_index = 2;
+  optional uint32 audio_object_type = 1 [default = 2];
+  optional SampleFrequencyIndex sample_frequency_index = 2;
   optional uint32 sampling_frequency = 3;
-  optional uint32 channel_configuration = 4;
+  optional uint32 channel_configuration = 4 [default = 2];
 }
 
 message AacGaSpecificConfig {
-  optional bool frame_length_flag = 1;
-  optional bool depends_on_core_coder = 2;
-  optional bool extension_flag = 3;
+  optional bool frame_length_flag = 1 [default = false];
+  optional bool depends_on_core_coder = 2 [default = false];
+  optional bool extension_flag = 3 [default = false];
 }
 
 message AacDecoderConfig {
   optional uint32 decoder_config_descriptor_tag = 11 [default = 0x04];
-  optional uint32 object_type_indication = 1;
-  optional uint32 stream_type = 2;
-  optional bool upstream = 3;
+  optional uint32 object_type_indication = 1 [default = 0x40];
+  optional uint32 stream_type = 2 [default = 5];
+  optional bool upstream = 3 [default = false];
   optional bool reserved = 4;
   optional uint32 buffer_size_db = 5;
   optional uint32 max_bitrate = 6;
@@ -126,13 +128,15 @@ message FlacMetaBlockHeader {
 message FlacMetaBlockStreamInfo {
   optional uint32 minimum_block_size = 1;
   optional uint32 maximum_block_size = 2;
-  optional uint32 minimum_frame_size = 3;
-  optional uint32 maximum_frame_size = 4;
+  optional uint32 minimum_frame_size = 3 [default = 0];
+  optional uint32 maximum_frame_size = 4 [default = 0];
   optional uint32 sample_rate = 5;
-  optional uint32 number_of_channels = 6;
+  optional uint32 number_of_channels = 6 [default = 1];
   optional uint32 bits_per_sample = 7;
   optional uint64 total_samples_in_stream = 8;
-  optional bytes md5_signature = 9;
+  optional bytes md5_signature = 9
+      [default =
+           "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"];
 }
 
 // Settings to configure `libflac`.
@@ -153,10 +157,19 @@ message FlacDecoderConfig {
   optional FlacEncoderMetadata flac_encoder_metadata = 4;
 }
 
+enum CodecId {
+  CODEC_ID_INVALID = 0;
+  CODEC_ID_OPUS = 0x4f707573;    // "Opus"
+  CODEC_ID_LPCM = 0x6970636d;    // "ipcm"
+  CODEC_ID_AAC_LC = 0x6d703461;  // "mp4a"
+  CODEC_ID_FLAC = 0x664c6143;    // "fLaC"
+}
+
 message CodecConfig {
-  optional uint32 codec_id = 1;
+  optional uint32 deprecated_codec_id = 1 [deprecated = true];
+  optional CodecId codec_id = 10;
   optional uint32 num_samples_per_frame = 2;
-  reserved 3;
+  reserved 3, 4;
   optional int32 audio_roll_distance = 9;
   oneof decoder_config {
     LpcmDecoderConfig decoder_config_lpcm = 5;

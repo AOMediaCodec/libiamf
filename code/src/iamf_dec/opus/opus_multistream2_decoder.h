@@ -50,7 +50,7 @@ int opus_multistream2_decode(OpusMS2Decoder *st, uint8_t *buffer[],
                              uint32_t len[], void *pcm, uint32_t frame_size);
 
 /**
- * @brief     Destory an opus decoder.
+ * @brief     Destroy an opus decoder.
  * @param     [in] st : opus decoder handle.
  */
 void opus_multistream2_decoder_destroy(OpusMS2Decoder *st);

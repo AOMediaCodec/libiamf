@@ -54,6 +54,13 @@ enum InsertionHook {
   INSERTION_HOOK_INVALID = 0;
   INSERTION_HOOK_BEFORE_DESCRIPTORS = 1;
   INSERTION_HOOK_AFTER_DESCRIPTORS = 2;
+  INSERTION_HOOK_AFTER_IA_SEQUENCE_HEADER = 3;
+  INSERTION_HOOK_AFTER_CODEC_CONFIGS = 4;
+  INSERTION_HOOK_AFTER_AUDIO_ELEMENTS = 5;
+  INSERTION_HOOK_AFTER_MIX_PRESENTATIONS = 6;
+  INSERTION_HOOK_BEFORE_PARAMETER_BLOCKS_AT_TICK = 7;
+  INSERTION_HOOK_AFTER_PARAMETER_BLOCKS_AT_TICK = 8;
+  INSERTION_HOOK_AFTER_AUDIO_FRAMES_AT_TICK = 9;
 }
 
 message ArbitraryObuMetadata {
@@ -61,4 +68,9 @@ message ArbitraryObuMetadata {
   optional ArbitraryObuType obu_type = 4;
   optional ObuHeaderMetadata obu_header = 2;
   optional bytes payload = 3;
+  // Used to force the bitstream to be invalid when this OBU is inserted.
+  optional bool invalidates_bitstream = 5;
+  // Used to control the temporal unit when using the *_AT_TICK insertion hooks.
+  // Ignored otherwise.
+  optional int64 insertion_tick = 6;
 }

@@ -153,7 +153,7 @@ EXPORT_API void* CreateResonanceAudioApi2(size_t num_channels,
 //  // class construction.
 // static const SourceId kInvalidSourceId = -1;
 
-EXPORT_API void DestoryResonanceAudioApi2(void* pv_thiz);
+EXPORT_API void DestroyResonanceAudioApi2(void* pv_thiz);
 
 // Renders and outputs an interleaved output buffer in float format.
 //

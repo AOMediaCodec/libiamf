@@ -85,7 +85,7 @@ void IAMF_element_renderer_deinit_H2B(binaural_filter_t* binaural_f,
       }
     }
     if (i == N_SOURCE_ELM) {
-      DestoryResonanceAudioApi2(binaural_f->h2b_api);
+      DestroyResonanceAudioApi2(binaural_f->h2b_api);
       binaural_f->h2b_init = 0;
     }
   }

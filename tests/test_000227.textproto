@@ -8,15 +8,16 @@
 # source code in the PATENTS file, you can obtain it at
 # www.aomedia.org/license/patent.
 
-# proto-file: third_party/libiamf/cli/proto/user_metadata.proto
+# proto-file: third_party/iamf_tools/iamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
 test_vector_metadata {
   human_readable_description:
     "A 2-layer IAMF stream scalable encoded using Opus with the "
-    "channel layouts: 3.1.2ch/5.1.2ch"
+    "channel layouts: 3.1.2ch/5.1.2ch."
   file_name_prefix: "test_000227"
   is_valid: true
+  validate_user_loudness: true
   mp4_fixed_timestamp: "2023-06-27 00:00:00"
   primary_tested_spec_sections: [
     "3.6/num_parameters",
@@ -38,11 +39,11 @@ test_vector_metadata {
     "9.1.2.4/Annex A2.4: Channel Group Generation Rule"
   ]
   base_test: "test_000224"
+  output_wav_file_bit_depth_override: 16
   override_computed_recon_gains: true
 }
 
 ia_sequence_header_metadata {
-  ia_code: 0x69616d66  # "iamf"
   primary_profile: PROFILE_VERSION_SIMPLE
   additional_profile: PROFILE_VERSION_SIMPLE
 }
@@ -50,19 +51,17 @@ ia_sequence_header_metadata {
 codec_config_metadata {
   codec_config_id: 200
   codec_config {
-    codec_id: 0x4f707573  # "Opus"
+    codec_id: CODEC_ID_OPUS
     num_samples_per_frame: 960
     audio_roll_distance: -4
     decoder_config_opus {
       version: 1
-      output_channel_count: 2
       pre_skip: 312
       input_sample_rate: 48000
-      output_gain: 0
-      mapping_family: 0
       opus_encoder_metadata {
         target_bitrate_per_channel: 96000
         application: APPLICATION_AUDIO
+        use_float_api: false
       }
     }
   }
@@ -77,7 +76,7 @@ audio_element_metadata {
   audio_substream_ids: [0, 1, 2, 3, 4]
   num_parameters: 2
   audio_element_params {
-    param_definition_type: 1  #PARAMETER_DEFINITION_DEMIXING
+    param_definition_type: PARAM_DEFINITION_TYPE_DEMIXING
     demixing_param: {
       param_definition {
         parameter_id: 999  # Non-existent; default will be used
@@ -95,7 +94,7 @@ audio_element_metadata {
     }
   }
   audio_element_params {
-    param_definition_type: 2  # PARAMETER_DEFINITION_RECON_GAIN **
+    param_definition_type: PARAM_DEFINITION_TYPE_RECON_GAIN
     recon_gain_param {
       param_definition {
         parameter_id: 100
@@ -113,7 +112,7 @@ audio_element_metadata {
     reserved: 0
     channel_audio_layer_configs: [
       {
-        loudspeaker_layout: 8  # 3.1.2 [L3/R3, Ltf3/Rtf3, C, LFE]
+        loudspeaker_layout: LOUDSPEAKER_LAYOUT_3_1_2_CH  # [L3/R3, Ltf3/Rtf3, C, LFE]
         output_gain_is_present_flag: 1
         recon_gain_is_present_flag: 0
         reserved_a: 0
@@ -123,7 +122,7 @@ audio_element_metadata {
         output_gain: 0
       },
       {
-        loudspeaker_layout: 3  # 5.1.2 [L5/R5]
+        loudspeaker_layout: LOUDSPEAKER_LAYOUT_5_1_2_CH  # [L5/R5]
         output_gain_is_present_flag: 1
         recon_gain_is_present_flag: 1
         reserved_a: 0
@@ -191,7 +190,7 @@ mix_presentation_metadata {
         }
       }
       loudness {
-        info_type: 0
+        info_type_bit_masks: []
         integrated_loudness: -4511
         digital_peak: -630
       }
@@ -205,7 +204,7 @@ mix_presentation_metadata {
         }
       }
       loudness {
-        info_type: 0
+        info_type_bit_masks: []
         integrated_loudness: -4569
         digital_peak: -971
       }
@@ -219,7 +218,7 @@ mix_presentation_metadata {
         }
       }
       loudness {
-        info_type: 0
+        info_type_bit_masks: []
         integrated_loudness: -4637
         digital_peak: -1009
       }

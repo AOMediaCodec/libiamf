@@ -8,7 +8,7 @@
 # source code in the PATENTS file, you can obtain it at
 # www.aomedia.org/license/patent.
 
-# proto-file: third_party/libiamf/cli/proto/user_metadata.proto
+# proto-file: third_party/iamf_tools/iamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
 test_vector_metadata {
@@ -17,6 +17,7 @@ test_vector_metadata {
     "stream."
   file_name_prefix: "test_000086"
   is_valid: true
+  validate_user_loudness: true
   mp4_fixed_timestamp: "2023-07-12 00:00:00"
   primary_tested_spec_sections: [
     "3.6.2/loudspeaker_layout == 5.1.2",
@@ -29,7 +30,6 @@ test_vector_metadata {
 }
 
 ia_sequence_header_metadata {
-  ia_code: 0x69616d66  # "iamf"
   primary_profile: PROFILE_VERSION_BASE
   additional_profile: PROFILE_VERSION_BASE
 }
@@ -37,7 +37,7 @@ ia_sequence_header_metadata {
 codec_config_metadata {
   codec_config_id: 200
   codec_config {
-    codec_id: 0x6970636d  # "ipcm"
+    codec_id: CODEC_ID_LPCM
     num_samples_per_frame: 64
     audio_roll_distance: 0
     decoder_config_lpcm {
@@ -75,7 +75,7 @@ audio_element_metadata: [
     audio_substream_ids: [4, 5, 6, 7, 8]
     num_parameters: 1
     audio_element_params {
-      param_definition_type: 1  #PARAMETER_DEFINITION_DEMIXING
+      param_definition_type: PARAM_DEFINITION_TYPE_DEMIXING
       demixing_param: {
         param_definition {
           parameter_id: 996  # Non-existent; default will be used
@@ -97,7 +97,7 @@ audio_element_metadata: [
       reserved: 0
       channel_audio_layer_configs: [
         {
-          loudspeaker_layout: 8  # 3.1.2 [L3/R3, Ltf3/Rtf3, C, LFE]
+          loudspeaker_layout: LOUDSPEAKER_LAYOUT_3_1_2_CH  # [L3/R3, Ltf3/Rtf3, C, LFE]
           output_gain_is_present_flag: 1
           recon_gain_is_present_flag: 0
           reserved_a: 0
@@ -107,7 +107,7 @@ audio_element_metadata: [
           output_gain: 0
         },
         {
-          loudspeaker_layout: 3  # 5.1.2 [L5/R5]
+          loudspeaker_layout: LOUDSPEAKER_LAYOUT_5_1_2_CH  # [L5/R5]
           output_gain_is_present_flag: 1
           recon_gain_is_present_flag: 0
           reserved_a: 0
@@ -200,7 +200,7 @@ mix_presentation_metadata {
         }
       }
       loudness {
-        info_type: 0
+        info_type_bit_masks: []
         integrated_loudness: -3520
         digital_peak: -254
       }
@@ -214,7 +214,7 @@ mix_presentation_metadata {
         }
       }
       loudness {
-        info_type: 0
+        info_type_bit_masks: []
         integrated_loudness: -3871
         digital_peak: -774
       }
@@ -228,7 +228,7 @@ mix_presentation_metadata {
         }
       }
       loudness {
-        info_type: 0
+        info_type_bit_masks: []
         integrated_loudness: -3939
         digital_peak: -950
       }
