@@ -18,6 +18,7 @@ test_vector_metadata {
     "is reserved in simple profile, but permitted in base-enhanced profile."
   file_name_prefix: "test_000131"
   is_valid: true
+  is_valid_to_decode: true
 validate_user_loudness: true
   mp4_fixed_timestamp: "2024-07-09 00:00:00"
   primary_tested_spec_sections: [

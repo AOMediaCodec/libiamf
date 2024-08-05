@@ -17,6 +17,7 @@ test_vector_metadata {
     "`rendering_config_extension`."
   file_name_prefix: "test_000067"
   is_valid: true
+  is_valid_to_decode: true
   validate_user_loudness: true
   mp4_fixed_timestamp: "2023-06-28 00:00:00"
   primary_tested_spec_sections: ["3.7.3/rendering_config_extension_bytes"]

@@ -17,7 +17,11 @@ test_vector_metadata {
     "second mix uses a `loudspeaker_layout` which is reserved under Simple "
     "profile for the first layer."
   file_name_prefix: "test_000122"
+  # The encoder cannot accurately encode a `loudspeaker_layout` which is not yet
+  # defined.
   is_valid: false
+  # A compliant decoder can decode the mix with `mix_presentation_id` 42.
+  is_valid_to_decode: true
   partition_mix_gain_parameter_blocks: false
   validate_user_loudness: true
   mp4_fixed_timestamp: "2024-07-17 00:00:00"

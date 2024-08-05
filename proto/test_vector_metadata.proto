@@ -32,7 +32,15 @@ message TestVectorMetadata {
   // Prefix of the output file names. Leave empty to skip writing to output
   // files.
   optional string file_name_prefix = 2;
+
+  // TODO(b/269708630): Rename `is_valid` to `is_valid_to_encode`.
+  // `true` when all mixes are valid to encode. Mixes may be invalid if they
+  // contain any mixes that use certain reserved values, or if they exercise any
+  // features which are not supported by the encoder.
   optional bool is_valid = 3;
+  // `true` when a compliant decoder would decode at least one valid mix. Some
+  // other mixes may be invalid or use reserved values which may be ignored.
+  optional bool is_valid_to_decode = 14 [default = true];
   optional string mp4_fixed_timestamp = 4;
   reserved 5;
   repeated string primary_tested_spec_sections = 6;
