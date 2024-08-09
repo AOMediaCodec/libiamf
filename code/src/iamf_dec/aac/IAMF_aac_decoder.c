@@ -23,6 +23,7 @@
 #include "IAMF_debug.h"
 #include "IAMF_types.h"
 #include "aac_multistream_decoder.h"
+#include "bitstream.h"
 
 #ifdef IA_TAG
 #undef IA_TAG
@@ -58,35 +59,28 @@ typedef struct IAMF_AAC_Context {
 static int iamf_aac_init(IAMF_CodecContext *ths) {
   IAMF_AAC_Context *ctx = (IAMF_AAC_Context *)ths->priv;
   uint8_t *config = ths->cspec;
-  int len = ths->clen;
+  BitStream b;
   int ret = 0;
 
-  if (!ths->cspec || ths->clen <= 0) {
-    return IAMF_ERR_BAD_ARG;
-  }
+  bs(&b, ths->cspec, ths->clen);
+  if (bs_get32b(&b, 8) != 0x04) return IAMF_ERR_BAD_ARG;
+  bs_getExpandableSize(&b);
 
-  int idx = 1;
-  if (config[idx] != 0x40                     /* Audio ISO/IEC 14496-3 */
-      || (config[idx + 1] >> 2 & 0x3f) != 5   /* AudioStream */
-      || (config[idx + 1] >> 1 & 0x1) != 0) { /* upstream */
+  if (bs_get32b(&b, 8) != 0x40 || bs_get32b(&b, 6) != 5 || bs_get32b(&b, 1))
     return IAMF_ERR_BAD_ARG;
-  }
-  idx += 13;
-  if (config[idx] != 0x05) {
-    return IAMF_ERR_BAD_ARG;  // MP4DecSpecificDescrTag
-  }
-  ++idx;
 
-  ths->cspec = &config[idx];
-  ths->clen = len - idx;
+  bs_skipABytes(&b, 11);
+
+  if (bs_get32b(&b, 8) != 0x05) return IAMF_ERR_BAD_ARG;
+
+  ths->clen = bs_getExpandableSize(&b);
+  ths->cspec = config + bs_tell(&b);
   ia_logd("aac codec spec info size %d", ths->clen);
 
   ctx->dec = aac_multistream_decoder_open(ths->cspec, ths->clen, ths->streams,
                                           ths->coupled_streams,
                                           AUDIO_FRAME_PLANE, &ret);
-  if (!ctx->dec) {
-    return IAMF_ERR_INVALID_STATE;
-  }
+  if (!ctx->dec) return IAMF_ERR_INVALID_STATE;
 
   ctx->out = (short *)malloc(sizeof(short) * MAX_AAC_FRAME_SIZE *
                              (ths->streams + ths->coupled_streams));

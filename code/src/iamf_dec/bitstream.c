@@ -141,6 +141,23 @@ uint64_t bs_getAleb128(BitStream *b) {
   return ret;
 }
 
+/// @brief Read descriptor size of ISO/IEC 14496-1.
+uint32_t bs_getExpandableSize(BitStream *b) {
+  uint32_t ret = 0;
+  uint8_t byte;
+
+  for (uint32_t i = 0; i < 4; i++) {
+    byte = b->data[b->b8sp + i];
+    ret = (ret << 7) | (byte & 0x7f);
+    if (!(byte & 0x80)) {
+      b->b8sp += (i + 1);
+      break;
+    }
+  }
+
+  return ret;
+}
+
 int32_t bs_read(BitStream *b, uint8_t *data, int n) {
   bs_align(b);
   if (data) memcpy(data, &b->data[b->b8sp], n);
