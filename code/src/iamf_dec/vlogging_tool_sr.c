@@ -753,7 +753,7 @@ static void write_mix_presentation_log(uint64_t idx, void* obu, char* log) {
 
       // loudness
       log += write_yaml_form(log, 3, "loudness:");
-      log += write_yaml_form(log, 4, "info_type: %u",
+      log += write_yaml_form(log, 4, "info_type_bit_masks: [%u]",
                              submix->loudness[j].info_type);
       log += write_yaml_form(log, 4, "integrated_loudness: %d",
                              submix->loudness[j].integrated_loudness);

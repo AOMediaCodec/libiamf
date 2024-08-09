@@ -729,9 +729,15 @@ static int iamf_codec_conf_get_sampling_rate(IAMF_CodecConf *c) {
     static int sf[] = {96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050,
                        16000, 12000, 11025, 8000,  7350,  0,     0,     0};
 
-    /* DecoderConfigDescriptor (14 bytes) + DecSpecificInfoTag (1 byte) */
-    if (c->decoder_conf_size < 16) return IAMF_ERR_BAD_ARG;
-    bs(&b, c->decoder_conf + 15, c->decoder_conf_size - 15);
+    /* DecoderConfigDescriptor */
+    bs(&b, c->decoder_conf, c->decoder_conf_size);
+    bs_get32b(&b, 8);
+    bs_getExpandableSize(&b);
+    bs_skipABytes(&b, 13);
+
+    /* DecSpecificInfoTag */
+    bs_get32b(&b, 8);
+    bs_getExpandableSize(&b);
 
     type = bs_get32b(&b, 5);
     if (type == 31) bs_get32b(&b, 6);
