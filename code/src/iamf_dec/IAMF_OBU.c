@@ -307,7 +307,7 @@ static int _valid_codec(uint32_t codec) {
 }
 
 #define OPUS_VERSION_MAX 15
-static int _valid_decoder_conifg(uint32_t codec, uint8_t *conf, size_t size) {
+static int _valid_decoder_config(uint32_t codec, uint8_t *conf, size_t size) {
   if (iamf_codec_4cc_get_codecID(codec) == IAMF_CODEC_OPUS) {
     if (conf[0] > OPUS_VERSION_MAX) {
       ia_logw("opus config invalid: version %u should less than %u.", conf[0],
@@ -357,9 +357,11 @@ IAMF_CodecConf *iamf_codec_conf_new(IAMF_OBU *obu) {
     goto codec_conf_fail;
   }
 
-  if (!_valid_decoder_conifg(conf->codec_id, conf->decoder_conf,
-                             conf->decoder_conf_size))
+  if (!_valid_decoder_config(conf->codec_id, conf->decoder_conf,
+                             conf->decoder_conf_size)) {
+    ia_logw("decoder config is invalid, codec: %.4s", (char *)&conf->codec_id);
     goto codec_conf_fail;
+  }
 
 #if SUPPORT_VERIFIER
   vlog_obu(IAMF_OBU_CODEC_CONFIG, conf, 0, 0);
