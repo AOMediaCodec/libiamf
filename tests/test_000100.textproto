@@ -13,13 +13,17 @@
 
 test_vector_metadata {
   human_readable_description:
-    "A zero-order ambisonics IAMF stream encoded using "
+    "A zeroth-order ambisonics IAMF stream encoded using "
     "`ambisonics_mode` = `MONO`."
   file_name_prefix: "test_000100"
   is_valid: true
   is_valid_to_decode: true
   validate_user_loudness: true
   mp4_fixed_timestamp: "2023-05-12 00:00:00"
+  test_repository_tags: [
+    "github/aomediacodec/libiamf/main",
+    "github/aomediacodec/libiamf/v1.0.0-errata"
+  ]
   primary_tested_spec_sections: [
     "3.6.3/ambisonics_mono_config",
     "4.1/Simple Profile",

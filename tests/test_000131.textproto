@@ -21,6 +21,10 @@ test_vector_metadata {
   is_valid_to_decode: true
 validate_user_loudness: true
   mp4_fixed_timestamp: "2024-07-09 00:00:00"
+  test_repository_tags: [
+    "github/aomediacodec/libiamf/main",
+    "github/aomediacodec/libiamf/v1.0.0-errata"
+  ]
   primary_tested_spec_sections: [
     "3.6.3/ambisonics_projection_config",
     "7/IAMF Processing",
@@ -147,8 +151,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type_bit_masks: []
-        integrated_loudness: -32768  # Loudness value should be ignored.
-        digital_peak: -32768  # Loudness value should be ignored.
+        integrated_loudness: -4495
+        digital_peak: -4078
       }
     }
   }

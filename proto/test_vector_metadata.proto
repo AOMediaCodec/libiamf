@@ -43,6 +43,18 @@ message TestVectorMetadata {
   optional bool is_valid_to_decode = 14 [default = true];
   optional string mp4_fixed_timestamp = 4;
   reserved 5;
+  // Tags to identify the repository this test vector belongs to. A repository
+  // could be a git branch or it could refer to some other way to organize a
+  // test suite.
+  //
+  // Some canonical tags are used to identify which GitHub branch(es) the test
+  // vector should be synchronized with.
+  //
+  // `github/aomediacodec/libiamf/main`: Used on the `main` branch of
+  //     https://github.com/AOMediaCodec/libiamf
+  // `github/aomediacodec/libiamf/v1.0.0-errata`: Used on the `v1.0.0-errata`
+  //     branch of https://github.com/AOMediaCodec/libiamf
+  repeated string test_repository_tags = 15;
   repeated string primary_tested_spec_sections = 6;
   optional string base_test = 7;
   optional int32 ms_per_fragment = 8 [default = 10000];
