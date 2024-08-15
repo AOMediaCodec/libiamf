@@ -19,6 +19,7 @@ enum ProfileVersion {
   PROFILE_VERSION_SIMPLE = 1;
   PROFILE_VERSION_BASE = 2;
   PROFILE_VERSION_BASE_ENHANCED = 3;
+  PROFILE_VERSION_RESERVED_255 = 256;
 }
 
 message IASequenceHeaderObuMetadata {
