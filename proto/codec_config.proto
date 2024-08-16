@@ -37,10 +37,20 @@ enum OpusApplicationFlag {
 
 // Settings to configure `libopus`.
 message OpusEncoderMetadata {
-  optional int32 target_bitrate_per_channel = 1;
   optional OpusApplicationFlag application = 2;
   optional bool use_float_api = 3 [default = true];
+
+  // Fields to control the bitrate.
+  //
+  //  - If the substream is present in `substream_id_to_bitrate_override`, the
+  //  bitrate override is used.
+  //  - Otherwise a bitrate is calculated based on the number of channels.
+  //    - One channel: `target_bitrate_per_channel`.
+  //    - Two channels: `target_bitrate_per_channel * 2 *
+  //  coupling_rate_adjustment`.
+  optional int32 target_bitrate_per_channel = 1;
   optional float coupling_rate_adjustment = 4 [default = 1.0];
+  map<uint32, int32> substream_id_to_bitrate_override = 5;
 }
 
 message OpusDecoderConfig {
