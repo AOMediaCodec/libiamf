@@ -58,7 +58,7 @@
 "3.6.4","coupled_substream_count","test_000123, test_000132"
 "3.6.4","subtream_count","test_000123, test_000132"
 "3.7","count_label","test_000060"
-"3.7","element_mix_config","test_000064"
+"3.7","element_mix_gain","test_000064"
 "3.7","language_label","test_000060"
 "3.7","loudness_layout","test_000126"
 "3.7","loudness_layout == 3.1.2","test_000069"

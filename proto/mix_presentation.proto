@@ -28,6 +28,8 @@ message MixPresentationElementAnnotations {
 }
 
 message ElementMixConfig {
+  option deprecated = true;
+
   optional MixGainParamDefinition mix_gain = 1;
 }
 
@@ -56,10 +58,14 @@ message SubMixAudioElement {
   repeated string localized_element_annotations = 6;
 
   optional RenderingConfig rendering_config = 5;
-  optional ElementMixConfig element_mix_config = 3;
+  // Superseded by `element_mix_gain`.
+  optional ElementMixConfig element_mix_config = 3 [deprecated = true];
+  optional MixGainParamDefinition element_mix_gain = 7;
 }
 
 message OutputMixConfig {
+  option deprecated = true;
+
   optional MixGainParamDefinition output_mix_gain = 1;
 }
 
@@ -155,7 +161,11 @@ message MixPresentationLayout {
 message MixPresentationSubMix {
   optional uint32 num_audio_elements = 1;
   repeated SubMixAudioElement audio_elements = 2;
-  optional OutputMixConfig output_mix_config = 3;
+
+  // Superseded by `output_mix_gain`.
+  optional OutputMixConfig output_mix_config = 3 [deprecated = true];
+  optional MixGainParamDefinition output_mix_gain = 6;
+
   optional uint32 num_layouts = 4;
   repeated MixPresentationLayout layouts = 5;
 }
