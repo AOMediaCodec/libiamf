@@ -14,7 +14,7 @@
 test_vector_metadata {
   human_readable_description:
     "An example using which contains one Mix Presentation which uses greater "
-    "than the maximum number of audio elements for Base-Enhanced profile and "
+    "than the maximum number of channels for Base-Enhanced profile and "
     "should be ignored. It has a second audio element which encodes "
     "fourth-order ambisonics which can be decoded under Base-Enhanced profile."
   file_name_prefix: "test_000711"
@@ -125,7 +125,7 @@ mix_presentation_metadata [
               param_definition_mode: 1
               reserved: 0
             }
-            default_mix_gain: -768
+            default_mix_gain: 0
           }
         },
         {
@@ -141,7 +141,7 @@ mix_presentation_metadata [
               param_definition_mode: 1
               reserved: 0
             }
-            default_mix_gain: -768
+            default_mix_gain: 0
           }
         }
       ]
@@ -165,8 +165,8 @@ mix_presentation_metadata [
         }
         loudness {
           info_type_bit_masks: []
-          integrated_loudness: -3747
-          digital_peak: -233
+          integrated_loudness: -2982
+          digital_peak: 0
         }
       }
     }
@@ -193,7 +193,7 @@ mix_presentation_metadata [
               param_definition_mode: 1
               reserved: 0
             }
-            default_mix_gain: -768
+            default_mix_gain: 0
           }
         }
       ]
@@ -217,8 +217,8 @@ mix_presentation_metadata [
         }
         loudness {
           info_type_bit_masks: []
-          integrated_loudness: -4433
-          digital_peak: -3663
+          integrated_loudness: -3665
+          digital_peak: -2896
         }
       }
     }

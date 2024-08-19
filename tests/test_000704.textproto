@@ -173,7 +173,7 @@ mix_presentation_metadata {
     num_tags: 1
     tags: {
       tag_name: "content_language"
-      tag_value: "en-us"
+      tag_value: "eng"
     }
   }
 }
