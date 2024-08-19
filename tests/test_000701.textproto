@@ -208,14 +208,14 @@ mix_presentation_metadata {
       loudness_layout {
         layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
         ss_layout {
-          sound_system: SOUND_SYSTEM_11_2_3_0
+          sound_system: SOUND_SYSTEM_13_6_9_0
           reserved: 0
         }
       }
       loudness {
         info_type_bit_masks: []
-        integrated_loudness: -3262
-        digital_peak: -349
+        integrated_loudness: -7174
+        digital_peak: -7026
       }
     }
   }
@@ -243,7 +243,7 @@ audio_frame_metadata: [
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 302
-    channel_ids: [4]
+    channel_ids: [3]
     channel_labels: ["LFE"]
   }
 ]

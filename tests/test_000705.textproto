@@ -153,7 +153,7 @@ mix_presentation_metadata [
     mix_presentation_id: 42
     count_label: 1
     annotations_language: ["en-us"]
-    localized_presentation_annotations: ["Simulated US English Dialog (-0dB)."]
+    localized_presentation_annotations: ["Simulated English Dialog (-0dB)."]
     num_sub_mixes: 1
     sub_mixes {
       num_audio_elements: 2
@@ -221,7 +221,7 @@ mix_presentation_metadata [
       num_tags: 1
       tags: {
         tag_name: "content_language"
-        tag_value: "en-us"
+        tag_value: "eng"
       }
     }
   },
@@ -229,7 +229,7 @@ mix_presentation_metadata [
     mix_presentation_id: 43
     count_label: 1
     annotations_language: ["en-us"]
-    localized_presentation_annotations: ["Simulated UK English Dialog (-5dB)."]
+    localized_presentation_annotations: ["Simulated Korean Dialog (-5dB)."]
     num_sub_mixes: 1
     sub_mixes {
       num_audio_elements: 2
@@ -297,7 +297,7 @@ mix_presentation_metadata [
       num_tags: 1
       tags: {
         tag_name: "content_language"
-        tag_value: "en-uk"
+        tag_value: "kor"
       }
     }
   },
@@ -305,7 +305,7 @@ mix_presentation_metadata [
     mix_presentation_id: 44
     count_label: 1
     annotations_language: ["en-us"]
-    localized_presentation_annotations: ["Simulated AU English Dialog (-10dB)."]
+    localized_presentation_annotations: ["Simulated Esperanto Dialog (-10dB)."]
     num_sub_mixes: 1
     sub_mixes {
       num_audio_elements: 2
@@ -373,7 +373,7 @@ mix_presentation_metadata [
       num_tags: 1
       tags: {
         tag_name: "content_language"
-        tag_value: "en-au"
+        tag_value: "epo"
       }
     }
   }
