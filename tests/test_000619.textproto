@@ -186,8 +186,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type_bit_masks: []
-        integrated_loudness: -4411
-        digital_peak: -3351
+        integrated_loudness: -4401
+        digital_peak: -2490
       }
     }
     layouts {
@@ -200,8 +200,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type_bit_masks: []
-        integrated_loudness: -6654
-        digital_peak: -4027
+        integrated_loudness: -6462
+        digital_peak: -4201
       }
     }
   }
@@ -221,7 +221,7 @@ audio_frame_metadata: [
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 301
-    channel_ids: [3, 4]
+    channel_ids: [4, 5]
     channel_labels: ["Lss7", "Rss7"]
   }
 ]
