@@ -58,7 +58,7 @@ typedef enum IAMF_SoundSystem {
   SOUND_SYSTEM_J,        // 4+7+0, 1
   SOUND_SYSTEM_EXT_712,  // 2+7+0, 1
   SOUND_SYSTEM_EXT_312,  // 2+3+0, 1
-  SOUND_SYSTEM_MONO,     // 0+1+0, 1
+  SOUND_SYSTEM_MONO,     // 0+1+0, 0
   SOUND_SYSTEM_END
 } IAMF_SoundSystem;
 
