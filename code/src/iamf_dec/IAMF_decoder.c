@@ -4414,8 +4414,9 @@ char *IAMF_decoder_get_codec_capability() {
 
   if (!ccs_str) return 0;
 
-  snprintf(ccs_str, CC_STR_SIZE, "iamf.%.03u.%.03u.ipcm", IAMF_PROFILE_DEFAULT,
+  snprintf(cc_str, STRING_SIZE, "iamf.%.03u.%.03u.ipcm", IAMF_PROFILE_DEFAULT,
            IAMF_PROFILE_DEFAULT);
+  strcat(ccs_str, cc_str);
 
 #ifdef CONFIG_OPUS_CODEC
   snprintf(cc_str, STRING_SIZE, ";iamf.%.03u.%.03u.Opus", IAMF_PROFILE_DEFAULT,
