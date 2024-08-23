@@ -2964,7 +2964,7 @@ static int iamf_decoder_internal_init(IAMF_DecoderHandle handle,
     IAMF_OBU obj;
     ia_logi("Without magic code flag.");
     while (pos < size) {
-      consume = IAMF_OBU_split(data, size, &obj);
+      consume = IAMF_OBU_split(data + pos, size - pos, &obj);
       if (!consume || obj.type == IAMF_OBU_SEQUENCE_HEADER) {
         ia_logi("Get magic code.");
         break;
