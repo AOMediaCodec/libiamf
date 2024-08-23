@@ -43,7 +43,7 @@ repository:
 
 "build.sh" is an example to build, you can run it directly at your side.  
 (dependent [codec libraries](dep_codecs/lib) and [external libraries](dep_external/lib/binaural) complied under x64 linux have been provided in advance,  
-if compile other platform version, please refer to [dependent codecs](dep_codecs/README.md) and [dependent externals])
+if compile other platform versions, please refer to [dependent codecs](dep_codecs/README.md) and [dependent externals](dep_external/src/binaural/README.md))
 
 CMake replaces the configure step typical of many projects. Running CMake will
 produce configuration and build files for the currently selected CMake
