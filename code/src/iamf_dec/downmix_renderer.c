@@ -26,6 +26,7 @@
 #include "downmix_renderer.h"
 
 #include "IAMF_debug.h"
+#include "IAMF_layout.h"
 #include "IAMF_utils.h"
 #include "fixedp11_5.h"
 
@@ -60,19 +61,16 @@ static DependOnChannel chhl[] = {{IA_CH_HFL, 1.f}, {IA_CH_HBL}, {0}};
 static DependOnChannel chhr[] = {{IA_CH_HFR, 1.f}, {IA_CH_HBR}, {0}};
 
 static int _valid_channel_layout(IAChannelLayoutType in) {
-  return ia_channel_layout_type_check(in) && in != IA_CHANNEL_LAYOUT_BINAURAL;
+  return iamf_audio_layer_base_layout_check(in) &&
+         in != IA_CHANNEL_LAYOUT_BINAURAL;
 }
 
 static int _valid_downmix(IAChannelLayoutType in, IAChannelLayoutType out) {
-  uint32_t s1, s2, t1, t2;
+  const IAMF_LayoutInfo *info1 = iamf_audio_layer_get_layout_info(in);
+  const IAMF_LayoutInfo *info2 = iamf_audio_layer_get_layout_info(out);
 
-  s1 = ia_channel_layout_get_category_channels_count(in, IA_CH_CATE_SURROUND);
-  s2 = ia_channel_layout_get_category_channels_count(out, IA_CH_CATE_SURROUND);
-  t1 = ia_channel_layout_get_category_channels_count(in, IA_CH_CATE_TOP);
-  t2 = ia_channel_layout_get_category_channels_count(out, IA_CH_CATE_TOP);
-
-  if (t1 && !t2) return 0;
-  return !(s1 < s2 || t1 < t2);
+  if (info1->height && !info2->height) return 0;
+  return !(info1->surround < info2->surround || info1->height < info2->height);
 }
 
 static void _downmix_dump(DMRenderer *thisp, IAChannel c) {
@@ -118,18 +116,18 @@ DMRenderer *DMRenderer_open(IAChannelLayoutType in, IAChannelLayoutType out) {
   if (in == out || !_valid_channel_layout(in) || !_valid_channel_layout(out))
     return 0;
 
-  ia_logd("%s downmix to %s", ia_channel_layout_name(in),
-          ia_channel_layout_name(out));
+  ia_logd("%s downmix to %s", iamf_audio_layer_get_layout_info(in)->name,
+          iamf_audio_layer_get_layout_info(out)->name);
 
   if (!_valid_downmix(in, out)) return 0;
 
   thisp = IAMF_MALLOCZ(DMRenderer, 1);
   if (!thisp) return 0;
 
-  thisp->chs_icount = ia_channel_layout_get_channels(in, thisp->chs_in,
-                                                     IA_CH_LAYOUT_MAX_CHANNELS);
-  thisp->chs_ocount = ia_channel_layout_get_channels(out, thisp->chs_out,
-                                                     IA_CH_LAYOUT_MAX_CHANNELS);
+  thisp->chs_icount = iamf_audio_layer_layout_get_rendering_channels(
+      in, thisp->chs_in, IA_CH_LAYOUT_MAX_CHANNELS);
+  thisp->chs_ocount = iamf_audio_layer_layout_get_rendering_channels(
+      out, thisp->chs_out, IA_CH_LAYOUT_MAX_CHANNELS);
 
   thisp->mode = -1;
   thisp->w_idx = -1;

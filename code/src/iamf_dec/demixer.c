@@ -26,6 +26,7 @@
 
 #include "IAMF_debug.h"
 #include "IAMF_decoder.h"
+#include "IAMF_layout.h"
 #include "IAMF_utils.h"
 #include "demixer.h"
 #include "fixedp11_5.h"
@@ -415,7 +416,7 @@ static void dmx_gainup(Demixer *ths) {
 }
 
 static int dmx_demix(Demixer *ths) {
-  int chcnt = ia_channel_layout_get_channels_count(ths->layout);
+  int chcnt = iamf_audio_layer_get_layout_info(ths->layout)->channels;
 
   for (int c = 0; c < chcnt; ++c) {
     if (dmx_channel(ths, ths->chs_out[c]) < 0) {
@@ -548,8 +549,8 @@ int demixer_set_frame_offset(Demixer *ths, uint32_t offset) {
 }
 
 int demixer_set_channel_layout(Demixer *ths, IAChannelLayoutType layout) {
-  if (ia_channel_layout_get_channels(layout, ths->chs_out,
-                                     IA_CH_LAYOUT_MAX_CHANNELS) > 0) {
+  if (iamf_audio_layer_layout_get_rendering_channels(
+          layout, ths->chs_out, IA_CH_LAYOUT_MAX_CHANNELS) > 0) {
     ths->layout = layout;
     return IAMF_OK;
   }
@@ -622,7 +623,7 @@ int demixer_demixing(Demixer *ths, float *dst, float *src, uint32_t size) {
   IAChannel ch;
 
   if (size != ths->frame_size) return IAMF_ERR_BAD_ARG;
-  if (ia_channel_layout_get_channels_count(ths->layout) != ths->chs_count)
+  if (iamf_audio_layer_get_layout_info(ths->layout)->channels != ths->chs_count)
     return IAMF_ERR_INTERNAL;
 
   memset(ths->ch_data, 0, sizeof(float *) * IA_CH_COUNT);

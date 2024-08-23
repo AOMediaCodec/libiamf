@@ -22,6 +22,7 @@
 
 #include "IAMF_debug.h"
 #include "IAMF_defines.h"
+#include "IAMF_layout.h"
 #include "IAMF_utils.h"
 #include "bitstream.h"
 #include "fixedp11_5.h"
@@ -34,7 +35,6 @@
 #endif
 
 #define IAMF_OBU_MIN_SIZE 2
-#define STRING_SIZE 128
 
 #ifdef IA_TAG
 #undef IA_TAG
@@ -315,6 +315,7 @@ static int _valid_decoder_config(uint32_t codec, uint8_t *conf, size_t size) {
       return 0;
     }
   }
+
   return 1;
 }
 
@@ -537,12 +538,13 @@ IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
                      layer_conf_s[i].nb_coupled_substreams);
         if (chs_conf->nb_layers == i) {
           uint8_t loudspeaker_layout = layer_conf_s[i].loudspeaker_layout;
-          if (ia_channel_layout_type_check(loudspeaker_layout) &&
+          if (iamf_audio_layer_base_layout_check(loudspeaker_layout) &&
               (layer_conf_s[i].nb_substreams > 0) &&
-              (ia_channel_layout_get_channels_count(loudspeaker_layout) ==
+              (iamf_audio_layer_get_layout_info(loudspeaker_layout)->channels ==
                channels)) {
             ++chs_conf->nb_layers;
-          } else {
+          } else if (i ||
+                     loudspeaker_layout != IAMF_LOUDSPEAKER_LAYOUT_EXPANDED) {
             ia_logw("element (%" PRId64
                     ") Layer %d: Invalid loudspeaker layout %d",
                     elem->element_id, i, layer_conf_s[i].loudspeaker_layout);
@@ -570,6 +572,22 @@ IAMF_Element *iamf_element_new(IAMF_OBU *obu) {
           g->output_gain = (int16_t)bs_getA16b(&b);
           ia_logd("\toutput gain : flag 0x%x, gain 0x%x",
                   g->output_gain_flag & U8_MASK, g->output_gain & U16_MASK);
+        }
+
+        if (!i && val == 1 &&
+            layer_conf_s[i].loudspeaker_layout ==
+                IAMF_LOUDSPEAKER_LAYOUT_EXPANDED) {
+          layer_conf_s[i].expanded_loudspeaker_layout = bs_get32b(&b, 8);
+
+          if (iamf_audio_layer_expanded_layout_check(
+                  layer_conf_s[i].expanded_loudspeaker_layout)) {
+            chs_conf->nb_layers = 1;
+            ia_logd("\tlayer[%d] info : expanded layout %d", i,
+                    layer_conf_s[i].expanded_loudspeaker_layout);
+          } else {
+            ia_logw("\tlayer[%d] info : invalid expanded layout %d", i,
+                    layer_conf_s[i].expanded_loudspeaker_layout);
+          }
         }
       }
       ia_logd("valid scalable channel layers %d", chs_conf->nb_layers);
@@ -683,12 +701,11 @@ void iamf_element_free(IAMF_Element *obj) {
 IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
   IAMF_MixPresentation *mixp = 0;
   SubMixPresentation *sub = 0;
-  OutputMixConf *output_mix_config;
+  MixGainParameter *output_mix_gain;
   ElementConf *conf_s;
   BitStream b;
-  uint32_t val;
+  uint32_t val, payload_size;
   uint64_t size;
-  int length = STRING_SIZE;
 
   mixp = IAMF_MALLOCZ(IAMF_MixPresentation, 1);
   if (!mixp) {
@@ -696,30 +713,31 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
     goto mix_presentation_fail;
   }
 
-  bs(&b, obu->payload, iamf_obu_get_payload_size(obu));
+  payload_size = iamf_obu_get_payload_size(obu);
+  bs(&b, obu->payload, payload_size);
 
   mixp->obj.type = IAMF_OBU_MIX_PRESENTATION;
   mixp->mix_presentation_id = bs_getAleb128(&b);
   mixp->num_labels = bs_getAleb128(&b);
 
-  mixp->language = IAMF_MALLOCZ(char *, mixp->num_labels);
-  mixp->mix_presentation_friendly_label =
+  mixp->annotations_language = IAMF_MALLOCZ(char *, mixp->num_labels);
+  mixp->localized_presentation_annotations =
       IAMF_MALLOCZ(char *, mixp->num_labels);
 
-  if (!mixp->language || !mixp->mix_presentation_friendly_label) {
+  if (!mixp->annotations_language ||
+      !mixp->localized_presentation_annotations) {
     ia_logd(
         "fail to allocate memory for languages or labels of Mix Presentation "
         "Object.");
     goto mix_presentation_fail;
   }
 
-  if (length > iamf_obu_get_payload_size(obu))
-    length = iamf_obu_get_payload_size(obu);
-
   for (int i = 0; i < mixp->num_labels; ++i) {
-    mixp->language[i] = IAMF_MALLOCZ(char, length);
-    mixp->mix_presentation_friendly_label[i] = IAMF_MALLOCZ(char, length);
-    if (!mixp->language[i] || !mixp->mix_presentation_friendly_label[i]) {
+    mixp->annotations_language[i] = IAMF_MALLOCZ(char, STRING_SIZE);
+    mixp->localized_presentation_annotations[i] =
+        IAMF_MALLOCZ(char, STRING_SIZE);
+    if (!mixp->annotations_language[i] ||
+        !mixp->localized_presentation_annotations[i]) {
       ia_logd(
           "fail to allocate memory for language or label of Mix Presentation "
           "Object.");
@@ -728,10 +746,10 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
   }
 
   for (int i = 0; i < mixp->num_labels; ++i)
-    bs_readString(&b, mixp->language[i], length);
+    bs_readString(&b, mixp->annotations_language[i], STRING_SIZE);
 
   for (int i = 0; i < mixp->num_labels; ++i)
-    bs_readString(&b, mixp->mix_presentation_friendly_label[i], length);
+    bs_readString(&b, mixp->localized_presentation_annotations[i], STRING_SIZE);
 
   mixp->num_sub_mixes = bs_getAleb128(&b);
   ia_logd("Mix Presentation Object : id %" PRIu64 ", number of label %" PRIu64
@@ -749,12 +767,13 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
     goto mix_presentation_fail;
   }
 
-  ia_logd("languages: ");
-  for (int i = 0; i < mixp->num_labels; ++i) ia_logd("\t%s", mixp->language[i]);
-
-  ia_logd("mix presentation friendly labels: ");
+  ia_logd("annotations language: ");
   for (int i = 0; i < mixp->num_labels; ++i)
-    ia_logd("\t%s", mixp->mix_presentation_friendly_label[i]);
+    ia_logd("\t%s", mixp->annotations_language[i]);
+
+  ia_logd("localized presentation annotations: ");
+  for (int i = 0; i < mixp->num_labels; ++i)
+    ia_logd("\t%s", mixp->localized_presentation_annotations[i]);
 
   if (mixp->num_sub_mixes != 1) {
     ia_loge("the total of sub mixes should be 1, not support %" PRIu64,
@@ -770,11 +789,6 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
         "Object.");
     goto mix_presentation_fail;
   }
-
-  if (iamf_obu_get_payload_size(obu) > STRING_SIZE)
-    length = iamf_obu_get_payload_size(obu);
-  else
-    length = STRING_SIZE;
 
   for (int n = 0; n < mixp->num_sub_mixes; ++n) {
     sub = &mixp->sub_mixes[n];
@@ -799,9 +813,9 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
     sub->conf_s = conf_s;
     for (uint32_t i = 0; i < val; ++i) {
       conf_s[i].element_id = bs_getAleb128(&b);
-      conf_s[i].audio_element_friendly_label =
+      conf_s[i].localized_element_annotations =
           IAMF_MALLOCZ(char *, mixp->num_labels);
-      if (!conf_s[i].audio_element_friendly_label) {
+      if (!conf_s[i].localized_element_annotations) {
         ia_loge(
             "fail to allocate memory for audio element labels of mixing and "
             "rendering config.");
@@ -809,22 +823,24 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
       }
 
       for (int k = 0; k < mixp->num_labels; ++k) {
-        conf_s[i].audio_element_friendly_label[k] = IAMF_MALLOCZ(char, length);
-        if (!conf_s[i].audio_element_friendly_label[k]) {
+        conf_s[i].localized_element_annotations[k] =
+            IAMF_MALLOCZ(char, STRING_SIZE);
+        if (!conf_s[i].localized_element_annotations[k]) {
           ia_loge(
               "fail to allocate memory for audio element label of mixing and "
               "rendering config.");
           goto mix_presentation_fail;
         }
 
-        bs_readString(&b, conf_s[i].audio_element_friendly_label[k], length);
+        bs_readString(&b, conf_s[i].localized_element_annotations[k],
+                      STRING_SIZE);
       }
       ia_logd("rendering info : element id %" PRIu64
-              ", audio element friendly labels:",
+              ", localized element annotations:",
               conf_s[i].element_id);
 
       for (int k = 0; k < mixp->num_labels; ++k)
-        ia_logd("\t%s", conf_s[i].audio_element_friendly_label[k]);
+        ia_logd("\t%s", conf_s[i].localized_element_annotations[k]);
 
       // rendering_config
       conf_s[i].conf_r.headphones_rendering_mode = bs_get32b(&b, 2);
@@ -837,28 +853,27 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
           conf_s[i].conf_r.headphones_rendering_mode, size);
 
       // element_mix_config
-      if (iamf_parameter_base_init(&conf_s[i].conf_m.gain.base,
+      if (iamf_parameter_base_init(&conf_s[i].element_mix_gain.base,
                                    IAMF_PARAMETER_TYPE_MIX_GAIN, &b) != IAMF_OK)
         goto mix_presentation_fail;
-      conf_s[i].conf_m.gain.mix_gain = (short)bs_getA16b(&b);
+      conf_s[i].element_mix_gain.mix_gain = (short)bs_getA16b(&b);
       ia_logd("element mix info : element mix gain 0x%x",
-              conf_s[i].conf_m.gain.mix_gain & U16_MASK);
+              conf_s[i].element_mix_gain.mix_gain & U16_MASK);
     }
 
-    // output_mix_config
-    output_mix_config = &sub->output_mix_config;
+    output_mix_gain = &sub->output_mix_gain;
 
-    if (iamf_parameter_base_init(&output_mix_config->gain.base,
+    if (iamf_parameter_base_init(&output_mix_gain->base,
                                  IAMF_PARAMETER_TYPE_MIX_GAIN, &b) != IAMF_OK)
       goto mix_presentation_fail;
-    output_mix_config->gain.mix_gain = bs_getA16b(&b);
+    output_mix_gain->mix_gain = bs_getA16b(&b);
 
     sub->num_layouts = bs_getAleb128(&b);
     ia_logd("Output mix gain: id %" PRIu64 ", time base %" PRIu64
             ", mix gain 0x%x, number layout "
             "%" PRIu64,
-            output_mix_config->gain.base.id, output_mix_config->gain.base.rate,
-            output_mix_config->gain.mix_gain & U16_MASK, sub->num_layouts);
+            output_mix_gain->base.id, output_mix_gain->base.rate,
+            output_mix_gain->mix_gain & U16_MASK, sub->num_layouts);
     if (sub->num_layouts > 0) {
       TargetLayout **layouts = IAMF_MALLOCZ(TargetLayout *, sub->num_layouts);
       IAMF_LoudnessInfo *loudness =
@@ -960,6 +975,30 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
     }
   }
 
+  // Mix Presentation Tags MAY or MAY NOT be present in a Mix Presentation OBU
+  if (payload_size > bs_tell(&b)) {
+    mixp->num_name_value_tags = bs_getA8b(&b);
+    ia_logi("the number of tags is %u", mixp->num_name_value_tags);
+    if (mixp->num_name_value_tags) {
+      mixp->tags = IAMF_MALLOCZ(Tag, mixp->num_name_value_tags);
+      if (!mixp->tags) {
+        ia_loge("Fail to allocate memory to tags in Mix Presentation.");
+        goto mix_presentation_fail;
+      }
+
+      for (uint8_t i = 0; i < mixp->num_name_value_tags; ++i) {
+        bs_readString(&b, mixp->tags[i].name, STRING_SIZE);
+        bs_readString(&b, mixp->tags[i].value, STRING_SIZE);
+        ia_logi("Mix Presentation TAG: %s - %s. ", mixp->tags[i].name,
+                mixp->tags[i].value);
+      }
+    }
+
+    // Mix Presentation Tags Extension.
+    size = bs_getAleb128(&b);
+    bs_skipABytes(&b, size);
+  }
+
 #if SUPPORT_VERIFIER
   vlog_obu(IAMF_OBU_MIX_PRESENTATION, mixp, 0, 0);
 #endif
@@ -971,15 +1010,16 @@ mix_presentation_fail:
 }
 
 void iamf_mix_presentation_free(IAMF_MixPresentation *obj) {
-  if (obj->language) {
-    for (int i = 0; i < obj->num_labels; ++i) IAMF_FREE(obj->language[i]);
-    free(obj->language);
+  if (obj->annotations_language) {
+    for (int i = 0; i < obj->num_labels; ++i)
+      IAMF_FREE(obj->annotations_language[i]);
+    free(obj->annotations_language);
   }
 
-  if (obj->mix_presentation_friendly_label) {
+  if (obj->localized_presentation_annotations) {
     for (int i = 0; i < obj->num_labels; ++i)
-      IAMF_FREE(obj->mix_presentation_friendly_label[i]);
-    free(obj->mix_presentation_friendly_label);
+      IAMF_FREE(obj->localized_presentation_annotations[i]);
+    free(obj->localized_presentation_annotations);
   }
 
   if (obj->sub_mixes) {
@@ -989,17 +1029,17 @@ void iamf_mix_presentation_free(IAMF_MixPresentation *obj) {
 
       if (sub->conf_s) {
         for (int i = 0; i < sub->nb_elements; ++i) {
-          if (sub->conf_s[i].audio_element_friendly_label) {
+          if (sub->conf_s[i].localized_element_annotations) {
             for (int k = 0; k < obj->num_labels; ++k)
-              IAMF_FREE(sub->conf_s[i].audio_element_friendly_label[k]);
-            free(sub->conf_s[i].audio_element_friendly_label);
+              IAMF_FREE(sub->conf_s[i].localized_element_annotations[k]);
+            free(sub->conf_s[i].localized_element_annotations);
           }
-          IAMF_FREE(sub->conf_s[i].conf_m.gain.base.segments);
+          IAMF_FREE(sub->conf_s[i].element_mix_gain.base.segments);
         }
         free(sub->conf_s);
       }
 
-      IAMF_FREE(sub->output_mix_config.gain.base.segments);
+      IAMF_FREE(sub->output_mix_gain.base.segments);
 
       if (sub->layouts) {
         for (int i = 0; i < sub->num_layouts; ++i) {
@@ -1017,6 +1057,8 @@ void iamf_mix_presentation_free(IAMF_MixPresentation *obj) {
 
     free(obj->sub_mixes);
   }
+
+  IAMF_FREE(obj->tags);
 
   free(obj);
 }

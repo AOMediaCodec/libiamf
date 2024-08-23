@@ -99,6 +99,7 @@ static void print_usage(char *argv[]) {
   fprintf(stderr, "          10 : Sound system extension 712 (2+7+0)\n");
   fprintf(stderr, "          11 : Sound system extension 312 (2+3+0)\n");
   fprintf(stderr, "          12 : Sound system mono (0+1+0)\n");
+  fprintf(stderr, "          13 : Sound system extension 916 (6+9+0)\n");
   fprintf(stderr, "           b : Binaural.\n");
   fprintf(stderr, "-p [dB]      : Peak threshold in dB.\n");
   fprintf(stderr, "-l [LKFS]    : Normalization loudness(<0) in LKFS.\n");
@@ -619,8 +620,9 @@ static int mp4_input_wav_output2(PlayerArgs *pas) {
   if (layout->type == 2) {
     IAMF_decoder_output_layout_set_sound_system(dec, layout->ss);
     channels = IAMF_layout_sound_system_channels_count(layout->ss);
-    const char *letter[] = {"A", "B", "C", "D",       "E",       "F",   "G",
-                            "H", "I", "J", "EXT 712", "EXT 312", "MONO"};
+    const char *letter[] = {"A",       "B",       "C",    "D",      "E",
+                            "F",       "G",       "H",    "I",      "J",
+                            "EXT 712", "EXT 312", "MONO", "EXT 916"};
 
     fprintf(stdout, "Sound system %s has %d channels\n", letter[layout->ss],
             channels);

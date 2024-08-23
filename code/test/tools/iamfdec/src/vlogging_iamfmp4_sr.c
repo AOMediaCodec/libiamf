@@ -810,6 +810,35 @@ static void write_elst_atom_log(char* log, void* atom_d, int size,
   write_postfix(LOG_MP4BOX, log);
 }
 
+static void write_mdia_atom_log(char* log, void* atom_d, int size,
+                                uint64_t atom_addr) {
+  log += write_prefix(LOG_MP4BOX, log);
+  log += write_yaml_form(log, 0, "mdia_%016x:", atom_addr);
+  write_postfix(LOG_MP4BOX, log);
+}
+
+static void write_elng_atom_log(char* log, void* atom_d, int size,
+                                uint64_t atom_addr) {
+  enum { BUFSIZE = 256 };
+  char buf[BUFSIZE];
+  uint32_t val;
+  int index = 0;
+
+  log += write_prefix(LOG_MP4BOX, log);
+  log += write_yaml_form(log, 0, "elng_%016x:", atom_addr);
+
+  // version/flags
+  val = queue_rb32(index, atom_d, size - index);
+  index += 4;
+  log += write_yaml_form(log, 0, "- Version: %u", (val >> 24) & 0xff);
+  log += write_yaml_form(log, 0, "- Flags: %u", val & 0xffffff);
+
+  index += queue_rstring(index, atom_d, size - index, buf, BUFSIZE);
+  log += write_yaml_form(log, 0, "- Language: %s", buf);
+
+  write_postfix(LOG_MP4BOX, log);
+}
+
 static void write_mdhd_atom_log(char* log, void* atom_d, int size,
                                 uint64_t atom_addr) {
   /*
@@ -1701,8 +1730,14 @@ int vlog_atom(uint32_t atom_type, void* atom_d, int size, uint64_t atom_addr) {
     case MP4BOX_ELST:
       write_elst_atom_log(log, atom_d, size, atom_addr);
       break;
+    case MP4BOX_MDIA:
+      write_mdia_atom_log(log, atom_d, size, atom_addr);
+      break;
     case MP4BOX_MDHD:
       write_mdhd_atom_log(log, atom_d, size, atom_addr);
+      break;
+    case MP4BOX_ELNG:
+      write_elng_atom_log(log, atom_d, size, atom_addr);
       break;
     case MP4BOX_HDLR:
       write_hdlr_atom_log(log, atom_d, size, atom_addr);

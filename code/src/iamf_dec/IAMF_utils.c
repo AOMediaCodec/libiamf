@@ -78,131 +78,29 @@ const char *ia_error_code_string(int ec) {
   return "Unknown";
 }
 
-int ia_channel_layout_type_check(IAChannelLayoutType type) {
-  return type > IA_CHANNEL_LAYOUT_INVALID && type < IA_CHANNEL_LAYOUT_COUNT;
+int iamf_audio_layer_base_layout_check(IAChannelLayoutType type) {
+  return type >= IA_CHANNEL_LAYOUT_MONO && type < IA_CHANNEL_LAYOUT_COUNT;
 }
 
-static const char *gIACLName[] = {"1.0.0", "2.0.0",   "5.1.0", "5.1.2",
-                                  "5.1.4", "7.1.0",   "7.1.2", "7.1.4",
-                                  "3.1.2", "binaural"};
-
-const char *ia_channel_layout_name(IAChannelLayoutType type) {
-  if (ia_channel_layout_type_check(type)) {
-    return gIACLName[type];
-  }
-  return "Unknown";
+int iamf_audio_layer_expanded_layout_check(IAMFExpandedLayoutType type) {
+  return type >= IAMF_EXPANDED_LOUDSPEAKER_LAYOUT_LFE &&
+         type < IAMF_EXPANDED_LOUDSPEAKER_LAYOUT_COUNT;
 }
 
-static const int gIACLChCount[] = {1, 2, 6, 8, 10, 8, 10, 12, 6, 2};
-
-int ia_channel_layout_get_channels_count(IAChannelLayoutType type) {
-  return ia_channel_layout_type_check(type) ? gIACLChCount[type] : 0;
-}
-
-static const IAChannel gIACLChannels[][IA_CH_LAYOUT_MAX_CHANNELS] = {
-    {IA_CH_MONO},
-    {IA_CH_L2, IA_CH_R2},
-    {IA_CH_L5, IA_CH_R5, IA_CH_C, IA_CH_LFE, IA_CH_SL5, IA_CH_SR5},
-    {IA_CH_L5, IA_CH_R5, IA_CH_C, IA_CH_LFE, IA_CH_SL5, IA_CH_SR5, IA_CH_HL,
-     IA_CH_HR},
-    {IA_CH_L5, IA_CH_R5, IA_CH_C, IA_CH_LFE, IA_CH_SL5, IA_CH_SR5, IA_CH_HFL,
-     IA_CH_HFR, IA_CH_HBL, IA_CH_HBR},
-    {IA_CH_L7, IA_CH_R7, IA_CH_C, IA_CH_LFE, IA_CH_SL7, IA_CH_SR7, IA_CH_BL7,
-     IA_CH_BR7},
-    {IA_CH_L7, IA_CH_R7, IA_CH_C, IA_CH_LFE, IA_CH_SL7, IA_CH_SR7, IA_CH_BL7,
-     IA_CH_BR7, IA_CH_HL, IA_CH_HR},
-    {IA_CH_L7, IA_CH_R7, IA_CH_C, IA_CH_LFE, IA_CH_SL7, IA_CH_SR7, IA_CH_BL7,
-     IA_CH_BR7, IA_CH_HFL, IA_CH_HFR, IA_CH_HBL, IA_CH_HBR},
-    {IA_CH_L3, IA_CH_R3, IA_CH_C, IA_CH_LFE, IA_CH_TL, IA_CH_TR},
-    {IA_CH_L2, IA_CH_R2},
-};
-
-int ia_channel_layout_get_channels(IAChannelLayoutType type,
-                                   IAChannel *channels, uint32_t count) {
-  int ret = 0;
-  if (!ia_channel_layout_type_check(type)) {
-    return 0;
-  }
-
-  ret = ia_channel_layout_get_channels_count(type);
-  if (count < ret) {
-    return IAMF_ERR_BUFFER_TOO_SMALL;
-  }
-
-  for (int c = 0; c < ret; ++c) {
-    channels[c] = gIACLChannels[type][c];
-  }
-
-  return ret;
-}
-
-static const struct {
-  int s;
-  int w;
-  int t;
-} gIACLC2Count[IA_CHANNEL_LAYOUT_COUNT] = {
-    {1, 0, 0}, {2, 0, 0}, {5, 1, 0}, {5, 1, 2}, {5, 1, 4},
-    {7, 1, 0}, {7, 1, 2}, {7, 1, 4}, {3, 1, 2}, {2, 0, 0}};
-
-int ia_channel_layout_get_category_channels_count(IAChannelLayoutType type,
-                                                  uint32_t categorys) {
-  int chs = 0;
-  if (!ia_channel_layout_type_check(type)) {
-    return 0;
-  }
-
-  if (categorys & IA_CH_CATE_TOP) {
-    chs += gIACLC2Count[type].t;
-  }
-  if (categorys & IA_CH_CATE_WEIGHT) {
-    chs += gIACLC2Count[type].w;
-  }
-  if (categorys & IA_CH_CATE_SURROUND) {
-    chs += gIACLC2Count[type].s;
-  }
-  return chs;
-}
-
-static const IAChannel gIAALChannels[][IA_CH_LAYOUT_MAX_CHANNELS] = {
-    {IA_CH_MONO},
-    {IA_CH_L2, IA_CH_R2},
-    {IA_CH_L5, IA_CH_R5, IA_CH_SL5, IA_CH_SR5, IA_CH_C, IA_CH_LFE},
-    {IA_CH_L5, IA_CH_R5, IA_CH_SL5, IA_CH_SR5, IA_CH_HL, IA_CH_HR, IA_CH_C,
-     IA_CH_LFE},
-    {IA_CH_L5, IA_CH_R5, IA_CH_SL5, IA_CH_SR5, IA_CH_HFL, IA_CH_HFR, IA_CH_HBL,
-     IA_CH_HBR, IA_CH_C, IA_CH_LFE},
-    {IA_CH_L7, IA_CH_R7, IA_CH_SL7, IA_CH_SR7, IA_CH_BL7, IA_CH_BR7, IA_CH_C,
-     IA_CH_LFE},
-    {IA_CH_L7, IA_CH_R7, IA_CH_SL7, IA_CH_SR7, IA_CH_BL7, IA_CH_BR7, IA_CH_HL,
-     IA_CH_HR, IA_CH_C, IA_CH_LFE},
-    {IA_CH_L7, IA_CH_R7, IA_CH_SL7, IA_CH_SR7, IA_CH_BL7, IA_CH_BR7, IA_CH_HFL,
-     IA_CH_HFR, IA_CH_HBL, IA_CH_HBR, IA_CH_C, IA_CH_LFE},
-    {IA_CH_L3, IA_CH_R3, IA_CH_TL, IA_CH_TR, IA_CH_C, IA_CH_LFE},
-    {IA_CH_L2, IA_CH_R2}};
-
-int ia_audio_layer_get_channels(IAChannelLayoutType type, IAChannel *channels,
-                                uint32_t count) {
-  int ret = 0;
-  if (!ia_channel_layout_type_check(type)) {
-    return 0;
-  }
-
-  ret = ia_channel_layout_get_channels_count(type);
-  if (count < ret) {
-    return IAMF_ERR_BUFFER_TOO_SMALL;
-  }
-
-  for (int c = 0; c < ret; ++c) {
-    channels[c] = gIAALChannels[type][c];
-  }
-
-  return ret;
+IAChannelLayoutType iamf_audio_layer_layout_get(
+    IAChannelLayoutType base, IAMFExpandedLayoutType expanded) {
+  if (iamf_audio_layer_base_layout_check(base)) return base;
+  if (iamf_audio_layer_expanded_layout_check(expanded) &&
+      base == IAMF_LOUDSPEAKER_LAYOUT_EXPANDED)
+    return IAMF_LOUDSPEAKER_LAYOUT_EXPANDED_MASK | expanded;
+  return IA_CHANNEL_LAYOUT_INVALID;
 }
 
 static const char *gIAChName[] = {
-    "unknown", "l7/l5", "r7/r5", "c",   "lfe", "sl7",  "sr7", "bl7",
-    "br7",     "hfl",   "hfr",   "hbl", "hbr", "mono", "l2",  "r2",
-    "tl",      "tr",    "l3",    "r3",  "sl5", "sr5",  "hl",  "hr"};
+    "unknown", "l7/l5/l", "r7/r5/r", "c",   "lfe", "sl7/sl", "sr7/sr",
+    "bl7/bl",  "br7/br",  "hfl",     "hfr", "hbl", "hbr",    "mono",
+    "l2",      "r2",      "tl",      "tr",  "l3",  "r3",     "sl5",
+    "sr5",     "hl",      "hr",      "wl",  "wr",  "hsl",    "hsr"};
 
 const char *ia_channel_name(IAChannel ch) {
   return ch < IA_CH_COUNT ? gIAChName[ch] : "unknown";

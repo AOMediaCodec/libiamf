@@ -46,16 +46,13 @@ const char *iamf_codec_name(IAMF_CodecID cid);
 
 const char *ia_error_code_string(int ec);
 
-int ia_channel_layout_type_check(IAChannelLayoutType type);
-const char *ia_channel_layout_name(IAChannelLayoutType type);
-int ia_channel_layout_get_channels_count(IAChannelLayoutType type);
-int ia_channel_layout_get_channels(IAChannelLayoutType type,
-                                   IAChannel *channels, uint32_t count);
-int ia_channel_layout_get_category_channels_count(IAChannelLayoutType type,
-                                                  uint32_t categorys);
+int iamf_audio_layer_base_layout_check(IAChannelLayoutType type);
+int iamf_audio_layer_expanded_layout_check(IAMFExpandedLayoutType type);
+IAMFExpandedLayoutType iamf_audio_layer_expanded_layout_get(
+    IAChannelLayoutType type);
+IAChannelLayoutType iamf_audio_layer_layout_get(
+    IAChannelLayoutType base, IAMFExpandedLayoutType expanded);
 
-int ia_audio_layer_get_channels(IAChannelLayoutType type, IAChannel *channels,
-                                uint32_t count);
 const char *ia_channel_name(IAChannel ch);
 
 int bit1_count(uint32_t value);

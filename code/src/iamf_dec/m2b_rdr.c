@@ -31,8 +31,9 @@ This software module is out of scope and not part of the IAMF Final Deliverable.
 #include "bear/iamf_bear_api.h"
 // Multichannel to Binaural Renderer(BEAR)
 void IAMF_element_renderer_init_M2B(binaural_filter_t* binaural_f,
-                                    uint32_t in_layout, uint64_t elm_id,
-                                    int frame_size, int sample_rate) {
+                                    uint32_t in_layout, int custom_sp_flags,
+                                    uint64_t elm_id, int frame_size,
+                                    int sample_rate) {
   int i;
 
   if (binaural_f->m2b_init != 1) {
@@ -50,7 +51,8 @@ void IAMF_element_renderer_init_M2B(binaural_filter_t* binaural_f,
     }
     if (i < N_SOURCE_ELM) {
       binaural_f->m2b_source_id[i] = ConfigureBearDirectSpeakerChannel(
-          binaural_f->m2b_api, (int)in_layout, (size_t)frame_size, sample_rate);
+          binaural_f->m2b_api, (int)in_layout, custom_sp_flags,
+          (size_t)frame_size, sample_rate);
       binaural_f->m2b_elm_id[i] = elm_id;
     }
   }

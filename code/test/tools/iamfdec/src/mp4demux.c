@@ -42,6 +42,8 @@
 
 #define MKTAG(a, b, c, d) \
   ((a) | ((b) << 8) | ((c) << 16) | ((unsigned)(d) << 24))
+#define MKBETAG(a, b, c, d) \
+  ((d) | ((c) << 8) | ((b) << 16) | ((unsigned)(a) << 24))
 #define FREE(x)                    \
   if (x) {                         \
     _dfree(x, __FILE__, __LINE__); \
@@ -62,7 +64,9 @@ static int mov_read_iacb(mp4r_t *mp4r, int size);
 static int mov_read_edts(mp4r_t *mp4r, int size);
 static int mov_read_elst(mp4r_t *mp4r, int size);
 static int mov_read_tkhd(mp4r_t *mp4r, int size);
+static int mov_read_mdia(mp4r_t *mp4r, int size);
 static int mov_read_mdhd(mp4r_t *mp4r, int size);
+static int mov_read_elng(mp4r_t *mp4r, int size);
 static int mov_read_hdlr(mp4r_t *mp4r, int size);
 static int mov_read_stbl(mp4r_t *mp4r, int size);
 static int mov_read_stsd(mp4r_t *mp4r, int size);
@@ -76,21 +80,19 @@ static int mov_read_sgpd(mp4r_t *mp4r, int size);
 static avio_context atoms_tkhd[] = {
     {MOV_ATOM_NAME, "tkhd"}, {MOV_ATOM_DATA, mov_read_tkhd}, {0}};
 
-static avio_context atoms_mdia[] = {{MOV_ATOM_NAME, "mdia"},
-                                    {MOV_ATOM_DESCENT},
-                                    {MOV_ATOM_NAME, "mdhd"},
-                                    {MOV_ATOM_DATA, mov_read_mdhd},
-                                    {MOV_ATOM_NAME, "hdlr"},
-                                    {MOV_ATOM_DATA, mov_read_hdlr},
-                                    {0}};
+static avio_context atoms_mdia[] = {
+    {MOV_ATOM_NAME, "mdia"}, {MOV_ATOM_DATA, mov_read_mdia}, {0}};
+static avio_context atoms_mdhd[] = {
+    {MOV_ATOM_NAME, "mdhd"}, {MOV_ATOM_DATA, mov_read_mdhd}, {0}};
+static avio_context atoms_elng[] = {
+    {MOV_ATOM_NAME, "elng"}, {MOV_ATOM_DATA, mov_read_elng}, {0}};
+static avio_context atoms_hdlr[] = {
+    {MOV_ATOM_NAME, "hdlr"}, {MOV_ATOM_DATA, mov_read_hdlr}, {0}};
 
-static avio_context atoms_stbl[] = {{MOV_ATOM_NAME, "hdlr"},
-                                    {MOV_ATOM_NAME, "minf"},
-                                    {MOV_ATOM_DESCENT},
-                                    {MOV_ATOM_NAME, "dinf"},
-                                    {MOV_ATOM_NAME, "stbl"},
-                                    {MOV_ATOM_DATA, mov_read_stbl},
-                                    {0}};
+static avio_context atoms_stbl[] = {
+    {MOV_ATOM_NAME, "minf"},        {MOV_ATOM_DESCENT},
+    {MOV_ATOM_NAME, "dinf"},        {MOV_ATOM_NAME, "stbl"},
+    {MOV_ATOM_DATA, mov_read_stbl}, {0}};
 
 static avio_context atoms_stsd[] = {
     {MOV_ATOM_NAME, "stsd"}, {MOV_ATOM_DATA, mov_read_stsd}, {0}};
@@ -165,6 +167,22 @@ static int avio_r8_(mp4r_t *mp4r) {
   return val;
 }
 
+#define avio_rb24() avio_rb24_(mp4r)
+static int avio_rb24_(mp4r_t *mp4r) {
+  int val;
+  val = avio_rb16_(mp4r) << 8;
+  val |= avio_r8_(mp4r);
+  return val;
+}
+
+#define avio_rb64() avio_rb64_(mp4r)
+static uint64_t avio_rb64_(mp4r_t *mp4r) {
+  uint64_t val;
+  val = (uint64_t)avio_rb32_(mp4r) << 32;
+  val |= (uint64_t)avio_rb32_(mp4r);
+  return val;
+}
+
 #define avio_leb128() avio_leb128_(mp4r)
 uint64_t avio_leb128_(mp4r_t *mp4r) {
   FILE *fin = mp4r->fin;
@@ -179,6 +197,10 @@ uint64_t avio_leb128_(mp4r_t *mp4r) {
   }
   return val;
 }
+
+#define REALLOC(type, p, n) \
+  ((type *)_drealloc(p, sizeof(type) * (n), __FILE__, __LINE__))
+#define MALLOCZ(type, n) ((type *)_dcalloc(n, sizeof(type), __FILE__, __LINE__))
 
 static int mov_read_ftyp(mp4r_t *mp4r, int size) {
   enum { BUFSIZE = 40 };
@@ -295,9 +317,42 @@ int mov_read_mdhd(mp4r_t *mp4r, int size) {
     // Duration
     atr[sel_a_trak].samples = avio_rb32();
     // Language
-    avio_rb16();
+    unsigned lang = avio_rb16();
+    char lan[4];
+    memset(lan, 0, 4);
+    if (lang >= 0x400 && lang != 0x7fff) {
+      for (int i = 2; i >= 0; i--) {
+        lan[i] = 0x60 + (lang & 0x1f);
+        lang >>= 5;
+      }
+    }
+    lan[3] = '\0';
     // pre_defined
     avio_rb16();
+  }
+  return size;
+}
+
+int mov_read_elng(mp4r_t *mp4r, int size) {
+#if SUPPORT_VERIFIER
+  char *atom_d = (char *)malloc(size);
+  int fpos;
+  fpos = ftell(mp4r->fin);
+  avio_rdata(mp4r->fin, atom_d, size);
+  fseek(mp4r->fin, fpos, SEEK_SET);
+  vlog_atom(MP4BOX_ELNG, atom_d, size, fpos - 8);
+  free(atom_d);
+#endif
+
+  int sel_a_trak;
+  if (mp4r->trak_type[mp4r->cur_r_trak] == TRAK_TYPE_AUDIO) {
+    sel_a_trak = mp4r->sel_a_trak;
+    char lan[256];
+
+    // version/flags
+    avio_rb32();
+    // Language
+    avio_rstring(mp4r->fin, lan, size - 4);
   }
   return size;
 }
@@ -309,6 +364,26 @@ int atom_seek_parse(mp4r_t *mp4r, int64_t pos, int size, avio_context *atoms) {
   fseek(mp4r->fin, pos, SEEK_SET);
   mp4r->atom = atoms;
   return parse(mp4r, &size);
+}
+
+int mov_read_mdia(mp4r_t *mp4r, int size) {
+#if SUPPORT_VERIFIER
+  char *atom_d = (char *)malloc(size);
+  int fpos;
+  fpos = ftell(mp4r->fin);
+  avio_rdata(mp4r->fin, atom_d, size);
+  fseek(mp4r->fin, fpos, SEEK_SET);
+  vlog_atom(MP4BOX_MDIA, atom_d, size, fpos - 8);
+  free(atom_d);
+#endif
+
+  int64_t apos = ftell(mp4r->fin);
+  avio_context *list[] = {atoms_mdhd, atoms_elng, atoms_hdlr, atoms_stbl};
+  STASH_ATOM();
+  for (int i = 0; i < sizeof(list) / sizeof(avio_context *); ++i)
+    atom_seek_parse(mp4r, apos, size, list[i]);
+  RESTORE_ATOM();
+  return size;
 }
 
 int mov_read_trak(mp4r_t *mp4r, int size) {
@@ -429,17 +504,18 @@ int mov_read_stsd(mp4r_t *mp4r, int size) {
 #endif
 
   int n;
-  avio_context *pos = mp4r->atom;
 
   // version/flags
   avio_rb32();
   n = avio_rb32();
 
+  STASH_ATOM();
+
   for (int i = 0; i < n; ++i) {
     mp4r->atom = atoms_iamf;
     parse(mp4r, &size);
   }
-  mp4r->atom = pos;
+  RESTORE_ATOM();
   return size;
 }
 
@@ -466,34 +542,36 @@ int mov_read_elst(mp4r_t *mp4r, int size) {
   vlog_atom(MP4BOX_ELST, atom_d, size, fpos - 8);
   free(atom_d);
 #endif
-  int sel_a_trak = mp4r->sel_a_trak;
-  audio_rtr_t *atr = mp4r->a_trak;
-  int entry_count;
-  int ver = avio_r8();
-  int64_t start = 0;
+  if (mp4r->trak_type[mp4r->cur_r_trak] == TRAK_TYPE_AUDIO) {
+    int sel_a_trak = mp4r->sel_a_trak;
+    audio_rtr_t *atr = mp4r->a_trak;
+    int entry_count;
+    int ver = avio_r8();
+    int64_t start = 0;
 
-  avio_r8();
-  avio_rb16();  // flag
-  entry_count = avio_rb32();
+    avio_r8();
+    avio_rb16();  // flag
+    entry_count = avio_rb32();
 
-  for (int i = 0; i < entry_count; ++i) {
-    if (ver) {
-      avio_rb32();
-      avio_rb32();  // segment_duration;
+    for (int i = 0; i < entry_count; ++i) {
+      if (ver) {
+        avio_rb32();
+        avio_rb32();  // segment_duration;
 
-      start = avio_rb32();
-      start = start << 32 | avio_rb32();  // media_time;
-    } else {
-      avio_rb32();          // segment_duration;
-      start = avio_rb32();  // media_time;
+        start = avio_rb32();
+        start = start << 32 | avio_rb32();  // media_time;
+      } else {
+        avio_rb32();          // segment_duration;
+        start = avio_rb32();  // media_time;
+      }
+      avio_rb16();  // media_rate_integer
+      avio_rb16();  // edia_rate_fraction
     }
-    avio_rb16();  // media_rate_integer
-    avio_rb16();  // edia_rate_fraction
-  }
 
-  if (!atr[sel_a_trak].start && start > 0) {
-    atr[sel_a_trak].start = start;
-    /* printf("get media time %" PRId64"\n", start); */
+    if (!atr[sel_a_trak].start && start > 0) {
+      atr[sel_a_trak].start = start;
+      /* printf("get media time %" PRId64"\n", start); */
+    }
   }
   return size;
 }
@@ -946,10 +1024,9 @@ static int mov_read_tfhd(mp4r_t *mp4r, int size) {
   }
 
   /* base_data_offset */
-  if (vf & 0x1) {
-    avio_rb32();
-    avio_rb32();
-  }
+  mp4r->base_data_offset =
+      vf & 0x01 ? avio_rb64()
+                : vf & 0x02 ? mp4r->moof_position : mp4r->implicit_offset;
 
   // sample_description_index
   if (vf & 0x2) {
@@ -1026,7 +1103,7 @@ static int mov_read_trun(mp4r_t *mp4r, int size) {
 
   uint32_t fsize = mp4r->a_trak[mp4r->sel_a_trak].sample_size;
   if (fsize) atr[sel_a_trak].frame.maxsize = fsize;
-  offset += mp4r->moof_position;
+  offset += mp4r->base_data_offset;
   for (cnt = 0; cnt < atr[sel_a_trak].frame.ents; cnt++) {
     if (vf & 0x100) avio_rb32();
 
@@ -1042,6 +1119,7 @@ static int mov_read_trun(mp4r_t *mp4r, int size) {
     if (vf & 0x400) avio_rb32();
     if (vf & 0x800) avio_rb32();
   }
+  mp4r->implicit_offset = offset;
 
   return size;
 }
@@ -1195,9 +1273,6 @@ int mov_read_hdlr(mp4r_t *mp4r, int size) {
 
   if (!memcmp("vide", buf, 4)) {
     fprintf(stderr, "unsupported, skipping in hdlrin\n");
-  } else if (!memcmp("soun", buf, 4)) {
-    // fprintf(stderr, "sound\n");
-    mp4r->atom = atoms_stbl;
   }
   // reserved
   avio_rb32();
