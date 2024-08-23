@@ -4409,7 +4409,7 @@ int IAMF_layout_binaural_channels_count() { return 2; }
 
 #define CC_STR_SIZE 1024
 char *IAMF_decoder_get_codec_capability() {
-  char *ccs_str = IAMF_MALLOC(char, CC_STR_SIZE);
+  char *ccs_str = IAMF_MALLOCZ(char, CC_STR_SIZE);
   char cc_str[STRING_SIZE];
 
   if (!ccs_str) return 0;
