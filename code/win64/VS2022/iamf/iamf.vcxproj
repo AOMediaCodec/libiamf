@@ -144,6 +144,7 @@
     <ClCompile Include="..\..\..\src\iamf_dec\IAMF_core_decoder.c" />
     <ClCompile Include="..\..\..\src\iamf_dec\IAMF_debug_sr.c" />
     <ClCompile Include="..\..\..\src\iamf_dec\IAMF_decoder.c" />
+    <ClCompile Include="..\..\..\src\iamf_dec\IAMF_layout.c" />
     <ClCompile Include="..\..\..\src\iamf_dec\IAMF_OBU.c" />
     <ClCompile Include="..\..\..\src\iamf_dec\IAMF_utils.c" />
     <ClCompile Include="..\..\..\src\iamf_dec\m2b_rdr.c" />
@@ -174,6 +175,7 @@
     <ClInclude Include="..\..\..\src\iamf_dec\IAMF_codec.h" />
     <ClInclude Include="..\..\..\src\iamf_dec\IAMF_core_decoder.h" />
     <ClInclude Include="..\..\..\src\iamf_dec\IAMF_decoder_private.h" />
+    <ClInclude Include="..\..\..\src\iamf_dec\IAMF_layout.h" />
     <ClInclude Include="..\..\..\src\iamf_dec\IAMF_OBU.h" />
     <ClInclude Include="..\..\..\src\iamf_dec\IAMF_types.h" />
     <ClInclude Include="..\..\..\src\iamf_dec\IAMF_utils.h" />

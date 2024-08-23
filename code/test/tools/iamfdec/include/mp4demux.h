@@ -114,6 +114,8 @@ typedef struct {
   uint32_t mdatsize;
 
   uint64_t moof_position;
+  uint64_t base_data_offset;
+  uint64_t implicit_offset;
   int moof_flag;
 
   uint64_t next_moov;

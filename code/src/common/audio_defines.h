@@ -25,7 +25,7 @@
 #define LIMITER_ReleaseSec 0.200f
 #define LIMITER_LookAhead 240
 
-#define MAX_CHANNELS 12
+#define MAX_CHANNELS 28
 #define MAX_OUTPUT_CHANNELS 24
 #define MAX_DELAYSIZE 4096
 #define CHUNK_SIZE 960

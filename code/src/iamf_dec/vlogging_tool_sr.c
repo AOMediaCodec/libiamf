@@ -589,6 +589,9 @@ static void write_audio_element_log(uint64_t idx, void* obu, char* log) {
         log += write_yaml_form(log, 3, "output_gain: %d",
                                layer_conf->output_gain_info->output_gain);
       }
+      if (!i && layer_conf->loudspeaker_layout == 0xf)
+        log += write_yaml_form(log, 3, "expanded_loudspeaker_layout: %u",
+                               layer_conf->expanded_loudspeaker_layout);
     }
   } else if (ae_obu->element_type == AUDIO_ELEMENT_TYPE_SCENE_BASED) {
     // log += write_yaml_form(log, 0, "- scene_based:");
@@ -636,15 +639,14 @@ static void write_mix_presentation_log(uint64_t idx, void* obu, char* log) {
   log += write_yaml_form(log, 0, "- mix_presentation_id: %llu",
                          mp_obu->mix_presentation_id);
   log += write_yaml_form(log, 1, "count_label: %llu", mp_obu->num_labels);
-  log += write_yaml_form(log, 1, "language_labels:");
+  log += write_yaml_form(log, 1, "annotations_language:");
   for (uint64_t i = 0; i < mp_obu->num_labels; ++i) {
-    log += write_yaml_form(log, 1, "- \"%s\"", mp_obu->language[i]);
+    log += write_yaml_form(log, 1, "- \"%s\"", mp_obu->annotations_language[i]);
   }
-  log += write_yaml_form(log, 1, "mix_presentation_annotations_array:");
+  log += write_yaml_form(log, 1, "localized_presentation_annotations:");
   for (uint64_t i = 0; i < mp_obu->num_labels; ++i) {
-    log += write_yaml_form(log, 1, "- mix_presentation_annotations:");
-    log += write_yaml_form(log, 2, "mix_presentation_friendly_label: \"%s\"",
-                           mp_obu->mix_presentation_friendly_label[i]);
+    log += write_yaml_form(log, 1, "- \"%s\"",
+                           mp_obu->localized_presentation_annotations[i]);
   }
   log += write_yaml_form(log, 1, "num_sub_mixes: %llu", mp_obu->num_sub_mixes);
   log += write_yaml_form(log, 1, "sub_mixes:");
@@ -657,13 +659,10 @@ static void write_mix_presentation_log(uint64_t idx, void* obu, char* log) {
       ElementConf* conf_s = &submix->conf_s[j];
       log += write_yaml_form(log, 2, "- audio_element_id: %llu",
                              conf_s->element_id);
-      log += write_yaml_form(log, 3,
-                             "mix_presentation_element_annotations_array:");
+      log += write_yaml_form(log, 3, "localized_element_annotations:");
       for (uint64_t k = 0; k < mp_obu->num_labels; ++k) {
-        log +=
-            write_yaml_form(log, 3, "- mix_presentation_element_annotations:");
-        log += write_yaml_form(log, 4, "audio_element_friendly_label: \"%s\"",
-                               conf_s->audio_element_friendly_label[k]);
+        log += write_yaml_form(log, 3, "- \"%s\"",
+                               conf_s->localized_element_annotations[k]);
       }
 
       log += write_yaml_form(log, 3, "rendering_config:");
@@ -672,66 +671,63 @@ static void write_mix_presentation_log(uint64_t idx, void* obu, char* log) {
       log += write_yaml_form(log, 4, "rendering_config_extension_size: %u",
                              conf_s->conf_r.rendering_config_extension_size);
 
-      log += write_yaml_form(log, 3, "element_mix_config:");
-      log += write_yaml_form(log, 4, "mix_gain:");
-      log += write_yaml_form(log, 5, "param_definition:");
-      log += write_yaml_form(log, 6, "parameter_id: %llu",
-                             conf_s->conf_m.gain.base.id);
-      log += write_yaml_form(log, 6, "parameter_rate: %llu",
-                             conf_s->conf_m.gain.base.rate);
-      log += write_yaml_form(log, 6, "param_definition_mode: %u",
-                             conf_s->conf_m.gain.base.mode);
-      if (conf_s->conf_m.gain.base.mode == 0) {
-        log += write_yaml_form(log, 6, "duration: %llu",
-                               conf_s->conf_m.gain.base.duration);
-        log += write_yaml_form(log, 6, "num_subblocks: %llu",
-                               conf_s->conf_m.gain.base.nb_segments);
-        log +=
-            write_yaml_form(log, 6, "constant_subblock_duration: %llu",
-                            conf_s->conf_m.gain.base.constant_segment_interval);
-        if (conf_s->conf_m.gain.base.constant_segment_interval == 0) {
-          log += write_yaml_form(log, 6, "subblock_durations:");
-          for (uint64_t k = 0; k < conf_s->conf_m.gain.base.nb_segments; ++k) {
+      log += write_yaml_form(log, 3, "element_mix_gain:");
+      log += write_yaml_form(log, 4, "param_definition:");
+      log += write_yaml_form(log, 5, "parameter_id: %llu",
+                             conf_s->element_mix_gain.base.id);
+      log += write_yaml_form(log, 5, "parameter_rate: %llu",
+                             conf_s->element_mix_gain.base.rate);
+      log += write_yaml_form(log, 5, "param_definition_mode: %u",
+                             conf_s->element_mix_gain.base.mode);
+      if (conf_s->element_mix_gain.base.mode == 0) {
+        log += write_yaml_form(log, 5, "duration: %llu",
+                               conf_s->element_mix_gain.base.duration);
+        log += write_yaml_form(log, 5, "num_subblocks: %llu",
+                               conf_s->element_mix_gain.base.nb_segments);
+        log += write_yaml_form(
+            log, 5, "constant_subblock_duration: %llu",
+            conf_s->element_mix_gain.base.constant_segment_interval);
+        if (conf_s->element_mix_gain.base.constant_segment_interval == 0) {
+          log += write_yaml_form(log, 5, "subblock_durations:");
+          for (uint64_t k = 0; k < conf_s->element_mix_gain.base.nb_segments;
+               ++k) {
             log += write_yaml_form(
                 log, 6, "- %llu",
-                conf_s->conf_m.gain.base.segments[k].segment_interval);
+                conf_s->element_mix_gain.base.segments[k].segment_interval);
           }
         }
       }
-      log += write_yaml_form(log, 5, "default_mix_gain: %d",
-                             conf_s->conf_m.gain.mix_gain);
+      log += write_yaml_form(log, 4, "default_mix_gain: %d",
+                             conf_s->element_mix_gain.mix_gain);
     }
 
-    OutputMixConf* output_mix_config = &submix->output_mix_config;
-    log += write_yaml_form(log, 2, "output_mix_config:");
-    log += write_yaml_form(log, 3, "output_mix_gain:");
-    log += write_yaml_form(log, 4, "param_definition:");
-    log += write_yaml_form(log, 5, "parameter_id: %llu",
-                           output_mix_config->gain.base.id);
-    log += write_yaml_form(log, 5, "parameter_rate: %llu",
-                           output_mix_config->gain.base.rate);
-    log += write_yaml_form(log, 5, "param_definition_mode: %u",
-                           output_mix_config->gain.base.mode);
-    if (output_mix_config->gain.base.mode == 0) {
-      log += write_yaml_form(log, 5, "duration: %llu",
-                             output_mix_config->gain.base.duration);
-      log += write_yaml_form(log, 5, "num_subblocks: %llu",
-                             output_mix_config->gain.base.nb_segments);
-      log += write_yaml_form(
-          log, 5, "constant_subblock_duration: %llu",
-          output_mix_config->gain.base.constant_segment_interval);
-      if (output_mix_config->gain.base.constant_segment_interval == 0) {
-        log += write_yaml_form(log, 5, "subblock_durations:");
-        for (uint64_t k = 0; k < output_mix_config->gain.base.nb_segments;
-             ++k) {
+    MixGainParameter output_mix_gain = submix->output_mix_gain;
+    log += write_yaml_form(log, 2, "output_mix_gain:");
+    log += write_yaml_form(log, 3, "param_definition:");
+    log +=
+        write_yaml_form(log, 4, "parameter_id: %llu", output_mix_gain.base.id);
+    log += write_yaml_form(log, 4, "parameter_rate: %llu",
+                           output_mix_gain.base.rate);
+    log += write_yaml_form(log, 4, "param_definition_mode: %u",
+                           output_mix_gain.base.mode);
+    if (output_mix_gain.base.mode == 0) {
+      log += write_yaml_form(log, 4, "duration: %llu",
+                             output_mix_gain.base.duration);
+      log += write_yaml_form(log, 4, "num_subblocks: %llu",
+                             output_mix_gain.base.nb_segments);
+      log += write_yaml_form(log, 4, "constant_subblock_duration: %llu",
+                             output_mix_gain.base.constant_segment_interval);
+      if (output_mix_gain.base.constant_segment_interval == 0) {
+        log += write_yaml_form(log, 4, "subblock_durations:");
+        for (uint64_t k = 0; k < output_mix_gain.base.nb_segments; ++k) {
           log += write_yaml_form(
-              log, 5, "- %llu",
-              output_mix_config->gain.base.segments[k].segment_interval);
+              log, 4, "- %llu",
+              output_mix_gain.base.segments[k].segment_interval);
         }
       }
     }
-    log += write_yaml_form(log, 4, "default_mix_gain: %d",
-                           output_mix_config->gain.mix_gain);
+    log += write_yaml_form(log, 3, "default_mix_gain: %d",
+                           output_mix_gain.mix_gain);
 
     log += write_yaml_form(log, 2, "num_layouts: %llu", submix->num_layouts);
 
@@ -782,6 +778,17 @@ static void write_mix_presentation_log(uint64_t idx, void* obu, char* log) {
           }
         }
       }
+    }
+  }
+  if (mp_obu->num_name_value_tags > 0) {
+    log += write_yaml_form(log, 1, "mix_presentation_tags:");
+    log += write_yaml_form(log, 2, "num_tags: %u", mp_obu->num_name_value_tags);
+    log += write_yaml_form(log, 2, "tags:");
+    for (uint8_t i = 0; i < mp_obu->num_name_value_tags; ++i) {
+      log +=
+          write_yaml_form(log, 2, "- tag_name: \"%s\"", mp_obu->tags[i].name);
+      log +=
+          write_yaml_form(log, 3, "tag_value: \"%s\"", mp_obu->tags[i].value);
     }
   }
   write_postfix(LOG_OBU, log);

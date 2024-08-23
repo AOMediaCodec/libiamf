@@ -42,7 +42,8 @@ repository:
 ### Basic build
 
 "build.sh" is an example to build, you can run it directly at your side.  
-(dependent [codec libraries](dep_codecs/lib) and [external libraries](dep_external/lib/binaural) complied under x64 linux have been provided in advance)
+(dependent [codec libraries](dep_codecs/lib) and [external libraries](dep_external/lib/binaural) complied under x64 linux have been provided in advance,  
+if compile other platform version, please refer to [dependent codecs](dep_codecs/README.md) and [dependent externals])
 
 CMake replaces the configure step typical of many projects. Running CMake will
 produce configuration and build files for the currently selected CMake
@@ -58,7 +59,7 @@ form of a makefile build is the following:
 
 The IAMF library has few configuration options, There are one option which is used to enable binaural rendering:
     Build binaural rendering configuration options. These have the form `MULTICHANNEL_BINAURALIZER` and `HOA_BINAURALIZER`.
-	(If binaural rendering is not enabled, there is no need to provide external libraries)
+    (If binaural rendering is not enabled, there is no need to provide external libraries)
 ~~~
     $ cmake ./ -DMULTICHANNEL_BINAURALIZER=ON -DHOA_BINAURALIZER=ON
     $ make
@@ -152,6 +153,7 @@ To produce binaural output, please download the following file and place it in y
               10 : Sound system extension 712 (2+7+0)
               11 : Sound system extension 312 (2+3+0)
               12 : Sound system mono (0+1+0)
+              13 : Sound system extension 916 (6+9+0)
                b : Binaural.
     -p [dB]      : Peak threshold in dB.
     -l [LKFS]    : Normalization loudness(<0) in LKFS.

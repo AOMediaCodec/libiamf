@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 
+#define BS2051_MAX_CHANNELS 24  // BS2051_H
 typedef enum {
   BS2051_A = 0x020,        // 2ch output
   BS2051_B = 0x050,        // 6ch output
@@ -39,11 +40,47 @@ typedef enum {
   IAMF_514 = 0x514,        // 10ch input
   IAMF_71 = 0x710,         // 8ch input
   IAMF_714 = 0x714,        // 12ch input
-  IAMF_MONO = 0x100,       // 1ch input, AOM only
-  IAMF_712 = 0x712,        // 10ch input, AOM only
-  IAMF_312 = 0x312,        // 6ch input, AOM only
+  IAMF_MONO = 0x100,       // 1ch input/output, AOM only
+  IAMF_712 = 0x712,        // 10ch input/output, AOM only
+  IAMF_312 = 0x312,        // 6ch input/output, AOM only
   IAMF_BINAURAL = 0x1020,  // binaural input/output AOM only
+  IAMF_916 = 0x916         // 16ch input/output, AOM only
 } IAMF_SOUND_SYSTEM;
+
+typedef enum {
+  SP_MP000 = 0x00000001,
+  SP_MP030 = 0x00000002,
+  SP_MM030 = 0x00000004,
+  SP_MP045 = 0x00000008,
+  SP_MM045 = 0x00000010,
+  SP_MP060 = 0x00000020,
+  SP_MM060 = 0x00000040,
+  SP_MP090 = 0x00000080,
+  SP_MM090 = 0x00000100,
+  SP_MP110 = 0x00000200,
+  SP_MM110 = 0x00000400,
+  SP_MP135 = 0x00000800,
+  SP_MM135 = 0x00001000,
+  SP_MP180 = 0x00002000,
+  SP_TP000 = 0x00004000,
+  SP_UP000 = 0x00008000,
+  SP_UP030 = 0x00010000,
+  SP_UM030 = 0x00020000,
+  SP_UP045 = 0x00040000,
+  SP_UM045 = 0x00080000,
+  SP_UP090 = 0x00100000,
+  SP_UM090 = 0x00200000,
+  SP_UP110 = 0x00400000,
+  SP_UM110 = 0x00800000,
+  SP_UP135 = 0x01000000,
+  SP_UM135 = 0x02000000,
+  SP_UP180 = 0x04000000,
+  SP_BP000 = 0x08000000,
+  SP_BP045 = 0x10000000,
+  SP_BM045 = 0x20000000,
+  SP_LFE1 = 0x40000000,
+  SP_LFE2 = 0x80000000
+} BS2051_SPLABEL;
 
 #ifndef DISABLE_LFE_HOA
 #define DISABLE_LFE_HOA 1
@@ -59,8 +96,10 @@ typedef enum {
 #endif
 
 #if ENABLE_HOA_TO_BINAURAL || ENABLE_MULTICHANNEL_TO_BINAURAL
-#define N_SOURCE_ELM \
-  2  // maximum number of audio element == maximum source id array size
+
+/// maximum number of audio element == maximum source id array size
+#define N_SOURCE_ELM 28
+
 typedef struct {
 #if ENABLE_MULTICHANNEL_TO_BINAURAL
   int m2b_init;
@@ -91,7 +130,8 @@ typedef struct {
 } IAMF_PREDEFINED_SP_LAYOUT;
 
 typedef struct {
-  int undefined;  // not yet defined.
+  IAMF_SOUND_SYSTEM system;
+  BS2051_SPLABEL sp_flags;  // subset of BS2051_SPLABEL
 } IAMF_CUSTOM_SP_LAYOUT;
 
 typedef struct {
@@ -110,7 +150,8 @@ typedef enum {
   IAMF_ZOA = 0,
   IAMF_FOA = 1,
   IAMF_SOA = 2,
-  IAMF_TOA = 3
+  IAMF_TOA = 3,
+  IAMF_H4A = 4
 } HOA_ORDER;
 
 typedef struct {
@@ -137,9 +178,9 @@ struct h2m_rdr_t {
   int n;
 };
 
-// Multichannel to Multichannel
+// Predefined Multichannel to Multichannel
 /**
- * @brief     Get the ear render conversion matrix of multichannel to
+ * @brief     Get the ear render conversion matrix of predefined multichannel to
  * multichannel according to predefined direct speaker input and output layout.
  * @param     [in] in : predefined direct speaker input channel layout.
  * @param     [in] out : predefined direct speaker output channel layout
@@ -151,20 +192,22 @@ int IAMF_element_renderer_get_M2M_matrix(IAMF_SP_LAYOUT *in,
                                          struct m2m_rdr_t *outMatrix);
 
 /**
- * @brief     Get the ear render conversion matrix of multichannel to
+ * @brief     Get the ear render conversion matrix of custom multichannel to
  * multichannel according to predefined direct speaker input and custom output
  * layout.
  * @param     [in] in : custom speaker input layout.
- * @param     [in] out : custom speaker output layout
+ * @param     [in] out : predefined speaker output layout
  * @param     [in] outMatrix : conversion matrix.
+ * @param     [in] chmap : speaker subset channel list in input layout.
  * @return    @0: success,@others: fail
  */
 int IAMF_element_renderer_get_M2M_custom_matrix(IAMF_SP_LAYOUT *in,
-                                                IAMF_CUSTOM_SP_LAYOUT *out,
-                                                struct m2m_rdr_t *outMatrix);
+                                                IAMF_SP_LAYOUT *out,
+                                                struct m2m_rdr_t *outMatrix,
+                                                int *chmap);
 
 /**
- * @brief     Multichannel to Multichannel Renderer.
+ * @brief     Predefined Multichannel to Multichannel Renderer.
  * @param     [in] in : the pcm signal of input.
  * @param     [in] out : the pcm signal of output
  * @param     [in] nsamples : the processed samples of pcm signal.
@@ -173,6 +216,17 @@ int IAMF_element_renderer_get_M2M_custom_matrix(IAMF_SP_LAYOUT *in,
 int IAMF_element_renderer_render_M2M(struct m2m_rdr_t *m2mMatrix, float *in[],
                                      float *out[], int nsamples);
 
+/**
+ * @brief     Custom Multichannel to Multichannel Renderer.
+ * @param     [in] in : the pcm signal of input.
+ * @param     [in] out : the pcm signal of output
+ * @param     [in] nsamples : the processed samples of pcm signal.
+ * @param     [in] chmap : speaker subset channel list in input layout.
+ * @return    @0: success,@others: fail
+ */
+int IAMF_element_renderer_render_M2M_custom(struct m2m_rdr_t *m2mMatrix,
+                                            float *in[], float *out[],
+                                            int nsamples, int *chmap);
 // HOA to Multichannel
 #if DISABLE_LFE_HOA == 0
 void lfefilter_init(lfe_filter_t *lfe_f, float cutoff_freq,
@@ -189,17 +243,6 @@ void lfefilter_init(lfe_filter_t *lfe_f, float cutoff_freq,
 int IAMF_element_renderer_get_H2M_matrix(IAMF_HOA_LAYOUT *in,
                                          IAMF_PREDEFINED_SP_LAYOUT *out,
                                          struct h2m_rdr_t *outMatrix);
-
-/**
- * @brief     Get the ear render conversion matrix of hoa to multichannel
- *            according to hoa input and custom output layout.
- * @param     [in] in : custom output channel layout
- * @param     [in] outMatrix : conversion matrix.
- * @return    @0: success,@others: fail
- */
-int IAMF_element_renderer_get_H2M_custom_matrix(
-    IAMF_HOA_LAYOUT *in_layout, IAMF_CUSTOM_SP_LAYOUT *out_layout,
-    struct h2m_rdr_t *outMatrix);
 
 /**
  * @brief     Hoa to Multichannel Renderer.
@@ -225,8 +268,9 @@ int IAMF_element_renderer_render_H2M(struct h2m_rdr_t *h2mMatrix, float *in[],
  * @param     [in] sample_rate : the sample rate of pcm signal.
  */
 void IAMF_element_renderer_init_M2B(binaural_filter_t *binaural_f,
-                                    uint32_t in_layout, uint64_t elm_id,
-                                    int frame_size, int sample_rate);
+                                    uint32_t in_layout, int sp_flags,
+                                    uint64_t elm_id, int frame_size,
+                                    int sample_rate);
 
 /**
  * @brief     De-initialize the conversion filter of multichannel to binaural.

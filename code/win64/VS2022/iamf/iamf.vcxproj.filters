@@ -90,6 +90,9 @@
     <ClCompile Include="..\..\..\dep_external\src\wav\dep_wavwriter.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\iamf_dec\IAMF_layout.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\common\audio_defines.h">
@@ -162,6 +165,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\iamf_dec\speex_resampler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\iamf_dec\IAMF_layout.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

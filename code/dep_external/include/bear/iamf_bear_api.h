@@ -41,6 +41,7 @@ extern "C" {
 EXPORT_API void* CreateBearAPI(char* tf_data_path);
 EXPORT_API void DestroyBearAPI(void* pv_thiz);
 EXPORT_API int ConfigureBearDirectSpeakerChannel(void* pv_thiz, int layout,
+                                                 int sp_flags,
                                                  size_t nsample_per_frame,
                                                  int sample_rate);
 EXPORT_API int SetBearDirectSpeakerChannel(void* pv_thiz, int source_id,

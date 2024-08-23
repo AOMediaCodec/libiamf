@@ -59,6 +59,7 @@ typedef enum IAMF_SoundSystem {
   SOUND_SYSTEM_EXT_712,  // 2+7+0, 1
   SOUND_SYSTEM_EXT_312,  // 2+3+0, 1
   SOUND_SYSTEM_MONO,     // 0+1+0, 0
+  SOUND_SYSTEM_EXT_916,  // 6+9+0, 1
   SOUND_SYSTEM_END
 } IAMF_SoundSystem;
 
@@ -190,6 +191,37 @@ typedef enum {
   IA_CHANNEL_LAYOUT_714,       // 7.1.4
   IA_CHANNEL_LAYOUT_312,       // 3.1.2
   IA_CHANNEL_LAYOUT_BINAURAL,  // binaural
-  IA_CHANNEL_LAYOUT_COUNT
+  IA_CHANNEL_LAYOUT_COUNT,
+
+  // expanded layout for version 1.1.
+  /// @brief The low-frequency effects subset (LFE) of 7.1.4ch
+  IA_CHANNEL_LAYOUT_EXPANDED_LFE = 0x10,
+  /// @brief The surround subset (Ls/Rs) of 5.1.4ch
+  IA_CHANNEL_LAYOUT_EXPANDED_STEREO_S,
+  /// @brief The side surround subset (Lss/Rss) of 7.1.4ch
+  IA_CHANNEL_LAYOUT_EXPANDED_STEREO_SS,
+  /// @brief The rear surround subset (Lrs/Rrs) of 7.1.4ch
+  IA_CHANNEL_LAYOUT_EXPANDED_STEREO_RS,
+  /// @brief The top front subset (Ltf/Rtf) of 7.1.4ch
+  IA_CHANNEL_LAYOUT_EXPANDED_STEREO_TF,
+  /// @brief The top back subset (Ltb/Rtb) of 7.1.4ch
+  IA_CHANNEL_LAYOUT_EXPANDED_STEREO_TB,
+  /// @brief The top 4 channels (Ltf/Rtf/Ltb/Rtb) of 7.1.4ch
+  IA_CHANNEL_LAYOUT_EXPANDED_TOP_4CH,
+  /// @brief The front 3 channels (L/C/R) of 7.1.4ch
+  IA_CHANNEL_LAYOUT_EXPANDED_3CH,
+  /// @brief The subset of Loudspeaker configuration for Sound System H (9+10+3)
+  ///        of [ITU-2051-3]
+  IA_CHANNEL_LAYOUT_EXPANDED_916,
+  /// @brief The front subset (FL/FR) of 9.1.6ch
+  IA_CHANNEL_LAYOUT_EXPANDED_STEREO_F,
+  /// @brief The side subset (SiL/SiR) of 9.1.6ch
+  IA_CHANNEL_LAYOUT_EXPANDED_STEREO_SI,
+  /// @brief The top side subset (TpSiL/TpSiR) of 9.1.6ch
+  IA_CHANNEL_LAYOUT_EXPANDED_STEREO_TPSI,
+  /// @brief The top 6 channels (TpFL/TpFR/TpSiL/TpSiR/TpBL/TpBR) of 9.1.6ch
+  IA_CHANNEL_LAYOUT_EXPANDED_TOP_6CH,
+  /// @brief The end of expanded loudspeaker layout
+  IA_CHANNEL_LAYOUT_EXPANDED_END,
 } IAChannelLayoutType;
 #endif /* IAMF_DEFINES_H */
