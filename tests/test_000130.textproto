@@ -17,10 +17,18 @@ test_vector_metadata {
     "The second mix presentation uses an `ambisonics_mode` which is "
     " reserved in Simple profile."
   file_name_prefix: "test_000130"
+  # The encoder cannot accurately encode an `ambisonics_mode` which is not yet
+  # defined.
   is_valid: false
+  # A compliant decoder can decode the mix with `mix_presentation_id` 42.
+  is_valid_to_decode: true
   partition_mix_gain_parameter_blocks: false
   validate_user_loudness: true
   mp4_fixed_timestamp: "2024-07-17 00:00:00"
+  test_repository_tags: [
+    "github/aomediacodec/libiamf/main",
+    "github/aomediacodec/libiamf/v1.0.0-errata"
+  ]
   primary_tested_spec_sections: [
     "3.6.4/ambisonics_mode",
     "4.1/Simple Profile"
@@ -46,7 +54,6 @@ codec_config_metadata {
     }
   }
 }
-
 
 audio_element_metadata {
   audio_element_id: 300

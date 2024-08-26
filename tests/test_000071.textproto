@@ -17,8 +17,13 @@ test_vector_metadata {
     "`param_definition_modes`."
   file_name_prefix: "test_000071"
   is_valid: true
+  is_valid_to_decode: true
   validate_user_loudness: true
   mp4_fixed_timestamp: "2023-07-06 00:00:00"
+  test_repository_tags: [
+    "github/aomediacodec/libiamf/main",
+    "github/aomediacodec/libiamf/v1.0.0-errata"
+  ]
   primary_tested_spec_sections: [
     "3.6.1/parameter_id",
     "3.6.1/parameter_rate",

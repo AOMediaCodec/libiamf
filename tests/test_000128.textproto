@@ -18,8 +18,13 @@ test_vector_metadata {
     "using Opus."
   file_name_prefix: "test_000128"
   is_valid: false
+  is_valid_to_decode: false
   validate_user_loudness: true
   mp4_fixed_timestamp: "2024-07-08 00:00:00"
+  test_repository_tags: [
+    "github/aomediacodec/libiamf/main",
+    "github/aomediacodec/libiamf/v1.0.0-errata"
+  ]
   primary_tested_spec_sections: [
     "3.6/num_parameters",
     "3.6.2/loudspeaker_layout == Stereo",

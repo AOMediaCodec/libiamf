@@ -17,8 +17,13 @@ test_vector_metadata {
     "channel layouts: 3.1.2ch/5.1.2ch."
   file_name_prefix: "test_000224"
   is_valid: true
+  is_valid_to_decode: true
   validate_user_loudness: true
   mp4_fixed_timestamp: "2023-06-23 00:00:00"
+  test_repository_tags: [
+    "github/aomediacodec/libiamf/main",
+    "github/aomediacodec/libiamf/v1.0.0-errata"
+  ]
   primary_tested_spec_sections: [
     "3.6.2/channel_audio_layer_config",
     "3.6.2/loudspeaker_layout == 3.1.2",

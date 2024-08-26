@@ -17,8 +17,13 @@ test_vector_metadata {
     "`output_gain`."
   file_name_prefix: "test_000027"
   is_valid: false
+  is_valid_to_decode: false
   validate_user_loudness: true
   mp4_fixed_timestamp: "2023-05-05 00:00:00"
+  test_repository_tags: [
+    "github/aomediacodec/libiamf/main",
+    "github/aomediacodec/libiamf/v1.0.0-errata"
+  ]
   primary_tested_spec_sections: [
     "3.9/Audio Frame OBU Syntax and Semantics",
     "3.11.1/output_gain"

@@ -14,11 +14,19 @@
 test_vector_metadata {
   human_readable_description:
     "An invalid IAMF stream with two Mix Presentation OBUs. The stream is "
-    "invalid because one of the Mix Presentation OBUs has 0 sub-mixes."
+    "invalid because one of the Mix Presentation OBUs has zero sub-mixes."
   file_name_prefix: "test_000502"
+  # The encoder should not normally encode a mix presentation with zero
+  # sub-mixes.
   is_valid: false
+  # A compliant decoder can decode the mix with `mix_presentation_id` 42.
+  is_valid_to_decode: true
   validate_user_loudness: true
   mp4_fixed_timestamp: "2023-08-07 00:00:00"
+  test_repository_tags: [
+    "github/aomediacodec/libiamf/main",
+    "github/aomediacodec/libiamf/v1.0.0-errata"
+  ]
   primary_tested_spec_sections: [
     "3.7/num_sub_mixes"
   ]
