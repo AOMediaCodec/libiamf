@@ -128,6 +128,7 @@ if(BUILD_SHARED_LIBS)
   if(HOA_BINAURALIZER)
     target_link_libraries (${PROJECT_NAME} iamf2resonance)
   endif()
+  target_link_libraries (${PROJECT_NAME} m)
 else()
   add_library(${PROJECT_NAME} STATIC ${DIR_DEP_EXTERNAL_WAV} ${DIR_IAMF_COMMON}
     ${DIR_IAMF_DEC_OPUS} ${DIR_IAMF_DEC_AAC} ${DIR_IAMF_DEC_PCM}
