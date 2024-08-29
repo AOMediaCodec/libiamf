@@ -159,7 +159,7 @@ mix_presentation_metadata {
       loudness {
         info_type_bit_masks: []
         integrated_loudness: -3561
-        digital_peak: -586
+        digital_peak: -409
       }
     }
     layouts {
