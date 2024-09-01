@@ -8,4 +8,4 @@ The reference implementation includes only the decoder. The description of each 
 
 The source code within this repository that implements the normative portions of the IAMF specification is intended to form the IAMF Reference Implementation approved as an AOM Final Deliverable. Any additional functionality within this repository, including functionality that implements non-normative portions of the IAMF specification, is NOT intended to form part of this IAMF Reference Implementation.
 
-The source code has been updated to implement the base-enhanced profile since the release of v1.0.0-errata.
+The source code has been updated to implement the changes including the base-enhanced profile introduced in the v1.1.0 specification since the release of v1.0.0-errata.
