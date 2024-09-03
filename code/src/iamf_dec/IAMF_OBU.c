@@ -254,6 +254,10 @@ static int _valid_profile(uint8_t primary, uint8_t addional) {
 IAMF_Version *iamf_version_new(IAMF_OBU *obu) {
   IAMF_Version *ver = 0;
   BitStream b;
+  union {
+    uint32_t _id;
+    uint8_t _4cc[4];
+  } code = {._4cc = {'i', 'a', 'm', 'f'}};
 
   ver = IAMF_MALLOCZ(IAMF_Version, 1);
   if (!ver) {
@@ -272,6 +276,12 @@ IAMF_Version *iamf_version_new(IAMF_OBU *obu) {
       "ia sequence header object: %.4s, primary profile %u, additional profile "
       "%u.",
       (char *)&ver->iamf_code, ver->primary_profile, ver->additional_profile);
+
+  if (ver->iamf_code != code._id) {
+    ia_loge("ia sequence header object: Invalid iamf code %.4s.",
+            (char *)&ver->iamf_code);
+    goto version_fail;
+  }
 
   if (!_valid_profile(ver->primary_profile, ver->additional_profile)) {
     ia_loge(
@@ -294,6 +304,18 @@ version_fail:
 
 static int _valid_codec(uint32_t codec) {
   return iamf_codec_check(iamf_codec_4cc_get_codecID(codec));
+}
+
+#define OPUS_VERSION_MAX 15
+static int _valid_decoder_config(uint32_t codec, uint8_t *conf, size_t size) {
+  if (iamf_codec_4cc_get_codecID(codec) == IAMF_CODEC_OPUS) {
+    if (conf[0] > OPUS_VERSION_MAX) {
+      ia_logw("opus config invalid: version %u should less than %u.", conf[0],
+              OPUS_VERSION_MAX);
+      return 0;
+    }
+  }
+  return 1;
 }
 
 IAMF_CodecConf *iamf_codec_conf_new(IAMF_OBU *obu) {
@@ -332,6 +354,12 @@ IAMF_CodecConf *iamf_codec_conf_new(IAMF_OBU *obu) {
   if (!_valid_codec(conf->codec_id)) {
     ia_logw("codec configure object: id %" PRIu64 ", invalid codec %.4s",
             conf->codec_conf_id, (char *)&conf->codec_id);
+    goto codec_conf_fail;
+  }
+
+  if (!_valid_decoder_config(conf->codec_id, conf->decoder_conf,
+                             conf->decoder_conf_size)) {
+    ia_logw("decoder config is invalid, codec: %.4s", (char *)&conf->codec_id);
     goto codec_conf_fail;
   }
 
