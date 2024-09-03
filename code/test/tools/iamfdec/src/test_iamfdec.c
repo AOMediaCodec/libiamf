@@ -389,8 +389,9 @@ static int bs_input_wav_output(PlayerArgs *pas) {
   if (layout->type == 2) {
     IAMF_decoder_output_layout_set_sound_system(dec, layout->ss);
     channels = IAMF_layout_sound_system_channels_count(layout->ss);
-    const char *letter[] = {"A", "B", "C", "D",       "E",       "F",   "G",
-                            "H", "I", "J", "EXT 712", "EXT 312", "MONO"};
+    const char *letter[] = {"A",       "B",       "C",    "D",      "E",
+                            "F",       "G",       "H",    "I",      "J",
+                            "EXT 712", "EXT 312", "MONO", "EXT 916"};
 
     fprintf(stdout, "Sound system %s has %d channels\n", letter[layout->ss],
             channels);
