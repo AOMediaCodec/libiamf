@@ -419,7 +419,6 @@ int mov_read_stbl(mp4r_t *mp4r, int size) {
 
   int64_t apos = ftell(mp4r->fin);
   avio_context *list[] = {
-    atoms_stsd,
     atoms_stts,
     atoms_stsc,
     atoms_stsz,
@@ -429,9 +428,12 @@ int mov_read_stbl(mp4r_t *mp4r, int size) {
     atoms_sgpd
 #endif
   };
+
   STASH_ATOM();
-  for (int i = 0; i < sizeof(list) / sizeof(avio_context *); ++i)
-    atom_seek_parse(mp4r, apos, size, list[i]);
+  if (atom_seek_parse(mp4r, apos, size, atoms_stsd) == ERR_OK) {
+    for (int i = 0; i < sizeof(list) / sizeof(avio_context *); ++i)
+      atom_seek_parse(mp4r, apos, size, list[i]);
+  }
   RESTORE_ATOM();
   return size;
 }
@@ -504,6 +506,7 @@ int mov_read_stsd(mp4r_t *mp4r, int size) {
 #endif
 
   int n;
+  int ret = size;
 
   // version/flags
   avio_rb32();
@@ -513,10 +516,14 @@ int mov_read_stsd(mp4r_t *mp4r, int size) {
 
   for (int i = 0; i < n; ++i) {
     mp4r->atom = atoms_iamf;
-    parse(mp4r, &size);
+    ret = parse(mp4r, &size);
+    if (ret == ERR_OK) {
+      ret = size;
+      break;
+    }
   }
   RESTORE_ATOM();
-  return size;
+  return ret;
 }
 
 int mov_read_edts(mp4r_t *mp4r, int size) {
