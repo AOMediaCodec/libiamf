@@ -16,14 +16,20 @@ import "obu_header.proto";
 import "param_definitions.proto";
 
 message MixPresentationAnnotations {
+  option deprecated = true;
+
   optional string mix_presentation_friendly_label = 1;
 }
 
 message MixPresentationElementAnnotations {
+  option deprecated = true;
+
   optional string audio_element_friendly_label = 1;
 }
 
 message ElementMixConfig {
+  option deprecated = true;
+
   optional MixGainParamDefinition mix_gain = 1;
 }
 
@@ -45,13 +51,21 @@ message RenderingConfig {
 message SubMixAudioElement {
   optional uint32 audio_element_id = 1;
   reserved 2;
+  // Superseded by `localized_element_annotations`.
   repeated MixPresentationElementAnnotations
-      mix_presentation_element_annotations_array = 4;
+      mix_presentation_element_annotations_array = 4 [deprecated = true];
+  // Length should be equal to `count_label` in the OBU.
+  repeated string localized_element_annotations = 6;
+
   optional RenderingConfig rendering_config = 5;
-  optional ElementMixConfig element_mix_config = 3;
+  // Superseded by `element_mix_gain`.
+  optional ElementMixConfig element_mix_config = 3 [deprecated = true];
+  optional MixGainParamDefinition element_mix_gain = 7;
 }
 
 message OutputMixConfig {
+  option deprecated = true;
+
   optional MixGainParamDefinition output_mix_gain = 1;
 }
 
@@ -147,18 +161,47 @@ message MixPresentationLayout {
 message MixPresentationSubMix {
   optional uint32 num_audio_elements = 1;
   repeated SubMixAudioElement audio_elements = 2;
-  optional OutputMixConfig output_mix_config = 3;
+
+  // Superseded by `output_mix_gain`.
+  optional OutputMixConfig output_mix_config = 3 [deprecated = true];
+  optional MixGainParamDefinition output_mix_gain = 6;
+
   optional uint32 num_layouts = 4;
   repeated MixPresentationLayout layouts = 5;
 }
 
+message MixPresentationTag {
+  optional string tag_name = 1;
+  optional string tag_value = 2;
+}
+
+message MixPresentationTags {
+  optional uint32 num_tags = 1;
+  repeated MixPresentationTag tags = 2;
+}
+
 message MixPresentationObuMetadata {
+  reserved 2;
   optional uint32 mix_presentation_id = 1;
   optional uint32 count_label = 5;
-  repeated string language_labels = 6;
-  reserved 2;
-  repeated MixPresentationAnnotations mix_presentation_annotations_array = 7;
+
+  // Superseded by `annotations_language`.
+  repeated string language_labels = 6 [deprecated = true];
+  // Length should be equal to `count_label`.
+  repeated string annotations_language = 9;
+
+  // Superseded by `localized_presentation_annotations`.
+  repeated MixPresentationAnnotations mix_presentation_annotations_array = 7
+      [deprecated = true];
+  // Length should be equal to `count_label`.
+  repeated string localized_presentation_annotations = 10;
+
   optional uint32 num_sub_mixes = 3;
   repeated MixPresentationSubMix sub_mixes = 4;
+
+  // When true, `mix_presentation_tags` will be examined.
+  optional bool include_mix_presentation_tags = 11;
+  optional MixPresentationTags mix_presentation_tags = 12;
+
   optional ObuHeaderMetadata obu_header = 8;
 }

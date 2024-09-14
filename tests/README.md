@@ -13,10 +13,18 @@ several files associated with it.
 
 ## .textproto files
 
-These file describe metadata about the test vector.
+Theses file describe metadata about the test vector to encode an
+[IA Sequence](https://aomediacodec.github.io/iamf/#standalone-ia-sequence).
 
--   `is_valid`: True for conformant bitstreams ("should-pass"). False for
-    non-conformant bitstreams ("should-fail").
+-   `is_valid`: True when the encoder can produce an IA Sequence where all mixes
+    would be understood by a compliant decoder. False when one or more mixes
+    exercise fields or features which would cause mixes to be ignored.
+-   `is_valid_to_decode`: True when an IAMF-compliant decoder could decode at
+    least one mix of the associated IA Sequence ("should-pass"). False when all
+    mixes are non-conformant and may fail to be decoded ("should-fail"). The
+    IAMF spec does not specify what happens when requirements are violated; a
+    robust system may still attempt to process and create output for
+    "should-fail" tests.
 -   `human_readable_descriptions`: A short description of what is being tested
     and why.
 -   `mp4_fixed_timestamp`: The timestamp within the MP4 file. Can be safely
@@ -55,6 +63,33 @@ Title                                                | Summary                  
 `sine_1000_48kHz_512ms.wav`                          | Sine wave.                                                                                                          | 2        | 48kHz       | pcm_s16le | 512ms
 `sine_1000_48kHz.wav`                                | Sine wave.                                                                                                          | 2        | 48kHz       | pcm_s16le | 500ms
 `sine_1000_4oa_48kHz.wav`                            | Sine wave using fourth-order ambisonics.                                                                            | 25       | 48kHz       | pcm_s16le | 5000ms
+`sine_1500_stereo_48khz_-15dBFS.wav`                 | Sine wave using at -15dBFS.                                                                                         | 2        | 48kHz       | pcm_s16le | 5000ms
 `stereo_8_samples_48khz_s16le.wav`                   | Tiny test file. The first channel encodes 1, 2, ... 8. The second channel encodes 65535, 65534, ... 65528.          | 2        | 48kHz       | pcm_s16le | 8 samples
 `stereo_8_samples_48khz_s24le.wav`                   | Tiny test file. The first channel encodes 1, 2, ... 8. The second channel encodes 16777216, 16777215, ... 16777209. | 2        | 48kHz       | pcm_s24le | 8 samples
 `Transport_TOA_5s.wav`                               | Short clip of vehicles driving by using third-order ambisonics.                                                     | 16       | 48kHz       | pcm_s16le | 5s
+`Transport_9.1.6_5s.wav`                             | Short clip of vehicles driving by using 9.1.6.                                                                      | 16       | 48kHz       | pcm_s16le | 5s
+
+# Output WAV files
+
+Output wav files are based on the
+[layout](https://aomediacodec.github.io/iamf/#syntax-layout) in the mix
+presentation. Typically the ordering of channels is based on the related
+[ITU-2051-3](https://www.itu.int/rec/R-REC-BS.2051) layout.
+
+Mix Presentation Layout | Channel Order Convention | Channel Order
+----------------------- | ------------------------ | -------------
+Sound System A (0+2+0)  | ITU-2051-3               | L, R
+Sound System B (0+5+0)  | ITU-2051-3               | L, R, C, LFE, Ls, Rs
+Sound System C (2+5+0)  | ITU-2051-3               | L, R, C, LFE, Ls, Rs, Ltf, Rtf
+Sound System D (4+5+0)  | ITU-2051-3               | L, R, C, LFE, Ls, Rs, Ltf, Rtf, Ltr, Rtr
+Sound System E (4+5+1)  | ITU-2051-3               | L, R, C, LFE, Ls, Rs, Ltf, Rtf, Ltr, Rtr, Cbf
+Sound System F (3+7+0)  | ITU-2051-3               | C, L, R, LH, RH, LS, LB, RB, CH, LFE1, LFE2
+Sound System G (4+9+0)  | ITU-2051-3               | L, R, C, LFE, Lss, Rss, Lrs, Rrs, Ltf, Rtf, Ltb, Rtb, Lsc, Rsc
+Sound System H (9+10+3) | ITU-2051-3               | FL, FR, FC, LFE1, BL, BR, FLc, FRc, BC, LFE2, SiL, SiR, TpFL, TpFR, TpFC, TpC, TpBL, TpBR, TpSiL, TpSiR, TpBC, BtFC, BtFL, BtFR
+Sound System I (0+7+0)  | ITU_2051-3               | L, R, C, LFE, Lss, Rss, Lrs, Rrs
+Sound System J (4+7+0)  | ITU_2051-3               | L, R, C, LFE, Lss, Rss, Lrs, Rrs, Ltf, Rtf, Ltb, Rtb
+Sound System 10         | IAMF                     | L7, R7, C, LFE, Lss7, Rss7, Lrs7, Rrs7, Ltf2, Rtf2
+Sound System 11         | IAMF                     | L3, R3, C, LFE, Ltf3, Rtf3,
+Sound System 12         | IAMF                     | C
+Sound System 13         | IAMF                     | FL, FR, FC, LFE, BL, BR, FLc, FRc, SiL, SiR, TpFL, TpFR, TpBL, TpBR, TpSiL, TpSiR
+Binaural Layout         | IAMF                     | L2, R2
