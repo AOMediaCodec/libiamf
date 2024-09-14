@@ -4277,8 +4277,10 @@ int iamf_decoder_internal_configure(IAMF_DecoderHandle handle,
     IAMF_MixPresentation *mixp = 0;
     if (ctx->mix_presentation_id != INVALID_ID)
       mixp = iamf_database_get_mix_presentation(db, ctx->mix_presentation_id);
-    else
+    else {
       mixp = iamf_decoder_get_best_mix_presentation(handle);
+      ctx->mix_presentation_id = mixp->mix_presentation_id;
+    }
 
     if (mixp) {
       ia_logi("get mix presentation id %" PRId64,
