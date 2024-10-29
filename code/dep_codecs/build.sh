@@ -96,8 +96,6 @@ download_file ()
     fi
 }
 
-
-
 OPUS_DIR="$( cd "$(dirname "$0")" ; pwd -P )/opus"
 AAC_DIR="$( cd "$(dirname "$0")" ; pwd -P )/aac"
 FLAC_DIR="$( cd "$(dirname "$0")" ; pwd -P )/flac"
@@ -109,9 +107,9 @@ FLAC_TAR="flac-1.4.2.tar.xz"
 declare -a CONFIG_FLAGS_OPUS
 declare -a CONFIG_FLAGS_AAC
 declare -a CONFIG_FLAGS_FLAC
-CONFIG_FLAGS_OPUS="-DCMAKE_C_FLAGS="-fPIC""
+CONFIG_FLAGS_OPUS="-DCMAKE_POSITION_INDEPENDENT_CODE=ON"
 CONFIG_FLAGS_AAC="--enable-static --disable-shared --with-pic"
-CONFIG_FLAGS_FLAC="-DWITH_OGG=OFF -DBUILD_CXXLIBS=OFF -DCMAKE_C_FLAGS="-fPIC""
+CONFIG_FLAGS_FLAC="-DWITH_OGG=OFF -DBUILD_CXXLIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON"
 
 OPUS_DOWNLOAD_LINK="https://downloads.xiph.org/releases/opus/opus-1.4.tar.gz"
 AAC_DOWNLOAD_LINK="https://people.freedesktop.org/~wtay/fdk-aac-free-2.0.0.tar.gz"
@@ -268,8 +266,6 @@ then
 	tar -xf $FLAC_DIR/$FLAC_TAR -C $FLAC_DIR
 fi
 
-
-
 echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>OPUS Compile<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 cd $OPUS_DIR/opus-1.4
 rm -rf build
@@ -292,6 +288,3 @@ rm -rf build
 cmake -B build ./ $CONFIG_FLAGS_FLAC
 cmake --build build --clean-first
 cmake --install build --prefix $CODECS_DIR
-
-
-
