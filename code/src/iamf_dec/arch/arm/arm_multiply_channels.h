@@ -11,26 +11,23 @@
  */
 
 /**
- * @file override_arm.c
- * @brief Override with Arm function implementations.
+ * @file arm_multiply_channels.h
+ * @brief Arm implementation for multiplying channels.
  * @version 0.1
  * @date Created 10/24/2024
  **/
+
+#ifndef ARM_MULTIPLY_CHANNELS_H_
+#define ARM_MULTIPLY_CHANNELS_H_
 
 #include "detect_arm.h"
 
 #if defined(IAMF_ARCH_DETECTED_ARM)
 
-#include <arm_neon.h>
+void multiply_channels_by_matrix_neon(float *mat, int in_dim, int in_next,
+                                      int *in_idx_map, int out_dim,
+                                      int out_next, float **in, float **out,
+                                      int nsamples);
 
-#include "../../arch.h"
-#include "arm_multiply_channels.h"
-
-void arch_override(Arch *arch) {
-  // Override functions with Arm implementations here
-
-  arch->rendering.multiply_channels_by_matrix =
-      &multiply_channels_by_matrix_neon;
-}
-
-#endif
+#endif /* IAMF_ARCH_DETECTED_ARM */
+#endif /* ARM_MULTIPLY_CHANNELS_H_ */

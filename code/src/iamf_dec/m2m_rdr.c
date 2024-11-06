@@ -1455,49 +1455,24 @@ int IAMF_element_renderer_get_M2M_custom_matrix(IAMF_SP_LAYOUT *in_layout,
 }
 
 // Predefined Multichannel to Multichannel Renderer
-int IAMF_element_renderer_render_M2M(struct m2m_rdr_t *m2mMatrix, float *in[],
+int IAMF_element_renderer_render_M2M(const Arch *arch,
+                                     struct m2m_rdr_t *m2mMatrix, float *in[],
                                      float *out[], int nsamples) {
-  int i, m, n;
-  int m_size = m2mMatrix->m;
-  int n_size = m2mMatrix->n;
-
-  for (i = 0; i < nsamples; i++) {
-    for (m = 0; m < m_size; m++)  // input
-    {
-      for (n = 0; n < n_size; n++)  // output
-      {
-        if (m == 0) {
-          out[n][i] = 0;
-        }
-        out[n][i] += m2mMatrix->mat[m * n_size + n] * in[m][i];
-      }
-    }
-  }
+  (*arch->rendering.multiply_channels_by_matrix)(m2mMatrix->mat, m2mMatrix->m,
+                                                 m2mMatrix->n, 0, m2mMatrix->n,
+                                                 1, in, out, nsamples);
 
   return (0);
 }
 
 // Custom Multichannel to Multichannel Renderer
-int IAMF_element_renderer_render_M2M_custom(struct m2m_rdr_t *m2mMatrix,
+int IAMF_element_renderer_render_M2M_custom(const Arch *arch,
+                                            struct m2m_rdr_t *m2mMatrix,
                                             float *in[], float *out[],
                                             int nsamples, int *chmap) {
-  int i, m, n, m2;
-  int m_size = m2mMatrix->m;
-  int n_size = m2mMatrix->n;
-
-  for (i = 0; i < nsamples; i++) {
-    for (m = 0; m < m_size; m++)  // input
-    {
-      for (n = 0; n < n_size; n++)  // output
-      {
-        if (m == 0) {
-          out[n][i] = 0;
-        }
-        m2 = chmap[m];
-        out[n][i] += m2mMatrix->mat[m2 * n_size + n] * in[m][i];
-      }
-    }
-  }
+  (*arch->rendering.multiply_channels_by_matrix)(
+      m2mMatrix->mat, m2mMatrix->m, m2mMatrix->n, chmap, m2mMatrix->n, 1, in,
+      out, nsamples);
 
   return (0);
 }
