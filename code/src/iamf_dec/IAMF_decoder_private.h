@@ -28,6 +28,7 @@
 #include "IAMF_defines.h"
 #include "IAMF_types.h"
 #include "ae_rdr.h"
+#include "arch.h"
 #include "audio_effect_peak_limiter.h"
 #include "demixer.h"
 #include "downmix_renderer.h"
@@ -341,6 +342,7 @@ typedef struct IAMF_DecoderContext {
 struct IAMF_Decoder {
   IAMF_DecoderContext ctx;
   AudioEffectPeakLimiter *limiter;
+  Arch *arch;
 };
 
 #endif /* IAMF_DECODER_PRIVATE_H */
