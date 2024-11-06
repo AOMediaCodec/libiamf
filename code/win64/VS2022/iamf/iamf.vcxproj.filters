@@ -81,6 +81,9 @@
     <ClCompile Include="..\..\..\src\iamf_dec\arch\arm\arm_multiply_channels.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\iamf_dec\arch\arm\arm_zip_channels.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\src\iamf_dec\arch\arm\override_arm.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -144,6 +147,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\iamf_dec\arch\arm\arm_multiply_channels.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\iamf_dec\arch\arm\arm_zip_channels.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\iamf_dec\arch\arm\detect_arm.h">
