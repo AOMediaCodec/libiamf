@@ -135,6 +135,7 @@
     <ClCompile Include="..\..\..\src\iamf_dec\aac\IAMF_aac_decoder.c" />
     <ClCompile Include="..\..\..\src\iamf_dec\arch\arch_init.c" />
     <ClCompile Include="..\..\..\src\iamf_dec\arch\arch_common.c" />
+    <ClCompile Include="..\..\..\src\iamf_dec\arch\arm\arm_multiply_channels.c" />
     <ClCompile Include="..\..\..\src\iamf_dec\arch\arm\override_arm.c" />
     <ClCompile Include="..\..\..\src\iamf_dec\arch\x86\override_x86.c" />
     <ClCompile Include="..\..\..\src\iamf_dec\arch.c" />
@@ -174,6 +175,7 @@
     <ClInclude Include="..\..\..\src\iamf_dec\ae_rdr.h" />
     <ClCompile Include="..\..\..\src\iamf_dec\arch\arch_init.h" />
     <ClCompile Include="..\..\..\src\iamf_dec\arch\arch_common.h" />
+    <ClCompile Include="..\..\..\src\iamf_dec\arch\arm\arm_multiply_channels.h" />
     <ClCompile Include="..\..\..\src\iamf_dec\arch\arm\detect_arm.h" />
     <ClCompile Include="..\..\..\src\iamf_dec\arch\x86\detect_x86.h" />
     <ClCompile Include="..\..\..\src\iamf_dec\arch.h" />

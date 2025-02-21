@@ -22,6 +22,12 @@
 
 typedef struct ArchCallbacks {
   // Functions with possible architecture-specific optimizations
+  struct {
+    void (*multiply_channels_by_matrix)(float *mat, int in_dim, int in_next,
+                                        int *in_idx_map, int out_dim,
+                                        int out_next, float **in, float **out,
+                                        int nsamples);
+  } rendering;
 } Arch;
 
 Arch *arch_create();

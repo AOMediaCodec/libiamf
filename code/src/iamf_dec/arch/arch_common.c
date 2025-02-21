@@ -19,4 +19,25 @@
 
 #include "arch_common.h"
 
-// TODO: Remove this line when first function added!
+void multiply_channels_by_matrix_c(float *mat, int in_dim, int in_next,
+                                   int *in_idx_map, int out_dim, int out_next,
+                                   float **in, float **out, int nsamples) {
+  int i, in_idx, out_idx;
+
+  if (in_dim <= 0 || out_dim <= 0) return;
+
+  for (in_idx = 0; in_idx < in_dim; in_idx++) {
+    const int in_mapped_idx = in_idx_map ? in_idx_map[in_idx] : in_idx;
+
+    for (out_idx = 0; out_idx < out_dim; out_idx++) {
+      const float c = mat[out_idx * out_next + in_mapped_idx * in_next];
+
+      for (i = 0; i < nsamples; i++) {
+        if (in_idx == 0) {
+          out[out_idx][i] = 0;
+        }
+        out[out_idx][i] += c * in[in_idx][i];
+      }
+    }
+  }
+}
