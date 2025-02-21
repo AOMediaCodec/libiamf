@@ -4157,6 +4157,7 @@ IAMF_DecoderHandle IAMF_decoder_open(void) {
     handle->ctx.status = IAMF_DECODER_STATUS_INIT;
     handle->ctx.mix_presentation_id = INVALID_ID;
     handle->limiter = audio_effect_peak_limiter_create();
+    handle->arch = arch_create();
     if (!handle->limiter || iamf_database_init(db) != IAMF_OK) {
       IAMF_decoder_close(handle);
       handle = 0;
@@ -4169,6 +4170,7 @@ int IAMF_decoder_close(IAMF_DecoderHandle handle) {
   if (handle) {
     iamf_decoder_internal_reset(handle);
     if (handle->limiter) audio_effect_peak_limiter_destroy(handle->limiter);
+    if (handle->arch) arch_destroy(handle->arch);
     free(handle);
   }
 #if SR

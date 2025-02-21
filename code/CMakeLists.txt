@@ -74,6 +74,9 @@ include_directories (include)
 aux_source_directory (dep_external/src/wav DIR_DEP_EXTERNAL_WAV)
 aux_source_directory (src/common DIR_IAMF_COMMON)
 aux_source_directory (src/iamf_dec DIR_IAMF_DEC)
+aux_source_directory (src/iamf_dec/arch DIR_IAMF_DEC_ARCH)
+aux_source_directory (src/iamf_dec/arch/arm DIR_IAMF_DEC_ARCH_ARM)
+aux_source_directory (src/iamf_dec/arch/x86 DIR_IAMF_DEC_ARCH_X86)
 if(NOT ${find_opus} STREQUAL "find_opus-NOTFOUND")
   aux_source_directory (src/iamf_dec/opus DIR_IAMF_DEC_OPUS)
 endif()
@@ -92,6 +95,9 @@ include_directories(
     ${EXTER_INCLUDE_DIR}
     ${PROJECT_SOURCE_DIR}/src/common
     ${PROJECT_SOURCE_DIR}/src/iamf_dec
+    ${PROJECT_SOURCE_DIR}/src/iamf_dec/arch
+    ${PROJECT_SOURCE_DIR}/src/iamf_dec/arch/arm
+    ${PROJECT_SOURCE_DIR}/src/iamf_dec/arch/x86
     ${PROJECT_SOURCE_DIR}/src/iamf_dec/opus
     ${PROJECT_SOURCE_DIR}/src/iamf_dec/aac
     ${PROJECT_SOURCE_DIR}/src/iamf_dec/flac
@@ -108,7 +114,8 @@ endif()
 
 if(BUILD_SHARED_LIBS)
   add_library(${PROJECT_NAME} SHARED ${DIR_DEP_EXTERNAL_WAV} ${DIR_IAMF_COMMON}
-    ${DIR_IAMF_DEC_OPUS} ${DIR_IAMF_DEC_AAC} ${DIR_IAMF_DEC_FLAC} ${DIR_IAMF_DEC_PCM} ${DIR_IAMF_DEC})
+    ${DIR_IAMF_DEC_OPUS} ${DIR_IAMF_DEC_AAC} ${DIR_IAMF_DEC_FLAC} ${DIR_IAMF_DEC_PCM} ${DIR_IAMF_DEC}
+    ${DIR_IAMF_DEC_ARCH} ${DIR_IAMF_DEC_ARCH_ARM} ${DIR_IAMF_DEC_ARCH_X86})
 
   if(NOT ${find_opus} STREQUAL "find_opus-NOTFOUND")
     target_link_libraries (${PROJECT_NAME} opus)
@@ -132,7 +139,8 @@ if(BUILD_SHARED_LIBS)
 else()
   add_library(${PROJECT_NAME} STATIC ${DIR_DEP_EXTERNAL_WAV} ${DIR_IAMF_COMMON}
     ${DIR_IAMF_DEC_OPUS} ${DIR_IAMF_DEC_AAC} ${DIR_IAMF_DEC_PCM}
-    ${DIR_IAMF_DEC_FLAC} ${DIR_IAMF_DEC})
+    ${DIR_IAMF_DEC_FLAC} ${DIR_IAMF_DEC} ${DIR_IAMF_DEC_ARCH} ${DIR_IAMF_DEC_ARCH_ARM}
+    ${DIR_IAMF_DEC_ARCH_X86})
 endif()
 
 
