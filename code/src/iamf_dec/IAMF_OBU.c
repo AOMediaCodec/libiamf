@@ -967,8 +967,10 @@ IAMF_MixPresentation *iamf_mix_presentation_new(IAMF_OBU *obu) {
         }
 
         if (loudness[i].info_type & ~LOUDNESS_INFO_TYPE_ALL) {
-          size = bs_getAleb128(&b);
-          bs_skipABytes(&b, size);
+          loudness[i].info_type_size = bs_getAleb128(&b);
+          loudness[i].info_type_bytes =
+              IAMF_MALLOC(uint8_t, loudness[i].info_type_size);
+          bs_read(&b, loudness[i].info_type_bytes, loudness[i].info_type_size);
           ia_logd("extension loudness info size %" PRIu64, size);
         }
       }
@@ -1049,10 +1051,12 @@ void iamf_mix_presentation_free(IAMF_MixPresentation *obj) {
       }
 
       if (sub->loudness) {
-        for (int i = 0; i < sub->num_layouts; ++i)
+        for (int i = 0; i < sub->num_layouts; ++i) {
           IAMF_FREE(sub->loudness[i].anchor_loudness);
+          IAMF_FREE(sub->loudness[i].info_type_bytes);
+        }
+        free(sub->loudness);
       }
-      IAMF_FREE(sub->loudness);
     }
 
     free(obj->sub_mixes);

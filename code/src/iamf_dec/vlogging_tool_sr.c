@@ -442,7 +442,7 @@ static void write_codec_config_log(uint64_t idx, void* obu, char* log) {
         log += write_yaml_form(log, 6, "total_samples_in_stream: %llu",
                                total_samples_in_stream);
 
-        char hex_string[20] = {
+        char hex_string[34] = {
             0,
         };
         int pos = 0;

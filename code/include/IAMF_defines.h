@@ -75,6 +75,7 @@ typedef enum IAMF_AnimationType {
   ANIMATION_TYPE_LINEAR,
   ANIMATION_TYPE_BEZIER
 } IAMF_AnimationType;
+
 /**
  *  Layout Syntax:
  *
@@ -130,6 +131,12 @@ typedef struct IAMF_Layout {
  *        signed int (16) anchored_loudness;
  *      }
  *    }
+ *
+ *    if (info_type & 0b11111100 > 0) {
+ *      leb128() info_type_size;
+ *      unsigned int (8 x info_type_size) info_type_bytes;
+ *    }
+ *
  *  }
  *
  * */
@@ -143,9 +150,14 @@ typedef struct IAMF_LoudnessInfo {
   uint8_t info_type;
   int16_t integrated_loudness;
   int16_t digital_peak;
+
   int16_t true_peak;
+
   uint8_t num_anchor_loudness;
   anchor_loudness_t *anchor_loudness;
+
+  uint64_t info_type_size;
+  uint8_t *info_type_bytes;
 } IAMF_LoudnessInfo;
 
 /**
