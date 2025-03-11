@@ -125,7 +125,7 @@ typedef struct {
   int num_a_trak;
   int sel_a_trak;
   int cur_r_trak;
-  int trak_type[8];
+  int trak_type[32];
   // video_wtr_t v_trak;
   audio_rtr_t *a_trak;
   struct {
