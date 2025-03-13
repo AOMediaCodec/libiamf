@@ -2098,11 +2098,11 @@ static float lfefilter_update(lfe_filter_t *lfe_f, float input);
 #endif
 
 // HOA to Multichannel Renderer
-int IAMF_element_renderer_render_H2M(struct h2m_rdr_t *h2mMatrix, float *in[],
+int IAMF_element_renderer_render_H2M(const Arch *arch,
+                                     struct h2m_rdr_t *h2mMatrix, float *in[],
                                      float *out[], int nsamples,
                                      lfe_filter_t *lfe) {
-  int i, j, m, n;
-  int m_size = h2mMatrix->m;
+  int i, j, n;
   int n_size = h2mMatrix->n;
 
   // lfe generator turns on
@@ -2114,16 +2114,9 @@ int IAMF_element_renderer_render_H2M(struct h2m_rdr_t *h2mMatrix, float *in[],
   };
 
   /// convert HOA to channel by using the predefined matrix
-  for (i = 0; i < nsamples; i++) {
-    for (n = 0; n < n_size; n++) {    // output
-      for (m = 0; m < m_size; m++) {  // input
-        if (m == 0) {
-          out[n][i] = 0;  // initialize output sample
-        }
-        out[n][i] += h2mMatrix->mat[n * m_size + m] * in[m][i];
-      }
-    }
-  }
+  (*arch->rendering.multiply_channels_by_matrix)(
+      h2mMatrix->mat, h2mMatrix->m, 1, 0, h2mMatrix->n, h2mMatrix->m, in, out,
+      nsamples);
 
   n = 0;
   if (lfe1 >= 0 || lfe2 >= 0) {

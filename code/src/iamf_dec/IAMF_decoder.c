@@ -2905,14 +2905,15 @@ void iamf_stream_renderer_close(IAMF_StreamRenderer *sr) {
 
 /**
  * @brief     Rendering an Audio Element.
+ * @param     [in] arch : architecture-specific callbacks.
  * @param     [in] sr : stream render handle.
  * @param     [in] in : input audio pcm
  * @param     [in] out : output audio pcm
  * @param     [in] frame_size : the size of audio frame.
  * @return    the number of rendering samples
  */
-static int iamf_stream_render(IAMF_StreamRenderer *sr, float *in, float *out,
-                              int frame_size) {
+static int iamf_stream_render(const Arch *arch, IAMF_StreamRenderer *sr,
+                              float *in, float *out, int frame_size) {
   IAMF_Stream *stream = sr->stream;
   int inchs;
   int outchs = stream->final_layout->channels;
@@ -2950,11 +2951,11 @@ static int iamf_stream_render(IAMF_StreamRenderer *sr, float *in, float *out,
                            frame_size - sr->offset, frame_size);
     } else {
       if (iamf_audio_layer_get_layout_info(ctx->layout)->rendering_id_in) {
-        IAMF_element_renderer_render_M2M(&sr->renderer.mmm, sin, sout,
+        IAMF_element_renderer_render_M2M(arch, &sr->renderer.mmm, sin, sout,
                                          frame_size);
       } else {
-        IAMF_element_renderer_render_M2M_custom(&sr->renderer.mmm, sin, sout,
-                                                frame_size,
+        IAMF_element_renderer_render_M2M_custom(arch, &sr->renderer.mmm, sin,
+                                                sout, frame_size,
                                                 sr->renderer.in_channel_map);
       }
     }
@@ -2967,8 +2968,8 @@ static int iamf_stream_render(IAMF_StreamRenderer *sr, float *in, float *out,
                                        frame_size);
     } else {
 #endif
-      IAMF_element_renderer_render_H2M(&sr->renderer.hmm, sin, sout, frame_size,
-                                       &sr->renderer.layout->lfe_f);
+      IAMF_element_renderer_render_H2M(arch, &sr->renderer.hmm, sin, sout,
+                                       frame_size, &sr->renderer.layout->lfe_f);
 #if ENABLE_HOA_TO_BINAURAL
     }
 #endif
@@ -3795,7 +3796,7 @@ static int iamf_decoder_internal_decode(IAMF_DecoderHandle handle,
 
           renderer->offset = decoder->delay > 0 ? decoder->delay : 0;
           if (stream->trimming_start) renderer->offset = 0;
-          iamf_stream_render(renderer, f->data, out, ret);
+          iamf_stream_render(handle->arch, renderer, f->data, out, ret);
 
 #if SR
           // rendering

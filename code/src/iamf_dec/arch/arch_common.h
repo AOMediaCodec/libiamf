@@ -20,6 +20,8 @@
 #ifndef ARCH_COMMON_H_
 #define ARCH_COMMON_H_
 
-// TODO: Remove this line when first function added!
+void multiply_channels_by_matrix_c(float *mat, int in_dim, int in_next,
+                                   int *in_idx_map, int out_dim, int out_next,
+                                   float **in, float **out, int nsamples);
 
 #endif /* ARCH_COMMON_H_ */

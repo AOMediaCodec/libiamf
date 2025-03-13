@@ -22,6 +22,8 @@
 
 #include <stdint.h>
 
+#include "arch.h"
+
 #define BS2051_MAX_CHANNELS 24  // BS2051_H
 typedef enum {
   BS2051_A = 0x020,        // 2ch output
@@ -208,23 +210,27 @@ int IAMF_element_renderer_get_M2M_custom_matrix(IAMF_SP_LAYOUT *in,
 
 /**
  * @brief     Predefined Multichannel to Multichannel Renderer.
+ * @param     [in] arch : architecture-specific callbacks.
  * @param     [in] in : the pcm signal of input.
  * @param     [in] out : the pcm signal of output
  * @param     [in] nsamples : the processed samples of pcm signal.
  * @return    @0: success,@others: fail
  */
-int IAMF_element_renderer_render_M2M(struct m2m_rdr_t *m2mMatrix, float *in[],
+int IAMF_element_renderer_render_M2M(const Arch *arch,
+                                     struct m2m_rdr_t *m2mMatrix, float *in[],
                                      float *out[], int nsamples);
 
 /**
  * @brief     Custom Multichannel to Multichannel Renderer.
+ * @param     [in] arch : architecture-specific callbacks.
  * @param     [in] in : the pcm signal of input.
  * @param     [in] out : the pcm signal of output
  * @param     [in] nsamples : the processed samples of pcm signal.
  * @param     [in] chmap : speaker subset channel list in input layout.
  * @return    @0: success,@others: fail
  */
-int IAMF_element_renderer_render_M2M_custom(struct m2m_rdr_t *m2mMatrix,
+int IAMF_element_renderer_render_M2M_custom(const Arch *arch,
+                                            struct m2m_rdr_t *m2mMatrix,
                                             float *in[], float *out[],
                                             int nsamples, int *chmap);
 // HOA to Multichannel
@@ -246,13 +252,15 @@ int IAMF_element_renderer_get_H2M_matrix(IAMF_HOA_LAYOUT *in,
 
 /**
  * @brief     Hoa to Multichannel Renderer.
+ * @param     [in] arch : architecture-specific callbacks.
  * @param     [in] in : the pcm signal of input.
  * @param     [in] out : the pcm signal of output
  * @param     [in] nsamples : the processed samples of pcm signal.
  * @param     [in] lfe : the filter to prcoess lfe channel.
  * @return    @0: success,@others: fail
  */
-int IAMF_element_renderer_render_H2M(struct h2m_rdr_t *h2mMatrix, float *in[],
+int IAMF_element_renderer_render_H2M(const Arch *arch,
+                                     struct h2m_rdr_t *h2mMatrix, float *in[],
                                      float *out[], int nsamples,
                                      lfe_filter_t *lfe);
 
