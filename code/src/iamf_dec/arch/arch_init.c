@@ -48,6 +48,10 @@ void arch_init(Arch* arch) {
   // Fill with reference implementations
   arch->rendering.multiply_channels_by_matrix = &multiply_channels_by_matrix_c;
 
+  arch->output.float2int16_zip_channels = &float2int16_zip_channels_c;
+  arch->output.float2int24_zip_channels = &float2int24_zip_channels_c;
+  arch->output.float2int32_zip_channels = &float2int32_zip_channels_c;
+
 #if defined(HAS_ARCH_OVERRIDE)
   // Override with platform-specific functions, if available
   arch_override(arch);

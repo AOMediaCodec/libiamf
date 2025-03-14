@@ -22,7 +22,6 @@
 #endif
 
 #include <inttypes.h>
-#include <math.h>
 
 #include "IAMF_OBU.h"
 #include "IAMF_debug.h"
@@ -76,74 +75,28 @@ static int64_t time_transform(int64_t t1, int s1, int s2) {
 }
 
 /* ----------------------------- Internal methods ------------------ */
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-static int16_t FLOAT2INT16(float x) {
-  x = x * 32768.f;
-  x = MAX(x, -32768.f);
-  x = MIN(x, 32767.f);
-  return (int16_t)lrintf(x);
-}
 
-static int32_t FLOAT2INT24(float x) {
-  x = x * 8388608.f;
-  x = MAX(x, -8388608.f);
-  x = MIN(x, 8388607.f);
-  return (int32_t)lrintf(x);
-}
+static void iamf_decoder_plane2stride_out(const Arch *arch, void *dst,
+                                          const float *src, int frame_size,
+                                          int channels, uint32_t bit_depth) {
+  if (!src) {
+    if (bit_depth == 16 || bit_depth == 24 || bit_depth == 32)
+      memset(dst, 0x0, frame_size * channels * (bit_depth / 8));
+    return;
+  }
 
-static int32_t FLOAT2INT32(float x) {
-  x = x * 2147483648.f;
-  if (x > -2147483648.f && x < 2147483647.f)
-    return (int32_t)lrintf(x);
-  else
-    return (x > 0.0f ? 2147483647 : (-2147483647 - 1));
-}
-
-static void iamf_decoder_plane2stride_out(void *dst, const float *src,
-                                          int frame_size, int channels,
-                                          uint32_t bit_depth) {
   if (bit_depth == 16) {
-    int16_t *int16_dst = (int16_t *)dst;
-    for (int c = 0; c < channels; ++c) {
-      for (int i = 0; i < frame_size; i++) {
-        if (src) {
-          int16_dst[i * channels + c] = FLOAT2INT16(src[frame_size * c + i]);
-        } else {
-          int16_dst[i * channels + c] = 0;
-        }
-      }
-    }
+    (*arch->output.float2int16_zip_channels)(src, frame_size, channels,
+                                             (int16_t *)dst, frame_size);
   } else if (bit_depth == 24) {
-    uint8_t *int24_dst = (uint8_t *)dst;
-    for (int c = 0; c < channels; ++c) {
-      for (int i = 0; i < frame_size; i++) {
-        if (src) {
-          int32_t tmp = FLOAT2INT24(src[frame_size * c + i]);
-          int24_dst[(i * channels + c) * 3] = tmp & 0xff;
-          int24_dst[(i * channels + c) * 3 + 1] = (tmp >> 8) & 0xff;
-          int24_dst[(i * channels + c) * 3 + 2] =
-              ((tmp >> 16) & 0x7f) | ((tmp >> 24) & 0x80);
-        } else {
-          int24_dst[(i * channels + c) * 3] = 0;
-          int24_dst[(i * channels + c) * 3 + 1] = 0;
-          int24_dst[(i * channels + c) * 3 + 2] = 0;
-        }
-      }
-    }
+    (*arch->output.float2int24_zip_channels)(src, frame_size, channels,
+                                             (uint8_t *)dst, frame_size);
   } else if (bit_depth == 32) {
-    int32_t *int32_dst = (int32_t *)dst;
-    for (int c = 0; c < channels; ++c) {
-      for (int i = 0; i < frame_size; i++) {
-        if (src) {
-          int32_dst[i * channels + c] = FLOAT2INT32(src[frame_size * c + i]);
-        } else {
-          int32_dst[i * channels + c] = 0;
-        }
-      }
-    }
+    (*arch->output.float2int32_zip_channels)(src, frame_size, channels,
+                                             (int32_t *)dst, frame_size);
   }
 }
+
 static void ia_decoder_stride2plane_out_float(void *dst, const float *src,
                                               int frame_size, int channels) {
   float *float_dst = (float *)dst;
@@ -3713,7 +3666,7 @@ static int iamf_delay_buffer_handle(IAMF_DecoderHandle handle, void *pcm) {
         audio_effect_peak_limiter_process_block(limiter, in, out, frame_size);
   }
 
-  iamf_decoder_plane2stride_out(pcm, out, frame_size,
+  iamf_decoder_plane2stride_out(handle->arch, pcm, out, frame_size,
                                 ctx->output_layout->channels, ctx->bit_depth);
   free(in);
   free(out);
@@ -3921,7 +3874,7 @@ static int iamf_decoder_internal_decode(IAMF_DecoderHandle handle,
       swap((void **)&f->data, (void **)&out);
     }
 
-    iamf_decoder_plane2stride_out(pcm, f->data, real_frame_size,
+    iamf_decoder_plane2stride_out(handle->arch, pcm, f->data, real_frame_size,
                                   ctx->output_layout->channels, ctx->bit_depth);
 
 #if SR

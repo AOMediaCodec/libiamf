@@ -20,8 +20,19 @@
 #ifndef ARCH_COMMON_H_
 #define ARCH_COMMON_H_
 
+#include <stdint.h>
+
 void multiply_channels_by_matrix_c(float *mat, int in_dim, int in_next,
                                    int *in_idx_map, int out_dim, int out_next,
                                    float **in, float **out, int nsamples);
+
+void float2int16_zip_channels_c(const float *src, int next_channel,
+                                int channels, int16_t *int16_dst, int nsamples);
+
+void float2int24_zip_channels_c(const float *src, int next_channel,
+                                int channels, uint8_t *int24_dst, int nsamples);
+
+void float2int32_zip_channels_c(const float *src, int next_channel,
+                                int channels, int32_t *int32_dst, int nsamples);
 
 #endif /* ARCH_COMMON_H_ */

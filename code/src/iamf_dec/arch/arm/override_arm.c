@@ -25,12 +25,17 @@
 
 #include "../../arch.h"
 #include "arm_multiply_channels.h"
+#include "arm_zip_channels.h"
 
 void arch_override(Arch *arch) {
   // Override functions with Arm implementations here
 
   arch->rendering.multiply_channels_by_matrix =
       &multiply_channels_by_matrix_neon;
+
+  arch->output.float2int16_zip_channels = &float2int16_zip_channels_neon;
+  arch->output.float2int24_zip_channels = &float2int24_zip_channels_neon;
+  arch->output.float2int32_zip_channels = &float2int32_zip_channels_neon;
 }
 
 #endif
