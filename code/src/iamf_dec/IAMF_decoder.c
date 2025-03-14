@@ -673,8 +673,9 @@ static int iamf_codec_conf_get_sampling_rate(IAMF_CodecConf *c) {
     if (c->decoder_conf_size < 6) return IAMF_ERR_BAD_ARG;
     return reads32be(c->decoder_conf, 2);
   } else if (cid == IAMF_CODEC_OPUS) {
-    if (c->decoder_conf_size < 8) return IAMF_ERR_BAD_ARG;
-    return reads32be(c->decoder_conf, 4);
+    // https://aomediacodec.github.io/iamf/v1.1.0.html#opus-specific
+    // The sample rate used for computing offsets SHALL be 48 kHz.
+    return 48000;
   } else if (cid == IAMF_CODEC_AAC) {
     BitStream b;
     int ret, type;

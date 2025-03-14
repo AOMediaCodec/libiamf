@@ -80,7 +80,7 @@ static int iamf_opus_init(IAMF_CodecContext *ths) {
     return IAMF_ERR_BAD_ARG;
   }
 
-  ths->sample_rate = readu32be(config, 4);
+  ths->sample_rate = 48000;  // readu32be(config, 4);
   ths->channel_mapping_family = config[10];
 
   ctx->dec = opus_multistream2_decoder_create(ths->sample_rate, ths->streams,
