@@ -167,13 +167,44 @@ static int iamf_layout_channels_count(IAMF_Layout *layout) {
   return ret;
 }
 
-static void iamf_layout_reset(IAMF_Layout *layout) {
-  if (layout) memset(layout, 0, sizeof(IAMF_Layout));
-}
-
 static int iamf_layout_copy(IAMF_Layout *dst, IAMF_Layout *src) {
   memcpy(dst, src, sizeof(IAMF_Layout));
   return IAMF_OK;
+}
+
+static int iamf_loudness_info_copy(IAMF_LoudnessInfo *dst,
+                                   IAMF_LoudnessInfo *src) {
+  if (!dst || !src) return IAMF_ERR_BAD_ARG;
+
+  dst->info_type = src->info_type;
+  dst->integrated_loudness = src->integrated_loudness;
+  dst->digital_peak = src->digital_peak;
+  dst->true_peak = src->true_peak;
+  dst->num_anchor_loudness = src->num_anchor_loudness;
+  if (src->num_anchor_loudness > 0) {
+    dst->anchor_loudness =
+        IAMF_MALLOCZ(anchor_loudness_t, src->num_anchor_loudness);
+
+    if (!dst->anchor_loudness) goto loudness_info_copy_fail;
+    for (int i = 0; i < src->num_anchor_loudness; i++) {
+      dst->anchor_loudness[i].anchor_element =
+          src->anchor_loudness[i].anchor_element;
+      dst->anchor_loudness[i].anchored_loudness =
+          src->anchor_loudness[i].anchored_loudness;
+    }
+  }
+  if (src->info_type_bytes) {
+    dst->info_type_bytes = IAMF_MALLOC(uint8_t, src->info_type_size);
+    if (!dst->info_type_bytes) goto loudness_info_copy_fail;
+    memcpy(dst->info_type_bytes, src->info_type_bytes, src->info_type_size);
+    dst->info_type_size = src->info_type_size;
+  }
+  return IAMF_OK;
+
+loudness_info_copy_fail:
+  IAMF_FREE(dst->anchor_loudness);
+  IAMF_FREE(dst->info_type_bytes);
+  return IAMF_ERR_ALLOC_FAIL;
 }
 
 static int iamf_layout_copy2(IAMF_Layout *dst, TargetLayout *src) {
@@ -197,9 +228,7 @@ static void iamf_layout_dump(IAMF_Layout *layout) {
 
 static void iamf_layout_info_free(LayoutInfo *layout) {
   if (layout) {
-    if (layout->sp.sp_layout.predefined_sp)
-      free(layout->sp.sp_layout.predefined_sp);
-    iamf_layout_reset(&layout->layout);
+    IAMF_FREE(layout->sp.sp_layout.predefined_sp);
     free(layout);
   }
 }
@@ -1357,7 +1386,6 @@ static int iamf_database_add_object(IAMF_DataBase *db, IAMF_Object *obj) {
 
       if (version->primary_profile > db->profile) {
         ia_loge("Unimplemented profile %u", version->primary_profile);
-        free(obj);
         ret = IAMF_ERR_UNIMPLEMENTED;
         break;
       }
@@ -1632,7 +1660,7 @@ static IAMF_StreamDecoder *iamf_presentation_take_decoder(
     IAMF_Presentation *pst, IAMF_Stream *stream) {
   IAMF_StreamDecoder *decoder = 0;
   for (int i = 0; i < pst->nb_streams; ++i) {
-    if (pst->decoders[i]->stream == stream) {
+    if (pst->decoders[i] && pst->decoders[i]->stream == stream) {
       decoder = pst->decoders[i];
       pst->decoders[i] = 0;
       break;
@@ -1646,7 +1674,7 @@ static IAMF_StreamRenderer *iamf_presentation_take_renderer(
     IAMF_Presentation *pst, IAMF_Stream *stream) {
   IAMF_StreamRenderer *renderer = 0;
   for (int i = 0; i < pst->nb_streams; ++i) {
-    if (pst->renderers[i]->stream == stream) {
+    if (pst->renderers[i] && pst->renderers[i]->stream == stream) {
       renderer = pst->renderers[i];
       pst->renderers[i] = 0;
       break;
@@ -2214,7 +2242,7 @@ static uint32_t iamf_set_stream_info(IAMF_DecoderHandle handle) {
     decoder = pst->decoders[i];
     stream = pst->streams[i];
     if (ctx->info.max_frame_size > stream->max_frame_size) {
-      for (int n = 0; i < DEC_BUF_CNT; ++n) {
+      for (int n = 0; n < DEC_BUF_CNT; ++n) {
         float *buffer =
             IAMF_REALLOC(float, decoder->buffers[n],
                          ctx->info.max_frame_size * stream->nb_channels);
@@ -2938,6 +2966,10 @@ static int iamf_stream_render(const Arch *arch, IAMF_StreamRenderer *sr,
   return IAMF_OK;
 }
 
+static void iamf_mixer_clear(IAMF_Mixer *m) {
+  memset(m->frames, 0, m->nb_elements);
+}
+
 void iamf_mixer_reset(IAMF_Mixer *m) {
   IAMF_FREE(m->element_ids);
   IAMF_FREE(m->frames);
@@ -3261,15 +3293,6 @@ int iamf_decoder_internal_deliver(IAMF_DecoderHandle handle, IAMF_Frame *obj) {
       if (obj->trim_start > 0)
         ia_logd("trimming start %" PRIu64 " ", obj->trim_start);
       if (obj->trim_end > 0) ia_logd("trimming end %" PRIu64, obj->trim_end);
-
-#if 0
-      if (decoder->packet.sub_packets[idx]) {
-        /* when the frame of stream has been overwrite, the timestamp of stream
-         * should be elapsed and the global time should be updated together. */
-
-        stream->timestamp += decoder->frame_size;
-      }
-#endif
     }
     iamf_stream_decoder_receive_packet(decoder, idx, obj);
   }
@@ -4019,9 +4042,9 @@ static int iamf_extra_data_init(IAMF_DecoderHandle handle) {
   for (int i = 0; i < metadata->num_loudness_layouts; ++i) {
     iamf_layout_copy2(&metadata->loudness_layout[i],
                       ctx->presentation->obj->sub_mixes->layouts[i]);
+    iamf_loudness_info_copy(&metadata->loudness[i],
+                            &pst->obj->sub_mixes->loudness[i]);
   }
-  memcpy(metadata->loudness, pst->obj->sub_mixes->loudness,
-         sizeof(IAMF_LoudnessInfo) * metadata->num_loudness_layouts);
 
   if (pst) {
     ElementItem *ei;
@@ -4045,9 +4068,7 @@ static int iamf_extra_data_init(IAMF_DecoderHandle handle) {
 }
 
 static int iamf_extra_data_copy(IAMF_extradata *dst, IAMF_extradata *src) {
-  if (!src) return IAMF_ERR_BAD_ARG;
-
-  if (!dst) return IAMF_ERR_INTERNAL;
+  if (!src || !dst) return IAMF_ERR_BAD_ARG;
 
   dst->output_sound_system = src->output_sound_system;
   dst->number_of_samples = src->number_of_samples;
@@ -4055,45 +4076,49 @@ static int iamf_extra_data_copy(IAMF_extradata *dst, IAMF_extradata *src) {
   dst->sampling_rate = src->sampling_rate;
   dst->num_loudness_layouts = src->num_loudness_layouts;
   dst->output_sound_mode = src->output_sound_mode;
+  dst->loudness_layout = 0;
+  dst->loudness = 0;
+  dst->param = 0;
 
   if (dst->num_loudness_layouts) {
     dst->loudness_layout = IAMF_MALLOCZ(IAMF_Layout, dst->num_loudness_layouts);
     dst->loudness = IAMF_MALLOCZ(IAMF_LoudnessInfo, dst->num_loudness_layouts);
 
-    if (!dst->loudness_layout || !dst->loudness) return IAMF_ERR_ALLOC_FAIL;
+    if (!dst->loudness_layout || !dst->loudness) goto alloc_fail;
     for (int i = 0; i < dst->num_loudness_layouts; ++i) {
       iamf_layout_copy(&dst->loudness_layout[i], &src->loudness_layout[i]);
-      memcpy(&dst->loudness[i], &src->loudness[i], sizeof(IAMF_LoudnessInfo));
+      iamf_loudness_info_copy(&dst->loudness[i], &src->loudness[i]);
     }
-  } else {
-    dst->loudness_layout = 0;
-    dst->loudness = 0;
   }
 
   dst->num_parameters = src->num_parameters;
 
   if (dst->num_parameters) {
     dst->param = IAMF_MALLOCZ(IAMF_Param, dst->num_parameters);
-    if (!dst->param) return IAMF_ERR_ALLOC_FAIL;
+    if (!dst->param) goto alloc_fail;
     for (int i = 0; i < src->num_parameters; ++i)
       memcpy(&dst->param[i], &src->param[i], sizeof(IAMF_Param));
-  } else {
-    dst->param = 0;
   }
 
   return IAMF_OK;
+
+alloc_fail:
+  IAMF_FREE(dst->loudness_layout);
+  IAMF_FREE(dst->loudness);
+  IAMF_FREE(dst->param);
+  return IAMF_ERR_ALLOC_FAIL;
 }
 
 void iamf_extra_data_reset(IAMF_extradata *data) {
   if (data) {
-    if (data->loudness_layout) {
-      for (int i = 0; i < data->num_loudness_layouts; ++i)
-        iamf_layout_reset(&data->loudness_layout[i]);
-
-      free(data->loudness_layout);
+    IAMF_FREE(data->loudness_layout);
+    for (int i = 0; i < data->num_loudness_layouts; ++i) {
+      if (data->loudness) {
+        IAMF_FREE(data->loudness[i].anchor_loudness);
+        IAMF_FREE(data->loudness[i].info_type_bytes);
+      }
     }
-
-    if (data->loudness) free(data->loudness);
+    IAMF_FREE(data->loudness);
     if (data->param) free(data->param);
 
     memset(data, 0, sizeof(IAMF_extradata));
@@ -4377,24 +4402,24 @@ char *IAMF_decoder_get_codec_capability() {
 
   if (!ccs_str) return 0;
 
-  snprintf(cc_str, STRING_SIZE, "iamf.%.03u.%.03u.ipcm", IAMF_PROFILE_DEFAULT,
+  snprintf(cc_str, STRING_SIZE, "iamf.%.03d.%.03d.ipcm", IAMF_PROFILE_DEFAULT,
            IAMF_PROFILE_DEFAULT);
   strcat(ccs_str, cc_str);
 
 #ifdef CONFIG_OPUS_CODEC
-  snprintf(cc_str, STRING_SIZE, ";iamf.%.03u.%.03u.Opus", IAMF_PROFILE_DEFAULT,
+  snprintf(cc_str, STRING_SIZE, ";iamf.%.03d.%.03d.Opus", IAMF_PROFILE_DEFAULT,
            IAMF_PROFILE_DEFAULT);
   strcat(ccs_str, cc_str);
 #endif
 
 #ifdef CONFIG_AAC_CODEC
-  snprintf(cc_str, STRING_SIZE, ";iamf.%.03u.%.03u.mp4a.40.2",
+  snprintf(cc_str, STRING_SIZE, ";iamf.%.03d.%.03d.mp4a.40.2",
            IAMF_PROFILE_DEFAULT, IAMF_PROFILE_DEFAULT);
   strcat(ccs_str, cc_str);
 #endif
 
 #ifdef CONFIG_FLAC_CODEC
-  snprintf(cc_str, STRING_SIZE, ";iamf.%.03u.%.03u.fLaC", IAMF_PROFILE_DEFAULT,
+  snprintf(cc_str, STRING_SIZE, ";iamf.%.03d.%.03d.fLaC", IAMF_PROFILE_DEFAULT,
            IAMF_PROFILE_DEFAULT);
   strcat(ccs_str, cc_str);
 #endif

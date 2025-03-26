@@ -119,7 +119,7 @@ int IAMF_layout_sound_system_channels_count(IAMF_SoundSystem ss);
  * @brief     Get the number of channels of binaural pattern.
  * @return    the number of channels.
  */
-int IAMF_layout_binaural_channels_count();
+int IAMF_layout_binaural_channels_count(void);
 
 /**
  * @brief     Get the codec capability of iamf. Need to free string manually.
@@ -129,7 +129,7 @@ int IAMF_layout_binaural_channels_count();
  *            is three digits to indicate the value of the additional_profile.
  * @return    the supported codec string.
  */
-char *IAMF_decoder_get_codec_capability();
+char *IAMF_decoder_get_codec_capability(void);
 
 /**
  * @brief     Set target normalization loudness value, then loudness will be
