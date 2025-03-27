@@ -2755,7 +2755,7 @@ IAMF_StreamRenderer *iamf_stream_renderer_open(IAMF_Stream *s,
   IAMF_StreamRenderer *sr = IAMF_MALLOCZ(IAMF_StreamRenderer, 1);
   ElementConf *ec = iamf_mix_presentation_get_element_conf(mp, s->element_id);
   IAMF_SP_LAYOUT stereo_sp;
-  IAMF_PREDEFINED_SP_LAYOUT stereo_pin;
+  IAMF_PREDEFINED_SP_LAYOUT stereo_pout;
   IAMF_SP_LAYOUT *out_sp = &s->final_layout->sp;
 
   if (!sr) return 0;
@@ -2773,11 +2773,11 @@ IAMF_StreamRenderer *iamf_stream_renderer_open(IAMF_Stream *s,
     const IAMF_LayoutInfo *stereo_info =
         iamf_sound_system_get_layout_info(SOUND_SYSTEM_A);
 
-    memset(&stereo_pin, 0, sizeof(IAMF_PREDEFINED_SP_LAYOUT));
-    stereo_sp.sp_layout.predefined_sp = &stereo_pin;
-    stereo_pin.system = stereo_info->rendering_id_in;
-    stereo_pin.lfe1 = stereo_info->lfe1;
-    stereo_pin.lfe2 = stereo_info->lfe2;
+    memset(&stereo_pout, 0, sizeof(IAMF_PREDEFINED_SP_LAYOUT));
+    stereo_sp.sp_layout.predefined_sp = &stereo_pout;
+    stereo_pout.system = stereo_info->rendering_id_out;
+    stereo_pout.lfe1 = stereo_info->lfe1;
+    stereo_pout.lfe2 = stereo_info->lfe2;
     out_sp = &stereo_sp;
   }
 
