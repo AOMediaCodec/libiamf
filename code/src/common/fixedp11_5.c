@@ -23,6 +23,10 @@ float q_to_float(q16_t q, int frac) {
   return ((float)q) * powf(2.0f, (float)-frac);
 }
 
+float qf2float(qf_t qf, int frac) {
+  return ((float)qf / (pow(2.0f, (float)frac)));
+}
+
 float qf_to_float(qf_t qf, int frac) {
   return ((float)qf / (pow(2.0f, (float)frac) - 1.0));  // f = q / 255
 }

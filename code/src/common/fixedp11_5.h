@@ -33,6 +33,9 @@ typedef uint8_t qf_t;
 float q_to_float(q16_t q, int frac);
 
 /// Converts between double and q8_t
+// qf/2^frac
+float qf2float(qf_t qf, int frac);
+// q/(2^frac - 1)
 float qf_to_float(qf_t q, int frac);
 
 float db2lin(float db);
