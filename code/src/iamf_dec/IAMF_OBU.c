@@ -1195,7 +1195,7 @@ IAMF_Parameter *iamf_parameter_new(IAMF_OBU *obu,
             mg->mix_gain_f.control = db2lin(gain1_db);
             mg->mix_gain.control_relative_time = bs_getA8b(&b);
             mg->mix_gain_f.control_relative_time =
-                qf_to_float(mg->mix_gain.control_relative_time, 8);
+                qf2float(mg->mix_gain.control_relative_time, 8);
             ia_logd("\t mix gain seg %d: interval %" PRIu64
                     ", bezier, start %f (%fdb "
                     "<0x%02x>), end %f (%fdb <0x%02x>), control %f (%fdb "
