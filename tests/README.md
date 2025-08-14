@@ -92,3 +92,26 @@ Sound System 11         | IAMF                     | L3, R3, C, LFE, Ltf3, Rtf3,
 Sound System 12         | IAMF                     | C
 Sound System 13         | IAMF                     | FL, FR, FC, LFE, BL, BR, FLc, FRc, SiL, SiR, TpFL, TpFR, TpBL, TpBR, TpSiL, TpSiR
 Binaural Layout         | IAMF                     | L2, R2
+
+# Verification
+
+For test cases using Opus or AAC codecs, the average PSNR value must exceed 30, and for the other codecs, an average PSNR value exceeding 80 is considered PASS.
+You can use `psnr_calc.py` file to calculate PSNR between reference and generated output.
+
+- How to use `psnr_calc.py` script:
+    ```
+    python psnr_calc.py
+      --dir <directory path containing the target file and reference file>
+      --target <target wav file name>
+      --ref <reference wav file name>
+    ```
+
+- Calculate PSNR values of multiple wav files
+
+    Multiple files can be entered as `::`
+
+    ```
+    Example:
+
+    python psnr_calc.py --dir . --target target1.wav::target2.wav --ref ref1.wav::ref2.wav
+    ```
