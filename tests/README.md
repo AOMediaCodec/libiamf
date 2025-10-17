@@ -95,18 +95,16 @@ Binaural Layout         | IAMF                     | L2, R2
 
 # Verification
 
-For test cases using Opus or AAC codecs, the average PSNR value must exceed 30, and for the other codecs, an average PSNR value exceeding 80 is considered PASS.
-You can use `psnr_calc.py` file to calculate PSNR between reference and generated output.
+For test cases using Opus or AAC codecs, the average PSNR value must exceed 30,
+and for the other codecs, an average PSNR value exceeding 80 is considered PASS.
+You can use `psnr_calc.py` file to calculate PSNR between reference and
+generated output.
 
-- How to use `psnr_calc.py` script:
-    ```
-    python psnr_calc.py
-      --dir <directory path containing the target file and reference file>
-      --target <target wav file name>
-      --ref <reference wav file name>
-    ```
+-   How to use `psnr_calc.py` script: `python psnr_calc.py --dir <directory path
+    containing the target file and reference file> --target <target wav file
+    name> --ref <reference wav file name> --verbose`
 
-- Calculate PSNR values of multiple wav files
+-   Calculate PSNR values of multiple wav files
 
     Multiple files can be entered as `::`
 
