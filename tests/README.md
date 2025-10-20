@@ -34,7 +34,7 @@ Theses file describe metadata about the test vector to encode an
 -   `base_test`: The recommended textproto to diff against.
 -   Other fields refer to the OBUs and data within the test vector.
 
-# Input WAV files
+## Input WAV files
 
 Test vectors may have multiple substreams with several input .wav files. These
 .wav files may be shared with other test vectors. The .textproto file has a
@@ -68,7 +68,7 @@ Title                                                | Summary                  
 `Transport_TOA_5s.wav`                               | Short clip of vehicles driving by using third-order ambisonics.                                                     | 16       | 48kHz       | pcm_s16le | 5s
 `Transport_9.1.6_5s.wav`                             | Short clip of vehicles driving by using 9.1.6.                                                                      | 16       | 48kHz       | pcm_s16le | 5s
 
-# Output WAV files
+## Output WAV files
 
 Output wav files are based on the
 [layout](https://aomediacodec.github.io/iamf/#syntax-layout) in the mix
@@ -93,7 +93,66 @@ Sound System 12         | IAMF                     | C
 Sound System 13         | IAMF                     | FL, FR, FC, LFE, BL, BR, FLc, FRc, SiL, SiR, TpFL, TpFR, TpBL, TpBR, TpSiL, TpSiR
 Binaural Layout         | IAMF                     | L2, R2
 
-# Verification
+## Decode and Verification
+
+For test cases with lossy codecs (Opus or AAC), the average PSNR value must
+exceed 30. otherwise the average PSNR must exceed 80.
+
+`run_decode_and_psnr_tests` will run the decoder for all reference test cases
+and compare the PSNR between all outputs.
+
+Prerequisites:
+
+-   The path to a built `iamfdec`, usually
+    `libiamf/code/test/tools/iamfdec/iamfdec`
+-   `protoc`, and compiled `libiamf/code/proto` files.
+-   A python environment with `scipy`, `protobuf`, `tqdm`, `numpy`.
+
+Note that example commands below assume a working directory of `libiamf/tests`.
+
+To compile the proto files run
+
+`protoc -I=proto/ --python_out=proto/ proto/*.proto`
+
+To set up a python environment using pip
+
+```
+python3 -m venv venv
+source venv/bin/activate
+pip install scipy protobuf tqdm numpy
+```
+
+Run the test suite.
+
+Arguments:
+
+`iamfdec_path`, full path to the built `iamfdec` tool. `test_file_directory`,
+full path to folder containing `.textproto` and reference `.wav` files.
+`working_directory`, full path to write audio files produced by `iamfdec`.
+`csv_summary`, optionally included, full path and filename to write a summary of
+test results.
+
+```
+python3 run_decode_and_psnr_test.py --iamfdec_path /your/full/path/to/libiamf/code/test/tools/iamfdec/iamfdec --test_file_directory /your/full/path/to/libiamf/tests/ --working_directory /your/path/for/scratch/wav/files --csv_summary /your/path/to/write/summary.csv
+```
+
+For a simple configuration, this example will dump all files to the current
+working directory.
+
+`python3 run_decode_and_psnr_test.py --iamfdec_path
+../code/test/tools/iamfdec/iamfdec --test_file_directory $PWD --csv_summary
+$PWD/summary.csv -w $PWD`
+
+Extra arguments:
+
+`regex_filter`, optionally included, regex to filter output files. For example
+`--regex_filter="000100"` will run a single file, or
+`--regex_filter="0001\d{2}"` will process files in the range [test_000100,
+test_000199]. `verbose_test_summary`, turns on verbose logging.
+`--preserve_output_files`, set to keep the output generated `.wav` files,
+otherwise they are deleted.
+
+## Verification Only
 
 For test cases using Opus or AAC codecs, the average PSNR value must exceed 30,
 and for the other codecs, an average PSNR value exceeding 80 is considered PASS.
