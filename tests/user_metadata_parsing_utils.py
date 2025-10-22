@@ -30,6 +30,7 @@ class TestCombinationMetadata:
   layout_type_enum: mix_presentation_pb2.LayoutType = field(repr=False)
   sound_system_enum: mix_presentation_pb2.SoundSystem | None = field(repr=False)
   is_lossy: bool = field(repr=False)
+  is_binaural: bool = False
   bit_depth: int = 16
   sample_rate: int = 48000
 
@@ -173,6 +174,8 @@ def get_test_combination_metadata(user_metadata_proto, test_file_directory):
             is_lossy=is_lossy,
             bit_depth=bit_depth,
             sample_rate=sample_rate,
+            is_binaural=layout.loudness_layout.layout_type
+            == mix_presentation_pb2.LAYOUT_TYPE_BINAURAL,
         )
         result.append(data)
   return result

@@ -116,7 +116,7 @@ class TestSummary:
                 item.layout_index,
                 status.name,
                 item.psnr_score if item.psnr_score is not None else '',
-                "lossy" if item.is_lossy else 'lossless',
+                'lossy' if item.is_lossy else 'lossless',
                 item.reason if item.reason is not None else '',
                 item.iamfdec_command
                 if item.iamfdec_command is not None
@@ -189,7 +189,10 @@ def run_psnr_test(args, metadata):
     return ResultStatus.FAILURE, 'PSNR score below threshold.', psnr_score
 
 
-def _is_excluded(metadata, exclusions):
+def _is_excluded(metadata, exclusions, args):
+  if not args.test_binaural and metadata.is_binaural:
+    return 'Binaural layout not tested by default.'
+
   for exclusion in exclusions:
     if (
         exclusion.file_name_prefix == metadata.test_prefix
@@ -239,7 +242,7 @@ def run_tests(args, text_proto_files) -> TestSummary:
           generated_file_is_new and not args.preserve_output_files
       )
       status, reason, psnr_score, cmd_str = None, None, None, None
-      if skip_reason := _is_excluded(metadata, exclusions):
+      if skip_reason := _is_excluded(metadata, exclusions, args):
         # Test was intentionally excluded.
         reason = skip_reason
         status = ResultStatus.SKIPPED
@@ -298,6 +301,12 @@ def main():
       '-c',
       '--csv_summary_file',
       help='Path to CSV file to log test results.',
+  )
+  parser.add_argument(
+      '-b',
+      '--test_binaural',
+      action='store_true',
+      help='Enable testing binaural layouts.',
   )
   args = parser.parse_args()
 
