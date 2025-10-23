@@ -176,3 +176,5 @@ if(MULTICHANNEL_BINAURALIZER OR HOA_BINAURALIZER)
         DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 endif()
 
+# Enable 16 KB ELF alignment.
+target_link_options(${PROJECT_NAME} PRIVATE "-Wl,-z,max-page-size=16384")
