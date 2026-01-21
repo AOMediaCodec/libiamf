@@ -65,13 +65,16 @@ typedef struct {
   uint32_t sample_size;  // samples per packet (varable mode = 0, constant mode
                          // = size > 0)
   uint32_t sample_duration;
+  uint32_t default_sample_flags;
   struct {
     chunkinfo *chunks;
     uint32_t chunk_count;
 
-    uint32_t *offs;    // sample offs array(stco)
-    uint32_t *sizes;   // sample size array(stsz)
-    uint32_t *deltas;  // sample count array(stts)
+    uint32_t *offs;       // sample offs array(stco)
+    uint32_t *sizes;      // sample size array(stsz)
+    uint32_t *deltas;     // sample count array(stts)
+    uint32_t *syncs;      // sync sample array(stss)
+    uint32_t sync_count;  // number of sync samples
     uint32_t bufsize;
     uint32_t ents;
     uint32_t ents_offset;

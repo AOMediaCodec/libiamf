@@ -1,157 +1,134 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.28)
 
 project (iamf)
-message(STATUS "start build iamf")
+message(STATUS "Start build libiamf")
 
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -Werror=unused-variable")
-SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-option(BUILD_SHARED_LIBS "Build shared library" ON)
-
-set(CODEC_LIB_DIR  "${PROJECT_SOURCE_DIR}/dep_codecs/lib")
-set(CODEC_INCLUDE_DIR  "${PROJECT_SOURCE_DIR}/dep_codecs/include")
-set(EXTER_LIB_DIR  "${PROJECT_SOURCE_DIR}/dep_external/lib")
-set(EXTER_INCLUDE_DIR  "${PROJECT_SOURCE_DIR}/dep_external/include")
-
-option(SUPPORT_VERIFIER "Output vlogging file" OFF)
-if (SUPPORT_VERIFIER)
-  message(STATUS "Output vlogging file")
-  add_definitions(-DSUPPORT_VERIFIER=1)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
+if(NOT MSVC)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=unused-variable")
 endif()
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-option(CODEC_CAP "Codec capability check" ON)
-option(MULTICHANNEL_BINAURALIZER "Enable multichannel binaural rendering" OFF)
-option(HOA_BINAURALIZER "Enable HOA binaural rendering" OFF)
+set(DEP_CODECS_DIR        "${PROJECT_SOURCE_DIR}/dep_codecs")
+set(DEP_EXTERNAL_DIR      "${PROJECT_SOURCE_DIR}/dep_external")
+
+option(IAMF_BUILD_SHARED_LIB "Build shared library" ON)
+option(IAMF_ENABLE_BINAURALIZER "Enable binaural rendering"  ON)
+option(ENABLE_BUILD_CODECS "Build all codecs" ON)
+option(IAMF_TEST_TOOL "IAMF test tool" OFF)
+option(SUPPORT_VERIFIER "Output vlogging file" OFF)
+
+if (SUPPORT_VERIFIER)
+    message(STATUS "Output vlogging file")
+    add_definitions(-DSUPPORT_VERIFIER=1)
+endif()
 
 if (CMAKE_BUILD_TYPE)
-  string(TOLOWER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
-  if ("${BUILD_TYPE}" STREQUAL "debug")
-    add_definitions(-DIA_DBG)
-    message(STATUS "Debug mode.")
-  endif()
+    string(TOLOWER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
+    if ("${BUILD_TYPE}" STREQUAL "debug")
+        add_definitions(-DIA_DBG)
+        message(STATUS "Debug mode")
+    endif()
 endif()
 
-if(MULTICHANNEL_BINAURALIZER)
-  message(STATUS "Enable multichannel binaural rendering")
-  add_definitions(-DENABLE_MULTICHANNEL_TO_BINAURAL=1)
-endif()
-
-if(HOA_BINAURALIZER)
-  message(STATUS "Enable HOA binaural rendering")
-  add_definitions(-DENABLE_HOA_TO_BINAURAL=1)
-endif()
-
-if(CODEC_CAP)
-  unset(find_opus CACHE)
-  find_library(find_opus NAMES opus PATHS ${CODEC_LIB_DIR} NO_DEFAULT_PATH)
-  if(${find_opus} STREQUAL "find_opus-NOTFOUND")
-      message(WARNING "the opus library was not found")
-  else()
-      add_definitions(-DCONFIG_OPUS_CODEC)
-  endif()
-
-  unset(find_aac CACHE)
-  find_library(find_aac NAMES fdk-aac PATHS ${CODEC_LIB_DIR} NO_DEFAULT_PATH)
-  if(${find_aac} STREQUAL "find_aac-NOTFOUND")
-      message(WARNING "the fdk-aac library was not found")
-  else()
-      add_definitions(-DCONFIG_AAC_CODEC)
-  endif()
-
-  unset(find_flac CACHE)
-  find_library(find_flac NAMES FLAC PATHS ${CODEC_LIB_DIR} NO_DEFAULT_PATH)
-  if(${find_flac} STREQUAL "find_flac-NOTFOUND")
-      message(WARNING "the FLAC library was not found")
-  else()
-      add_definitions(-DCONFIG_FLAC_CODEC)
-      if(CMAKE_SYSTEM_NAME MATCHES "Windows")
+if (ENABLE_BUILD_CODECS)
+    add_subdirectory(dep_codecs)
+    add_definitions(-DCONFIG_OPUS_CODEC -DCONFIG_AAC_CODEC -DCONFIG_FLAC_CODEC)
+    if(MSVC)
         add_definitions(-DFLAC__NO_DLL)
-      endif()
-  endif()
+    endif()
+else()
+    unset(find_opus CACHE)
+    find_library(find_opus NAMES opus PATHS ${DEP_CODECS_DIR}/lib NO_DEFAULT_PATH)
+    if(${find_opus} STREQUAL "find_opus-NOTFOUND")
+        message(STATUS "The opus library was not found")
+    else()
+        add_definitions(-DCONFIG_OPUS_CODEC)
+    endif()
+
+    unset(find_aac CACHE)
+    find_library(find_aac NAMES fdk-aac PATHS ${DEP_CODECS_DIR}/lib NO_DEFAULT_PATH)
+    if(${find_aac} STREQUAL "find_aac-NOTFOUND")
+        message(STATUS "The aac library was not found")
+    else()
+        add_definitions(-DCONFIG_AAC_CODEC)
+    endif()
+
+    unset(find_flac CACHE)
+    find_library(find_flac NAMES FLAC PATHS ${DEP_CODECS_DIR}/lib NO_DEFAULT_PATH)
+    if(${find_flac} STREQUAL "find_flac-NOTFOUND")
+        message(STATUS "The flac library was not found")
+    else()
+        add_definitions(-DCONFIG_FLAC_CODEC)
+        if(MSVC)
+            add_definitions(-DFLAC__NO_DLL)
+        endif()
+    endif()
 endif()
 
-include_directories (include)
-aux_source_directory (dep_external/src/wav DIR_DEP_EXTERNAL_WAV)
-aux_source_directory (src/common DIR_IAMF_COMMON)
-aux_source_directory (src/iamf_dec DIR_IAMF_DEC)
-aux_source_directory (src/iamf_dec/arch DIR_IAMF_DEC_ARCH)
-aux_source_directory (src/iamf_dec/arch/arm DIR_IAMF_DEC_ARCH_ARM)
-aux_source_directory (src/iamf_dec/arch/x86 DIR_IAMF_DEC_ARCH_X86)
-if(NOT ${find_opus} STREQUAL "find_opus-NOTFOUND")
-  aux_source_directory (src/iamf_dec/opus DIR_IAMF_DEC_OPUS)
+if (IAMF_ENABLE_BINAURALIZER)
+    set(OAR_ENABLE_BINAURALIZER ON)
+else()
+    set(OAR_ENABLE_BINAURALIZER OFF)
 endif()
-if(NOT ${find_aac} STREQUAL "find_aac-NOTFOUND")
-  aux_source_directory (src/iamf_dec/aac DIR_IAMF_DEC_AAC)
-endif()
-if(NOT ${find_flac} STREQUAL "find_flac-NOTFOUND")
-  aux_source_directory (src/iamf_dec/flac DIR_IAMF_DEC_FLAC)
-endif()
-aux_source_directory (src/iamf_dec/pcm DIR_IAMF_DEC_PCM)
+set(OAR_BUILD_SHARED_LIBRARY OFF)
+add_subdirectory(dep_external/src/oar-private/liboar)
 
-
+file(GLOB_RECURSE sources  CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/dep_external/src/wav/*.c")
 
 include_directories(
-    ${CODEC_INCLUDE_DIR}
-    ${EXTER_INCLUDE_DIR}
-    ${PROJECT_SOURCE_DIR}/src/common
+    include
+    ${DEP_CODECS_DIR}/include
+    ${DEP_EXTERNAL_DIR}/include
+    ${DEP_EXTERNAL_DIR}/src/oar-private/liboar/include
+    ${DEP_EXTERNAL_DIR}/src/oar-private/liboar/src/common
     ${PROJECT_SOURCE_DIR}/src/iamf_dec
-    ${PROJECT_SOURCE_DIR}/src/iamf_dec/arch
-    ${PROJECT_SOURCE_DIR}/src/iamf_dec/arch/arm
-    ${PROJECT_SOURCE_DIR}/src/iamf_dec/arch/x86
-    ${PROJECT_SOURCE_DIR}/src/iamf_dec/opus
-    ${PROJECT_SOURCE_DIR}/src/iamf_dec/aac
-    ${PROJECT_SOURCE_DIR}/src/iamf_dec/flac
+    ${PROJECT_SOURCE_DIR}/src/iamf_dec/codec
+    ${PROJECT_SOURCE_DIR}/src/iamf_dec/codec/opus
+    ${PROJECT_SOURCE_DIR}/src/iamf_dec/codec/aac
+    ${PROJECT_SOURCE_DIR}/src/iamf_dec/codec/flac
+    ${PROJECT_SOURCE_DIR}/src/iamf_dec/common
+    ${PROJECT_SOURCE_DIR}/src/iamf_dec/obu
 )
+
 link_directories (
-    ${CODEC_LIB_DIR}
+    ${DEP_CODECS_DIR}/lib
+    ${DEP_EXTERNAL_DIR}/lib
 )
 
-if(MULTICHANNEL_BINAURALIZER OR HOA_BINAURALIZER)
-link_directories(
-  ${EXTER_LIB_DIR}/binaural
-)
-endif()
-
-if(BUILD_SHARED_LIBS)
-  add_library(${PROJECT_NAME} SHARED ${DIR_DEP_EXTERNAL_WAV} ${DIR_IAMF_COMMON}
-    ${DIR_IAMF_DEC_OPUS} ${DIR_IAMF_DEC_AAC} ${DIR_IAMF_DEC_FLAC} ${DIR_IAMF_DEC_PCM} ${DIR_IAMF_DEC}
-    ${DIR_IAMF_DEC_ARCH} ${DIR_IAMF_DEC_ARCH_ARM} ${DIR_IAMF_DEC_ARCH_X86})
-
-  if(NOT ${find_opus} STREQUAL "find_opus-NOTFOUND")
-    target_link_libraries (${PROJECT_NAME} opus)
-  endif()
-
-  if(NOT ${find_aac} STREQUAL "find_aac-NOTFOUND")
-    target_link_libraries (${PROJECT_NAME} fdk-aac)
-  endif()
-
-  if(NOT ${find_flac} STREQUAL "find_flac-NOTFOUND")
-    target_link_libraries (${PROJECT_NAME} FLAC)
-  endif()
-
-  if(MULTICHANNEL_BINAURALIZER)
-    target_link_libraries (${PROJECT_NAME} iamf2bear)
-  endif()
-  if(HOA_BINAURALIZER)
-    target_link_libraries (${PROJECT_NAME} iamf2resonance)
-  endif()
-  target_link_libraries (${PROJECT_NAME} m)
+if(IAMF_BUILD_SHARED_LIB)
+    add_library(${PROJECT_NAME} SHARED ${sources})
 else()
-  add_library(${PROJECT_NAME} STATIC ${DIR_DEP_EXTERNAL_WAV} ${DIR_IAMF_COMMON}
-    ${DIR_IAMF_DEC_OPUS} ${DIR_IAMF_DEC_AAC} ${DIR_IAMF_DEC_PCM}
-    ${DIR_IAMF_DEC_FLAC} ${DIR_IAMF_DEC} ${DIR_IAMF_DEC_ARCH} ${DIR_IAMF_DEC_ARCH_ARM}
-    ${DIR_IAMF_DEC_ARCH_X86})
+    add_library(${PROJECT_NAME} STATIC ${sources})
+endif()
+if (ENABLE_BUILD_CODECS)
+    add_dependencies(${PROJECT_NAME} dep_opus dep_aac dep_flac)
+    target_link_libraries (${PROJECT_NAME} opus fdk-aac FLAC) 
+else()
+    if(NOT ${find_opus} STREQUAL "find_opus-NOTFOUND")
+        target_link_libraries (${PROJECT_NAME} opus)
+    endif()
+    if(NOT ${find_aac} STREQUAL "find_aac-NOTFOUND")
+        target_link_libraries (${PROJECT_NAME} fdk-aac)
+    endif()
+    if(NOT ${find_flac} STREQUAL "find_flac-NOTFOUND")
+        target_link_libraries (${PROJECT_NAME} FLAC)
+    endif()
+endif()
+if(NOT MSVC)
+    target_link_libraries (${PROJECT_NAME} m)
+endif()
+target_link_libraries (${PROJECT_NAME} oar)
+
+if(IAMF_TEST_TOOL)
+    add_subdirectory(test/tools/iamfdec)
 endif()
 
-
-
-set(IAMF_PUBLIC_HEADER
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/IAMF_decoder.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/IAMF_defines.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/vlogging_tool_sr.h
-    )
-set_target_properties(iamf PROPERTIES PUBLIC_HEADER "${IAMF_PUBLIC_HEADER}")
-
+file(GLOB iamf_public_headers  CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/*")
+set_target_properties(iamf PROPERTIES PUBLIC_HEADER "${iamf_public_headers}")
 
 set(prefix ${CMAKE_INSTALL_PREFIX})
 set(exec_prefix ${CMAKE_INSTALL_PREFIX})
@@ -159,20 +136,15 @@ set(libdir ${CMAKE_INSTALL_PREFIX}/lib)
 set(includedir ${CMAKE_INSTALL_PREFIX}/include)
 configure_file(iamf.pc.in iamf.pc)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/iamf.pc
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig)
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig)
 
-if(BUILD_SHARED_LIBS)
-  install(TARGETS ${PROJECT_NAME}
+if(IAMF_BUILD_SHARED_LIB)
+    install(TARGETS ${PROJECT_NAME}
     LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/iamf)
 else()
-  install(TARGETS ${PROJECT_NAME}
+    install(TARGETS ${PROJECT_NAME}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/iamf)
-endif()
-
-if(MULTICHANNEL_BINAURALIZER OR HOA_BINAURALIZER)
-  install(DIRECTORY ${EXTER_LIB_DIR}/binaural
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 endif()
 

@@ -74,6 +74,7 @@ static int mov_read_stts(mp4r_t *mp4r, int size);
 static int mov_read_stsc(mp4r_t *mp4r, int size);
 static int mov_read_stsz(mp4r_t *mp4r, int size);
 static int mov_read_stco(mp4r_t *mp4r, int size);
+static int mov_read_stss(mp4r_t *mp4r, int size);
 #if SUPPORT_VERIFIER
 static int mov_read_sgpd(mp4r_t *mp4r, int size);
 #endif
@@ -104,6 +105,8 @@ static avio_context atoms_stsz[] = {
     {MOV_ATOM_NAME, "stsz"}, {MOV_ATOM_DATA, mov_read_stsz}, {0}};
 static avio_context atoms_stco[] = {
     {MOV_ATOM_NAME, "stco"}, {MOV_ATOM_DATA, mov_read_stco}, {0}};
+static avio_context atoms_stss[] = {
+    {MOV_ATOM_NAME, "stss"}, {MOV_ATOM_DATA, mov_read_stss}, {0}};
 #if SUPPORT_VERIFIER
 static avio_context atoms_sgpd[] = {
     {MOV_ATOM_NAME, "sgpd"}, {MOV_ATOM_DATA, mov_read_sgpd}, {0}};
@@ -418,14 +421,14 @@ int mov_read_stbl(mp4r_t *mp4r, int size) {
 #endif
 
   int64_t apos = ftell(mp4r->fin);
-  avio_context *list[] = {
-    atoms_stts,
-    atoms_stsc,
-    atoms_stsz,
-    atoms_stco
+  avio_context *list[] = {atoms_stts,
+                          atoms_stsc,
+                          atoms_stsz,
+                          atoms_stco,
+                          atoms_stss
 #if SUPPORT_VERIFIER
-    ,
-    atoms_sgpd
+                          ,
+                          atoms_sgpd
 #endif
   };
 
@@ -889,6 +892,50 @@ int mov_read_stsz(mp4r_t *mp4r, int size) {
   return size;
 }
 
+int mov_read_stss(mp4r_t *mp4r, int size) {
+#if SUPPORT_VERIFIER
+  char *atom_d = (char *)malloc(size);
+  int fpos;
+  fpos = ftell(mp4r->fin);
+  avio_rdata(mp4r->fin, atom_d, size);
+  fseek(mp4r->fin, fpos, SEEK_SET);
+  vlog_atom(MP4BOX_STSS, atom_d, size, fpos - 8);
+  free(atom_d);
+#endif
+
+  uint32_t entry_count;
+  int sel_a_trak;
+  sel_a_trak = mp4r->sel_a_trak;
+  audio_rtr_t *atr = mp4r->a_trak;
+
+  // version/flags
+  avio_rb32();
+  // entry count
+  entry_count = avio_rb32();
+  // fprintf(stderr, "stssin: entry_count %d\n", entry_count);
+  if (!entry_count) return size;
+
+  // Allocate memory for sync sample array
+  atr[sel_a_trak].frame.syncs = (uint32_t *)_dcalloc(
+      entry_count + 1, sizeof(*atr[sel_a_trak].frame.syncs), __FILE__,
+      __LINE__);
+  if (!atr[sel_a_trak].frame.syncs) {
+    return ERR_FAIL;
+  }
+
+  // Store the number of sync samples
+  atr[sel_a_trak].frame.sync_count = entry_count;
+
+  // Read sync sample numbers
+  for (int i = 0; i < entry_count; i++) {
+    atr[sel_a_trak].frame.syncs[i] = avio_rb32();
+    // fprintf(stderr, "stssin: index %d, sync_sample %u\n", i,
+    //         atr[sel_a_trak].frame.syncs[i]);
+  }
+
+  return size;
+}
+
 int mov_read_stco(mp4r_t *mp4r, int size) {
 #if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
@@ -981,6 +1028,7 @@ static int mov_read_moof(mp4r_t *mp4r, int size) {
     atr[i].frame.ents_offset += atr[i].frame.ents;
     FREE(atr[i].frame.sizes);
     FREE(atr[i].frame.offs);
+    FREE(atr[i].frame.syncs);
     atr[i].frame.ents = 0;
 
     header = (IAMFHeader *)atr[i].csc;
@@ -1031,9 +1079,9 @@ static int mov_read_tfhd(mp4r_t *mp4r, int size) {
   }
 
   /* base_data_offset */
-  mp4r->base_data_offset =
-      vf & 0x01 ? avio_rb64()
-                : vf & 0x02 ? mp4r->moof_position : mp4r->implicit_offset;
+  mp4r->base_data_offset = vf & 0x01   ? avio_rb64()
+                           : vf & 0x02 ? mp4r->moof_position
+                                       : mp4r->implicit_offset;
 
   // sample_description_index
   if (vf & 0x2) {
@@ -1054,7 +1102,8 @@ static int mov_read_tfhd(mp4r_t *mp4r, int size) {
   // default_sample_size
   if (vf & 0x10) mp4r->a_trak[mp4r->sel_a_trak].sample_size = avio_rb32();
   // default_sample_flags
-  /* if (vf & 0x20) avio_rb32(); */
+  if (vf & 0x20)
+    mp4r->a_trak[mp4r->sel_a_trak].default_sample_flags = avio_rb32();
 
   return size;
 }
@@ -1073,6 +1122,8 @@ static int mov_read_trun(mp4r_t *mp4r, int size) {
   uint32_t vf;
   uint32_t sample_count;
   uint32_t offset = 0;
+  uint32_t first_sample_flags = 0;
+  uint32_t *sample_flags = NULL;
 
   int sel_a_trak;
   sel_a_trak = mp4r->sel_a_trak;
@@ -1106,14 +1157,30 @@ static int mov_read_trun(mp4r_t *mp4r, int size) {
   if (vf & 0x1) offset = avio_rb32();
   /* fprintf(stderr, "offset %u\n", offset); */
 
-  if (vf & 0x04) avio_rb32();
+  // first_sample_flags_present flag
+  if (vf & 0x04) {
+    first_sample_flags = avio_rb32();
+  }
 
   uint32_t fsize = mp4r->a_trak[mp4r->sel_a_trak].sample_size;
   if (fsize) atr[sel_a_trak].frame.maxsize = fsize;
   offset += mp4r->base_data_offset;
+
+  // Allocate memory for sample flags if sample_flags_present flag is set
+  // or if first_sample_flags_present flag is set (to handle key frame
+  // detection)
+  if ((vf & 0x400) || (vf & 0x04)) {
+    sample_flags = (uint32_t *)_dmalloc(
+        sizeof(uint32_t) * atr[sel_a_trak].frame.ents, __FILE__, __LINE__);
+  }
+
   for (cnt = 0; cnt < atr[sel_a_trak].frame.ents; cnt++) {
+    uint32_t current_sample_flags = 0;
+
+    // sample_duration_present flag
     if (vf & 0x100) avio_rb32();
 
+    // sample_size_present flag
     if (vf & 0x200) fsize = avio_rb32();
     if (atr[sel_a_trak].frame.maxsize < fsize) {
       atr[sel_a_trak].frame.maxsize = fsize;
@@ -1123,9 +1190,68 @@ static int mov_read_trun(mp4r_t *mp4r, int size) {
     // fprintf(stderr, "entry %d : size  %d, offset %u\n", cnt, fsize, offset);
     offset += fsize;
 
-    if (vf & 0x400) avio_rb32();
+    // sample_flags_present flag
+    if (vf & 0x400) {
+      current_sample_flags = avio_rb32();
+      if (sample_flags) {
+        sample_flags[cnt] = current_sample_flags;
+      }
+    } else if (vf & 0x04) {
+      // Use first_sample_flags for the first sample, and default_sample_flags
+      // for others
+      if (sample_flags) {
+        if (cnt == 0) {
+          sample_flags[cnt] = first_sample_flags;
+        } else {
+          sample_flags[cnt] = atr[sel_a_trak].default_sample_flags;
+        }
+      }
+    }
+
+    // sample_composition_time_offsets_present flag
     if (vf & 0x800) avio_rb32();
   }
+
+  // Process sample flags to identify key frames
+  if (sample_flags) {
+    // Count key frames
+    uint32_t key_frame_count = 0;
+    for (cnt = 0; cnt < atr[sel_a_trak].frame.ents; cnt++) {
+      // Check if sample_is_non_sync_sample is 0 (sync sample = key frame)
+      // sample_is_non_sync_sample is bit 16 in sample flags:
+      uint32_t sample_is_non_sync_sample = (sample_flags[cnt] >> 16) & 0x1;
+      if (sample_is_non_sync_sample == 0) {
+        key_frame_count++;
+      }
+    }
+
+    // fprintf(stderr, "key frame count %d\n", key_frame_count);
+
+    // If we found key frames and don't already have sync samples from stss,
+    // create sync sample array from sample flags
+    if (key_frame_count > 0 && !atr[sel_a_trak].frame.syncs) {
+      atr[sel_a_trak].frame.syncs = (uint32_t *)_dmalloc(
+          sizeof(uint32_t) * key_frame_count, __FILE__, __LINE__);
+      if (atr[sel_a_trak].frame.syncs) {
+        atr[sel_a_trak].frame.sync_count = key_frame_count;
+        uint32_t sync_index = 0;
+        for (cnt = 0; cnt < atr[sel_a_trak].frame.ents; cnt++) {
+          // Check if sample_is_non_sync_sample is 0 (sync sample = key frame)
+          // sample_is_non_sync_sample is bit 16 in sample flags
+          uint32_t sample_is_non_sync_sample = (sample_flags[cnt] >> 16) & 0x1;
+          if (sample_is_non_sync_sample == 0) {
+            // Store 1-based index (as used in stss atom)
+            atr[sel_a_trak].frame.syncs[sync_index] = cnt + 1;
+            sync_index++;
+            // fprintf(stderr, "key frame index %d\n", cnt + 1);
+          }
+        }
+      }
+    }
+
+    FREE(sample_flags);
+  }
+
   mp4r->implicit_offset = offset;
 
   return size;
@@ -1499,6 +1625,7 @@ int mp4demux_clean_tracks(mp4r_t *mp4r) {
       FREE(atr[i].frame.offs);
       FREE(atr[i].frame.sizes);
       FREE(atr[i].frame.deltas);
+      FREE(atr[i].frame.syncs);
       FREE(atr[i].bitbuf.data);
       FREE_FUN(atr[i].csc, iamf_header_free, atr[i].csc_count);
     }

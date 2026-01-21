@@ -48,6 +48,7 @@ enum _mp4box_type {
   MP4BOX_MINF = atom_type('m', 'i', 'n', 'f'),
   MP4BOX_STBL = atom_type('s', 't', 'b', 'l'),
   MP4BOX_STTS = atom_type('s', 't', 't', 's'),
+  MP4BOX_STSS = atom_type('s', 't', 's', 's'),
   MP4BOX_STSC = atom_type('s', 't', 's', 'c'),
   MP4BOX_STSZ = atom_type('s', 't', 's', 'z'),
   MP4BOX_STCO = atom_type('s', 't', 'c', 'o'),

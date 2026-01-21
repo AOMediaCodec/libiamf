@@ -18,22 +18,26 @@ This software module is out of scope and not part of the IAMF Final Deliverable.
 /**
  * @file audio_effect_peak_limiter.h
  * @brief Peak Limiter APIs.
- * @version 0.1
+ * @version 1.0.0
  * @date Created 03/03/2023
  **/
 
 #ifndef __AUDIO_PEAK_LIMITER_H_
 #define __AUDIO_PEAK_LIMITER_H_
 
+#define MAX_LIMITER_OUTPUT_CHANNELS 24
+#define MAX_DELAYSIZE 4096
+
 #define USE_TRUEPEAK 0
+
+#define MAX_OUTPUT_CHANNELS 24
+#define MAX_DELAYSIZE 4096
 
 #if USE_TRUEPEAK
 #include "audio_true_peak_meter.h"
 #endif
 
 #include <stdint.h>
-
-#include "audio_defines.h"
 
 typedef struct AudioEffectPeakLimiter {
   int init;
@@ -43,12 +47,12 @@ typedef struct AudioEffectPeakLimiter {
   float targetEndGain;
   float attackSec;
   float releaseSec;
-  float linearThreashold;
+  float linearThreshold;
   float currentTC;
   float incTC;
   int numChannels;
 
-  float delayData[MAX_OUTPUT_CHANNELS][MAX_DELAYSIZE + 1];
+  float delayData[MAX_LIMITER_OUTPUT_CHANNELS][MAX_DELAYSIZE + 1];
   float peakData[MAX_DELAYSIZE + 1];
   int entryIndex;
   int delaySize;
@@ -59,7 +63,7 @@ typedef struct AudioEffectPeakLimiter {
 #endif
 
 #if USE_TRUEPEAK
-  AudioTruePeakMeter truePeakMeters[MAX_OUTPUT_CHANNELS];
+  AudioTruePeakMeter truePeakMeters[MAX_LIMITER_OUTPUT_CHANNELS];
 #endif
 } AudioEffectPeakLimiter;
 
