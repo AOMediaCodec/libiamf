@@ -848,6 +848,9 @@ static void write_mix_presentation_log(uint64_t idx, void* obu, char* log) {
           log += write_yaml_form(
               log, 4, "headphones_rendering_mode: %u",
               element_config->rendering_config.headphones_rendering_mode);
+          log += write_yaml_form(
+              log, 4, "binaural_filter_profile: %u",
+              element_config->rendering_config.binaural_filter_profile);
           // log += write_yaml_form(
           //     log, 4, "rendering_config_extension_size: %u",
           //     element_config->rendering_config.rendering_config_extension_size);
