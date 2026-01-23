@@ -5,9 +5,10 @@ import math
 import wave
 import numpy as np
 import scipy.io.wavfile as wavfile
+import librosa
 
 
-def calc_average_channel_psnr_pcm(
+def calc_per_channel_psnr_pcm(
     ref_signal: np.ndarray, signal: np.ndarray, sampwidth_bytes: int
 ):
   """Calculates the PSNR between two signals.
@@ -19,8 +20,7 @@ def calc_average_channel_psnr_pcm(
       24-bit).
 
   Returns:
-    The average PSNR in dB across all channels, or -1 if all channels are
-    identical.
+    The per channel PSNR in dB.
   """
   assert (
       sampwidth_bytes > 1
@@ -40,25 +40,78 @@ def calc_average_channel_psnr_pcm(
   for i in range(num_channels):
     mse_value = mse[i] if num_channels > 1 else mse
     if mse_value == 0:
+      psnr_list.append(np.inf)
       logging.debug("ch#%d PSNR: inf", i)
     else:
       psnr_value = 10 * math.log10(max_value**2 / mse_value)
       psnr_list.append(psnr_value)
       logging.debug("ch#%d PSNR: %f dB", i, psnr_value)
 
-  return -1 if len(psnr_list) == 0 else sum(psnr_list) / len(psnr_list)
+  return psnr_list
 
 
-def calc_average_channel_psnr_wav(ref_filepath: str, target_filepath: str):
-  """Calculates the PSNR between two WAV files.
+def calc_per_channel_lsd_pcm(ref_signal: np.ndarray,
+                             signal: np.ndarray,
+                             sampling_rate: int):
+  """Calculates the log spectral distance using Mel bins between two signals.
+
+  Args:
+    ref_signal: The reference signal as a numpy array.
+    signal: The signal to compare as a numpy array.
+    sampling rate: The sampling rate of the signals in Hz.
+
+  Returns:
+    The per channel log spectral distance in dB.
+  """
+  eps = 1e-4
+
+  # Convert to float
+  ref_signal = ref_signal / np.iinfo(ref_signal.dtype).max
+  signal = signal / np.iinfo(signal.dtype).max
+
+  lsd_list = list()
+
+  # To support mono channel
+  num_channels = 1 if ref_signal.shape[1:] == () else ref_signal.shape[1]
+  for i in range(num_channels):
+    ref_channel = ref_signal[:, i] if num_channels > 1 else ref_signal
+    signal_channel = signal[:, i] if num_channels > 1 else signal
+
+    lsd_frames = list()
+
+    # Compute mel spectrogram
+    mel_ref = librosa.feature.melspectrogram(y=ref_channel, sr=sampling_rate)
+    mel_signal = librosa.feature.melspectrogram(y=signal_channel,
+                                                sr=sampling_rate)
+
+    log_mel_ref = 10 * np.log10(mel_ref + eps)
+    log_mel_signal = 10 * np.log10(mel_signal + eps)
+
+    diff_squared = (log_mel_ref - log_mel_signal) ** 2
+
+    # Average across mel bins, which is the 0th dimension
+    lsd_per_frame = np.sqrt(np.mean(diff_squared, axis=0))
+
+    # shape: (1, num_frames) -> (num_frames,)
+    lsd_per_frame = np.squeeze(lsd_per_frame)
+
+    lsd_value = np.mean(lsd_per_frame)
+    lsd_list.append(lsd_value)
+    logging.debug('ch#d LSD: %f dB', i, lsd_value)
+
+  return lsd_list
+
+
+def calc_score_wav(ref_filepath: str, target_filepath: str, metric: str):
+  """Calculates the score between two WAV files.
 
   Args:
     ref_filepath: Path to the reference WAV file.
     target_filepath: Path to the target WAV file to compare.
+    metric: one of 'PSNR' or 'SNR'.
 
   Returns:
-    The average PSNR in dB across all channels. Or -1 if all channels are
-    identical.
+    The score in dB, averaged over all channels.
 
   Raises:
     Exception: If the wav files have different samplerate, channels, bit-depth
@@ -99,6 +152,14 @@ def calc_average_channel_psnr_wav(ref_filepath: str, target_filepath: str):
   _, ref_data = wavfile.read(ref_filepath)
   _, target_data = wavfile.read(target_filepath)
 
-  return calc_average_channel_psnr_pcm(
-      ref_data, target_data, ref_wav.getsampwidth()
-  )
+  if metric == 'PSNR':
+    scores_list = calc_per_channel_psnr_pcm(
+          ref_data, target_data, ref_wav.getsampwidth()
+    )
+  elif metric == 'LSD':
+    scores_list = calc_per_channel_lsd_pcm(ref_data, target_data,
+                                           ref_wav.getframerate())
+  else:
+    return None
+
+  return np.mean(scores_list)

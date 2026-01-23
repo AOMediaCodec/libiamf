@@ -39,12 +39,53 @@ exclusions = [
         layout_index=1,
         reason='Extension layouts cannot be decoded.',
     ),
+    TestExclusions(
+        file_name_prefix='test_000119',
+        mix_presentation_id=42,
+        layout_index=0,
+        reason='Signal too short',
+    ),
+    TestExclusions(
+        file_name_prefix='test_000120',
+        mix_presentation_id=42,
+        layout_index=0,
+        reason='Signal too short',
+    ),
+    TestExclusions(
+        file_name_prefix='test_000122',
+        mix_presentation_id=42,
+        layout_index=0,
+        reason='Signal too short',
+    ),
+    TestExclusions(
+        file_name_prefix='test_000129',
+        mix_presentation_id=42,
+        layout_index=0,
+        reason='Signal too short',
+    ),
+    TestExclusions(
+        file_name_prefix='test_000130',
+        mix_presentation_id=42,
+        layout_index=0,
+        reason='Signal too short',
+    ),
 ]
 
 # Opus/AAC are lossy codecs, we allow a more lenient threshold for them.
-LOSSY_PSNR_THRESHOLD = 30
-LOSSLESS_PSNR_THRESHOLD = 80
-
+# Some test files use stress signals, e.g. sawtooth. Allow a more lenient
+# threshold for them.
+THRESHOLDS = {
+    # PSNR: larger is better
+    'PSNR': {
+        'lossless': {'base': 80},
+        'lossy': {'base': 30}
+    },
+    # LSD: smaller is better
+    'LSD': {
+        'lossless': {'base': 1.0},
+        'lossy': {'base': 2.5, 'stress': 10.0}
+    }
+}
 
 class ResultStatus(enum.Enum):
   SUCCESS = 1
@@ -60,7 +101,7 @@ class Result:
   mix_presentation_id: int
   sub_mix_index: int
   layout_index: int
-  psnr_score: Optional[float] = None
+  score: Optional[float] = None
   reason: Optional[str] = None
   iamfdec_command: Optional[str] = None
 
@@ -68,8 +109,8 @@ class Result:
     logging.debug(
         '%s: %s >= %s for %s',
         status.name,
-        self.psnr_score,
-        self.is_lossy,
+        self.score,
+        'lossy codec' if self.is_lossy else 'lossless codec',
         self.test_prefix,
     )
     logging.debug('')
@@ -81,11 +122,14 @@ class TestSummary:
       default_factory=lambda: defaultdict(list)
   )
 
-  def print_test_summary(self, csv_summary_file=None):
+  def print_test_summary(self,
+                         csv_summary_file: str,
+                         metric: str):
     """Prints test summary to console and optionally a CSV file.
 
     Args:
       csv_summary_file: Path to CSV file to log test results.
+      metric: Name of the metric used.
     """
     logging.info('\n-----------------SUMMARY-----------------')
     for status in ResultStatus:
@@ -102,7 +146,7 @@ class TestSummary:
             'Submix Index',
             'Layout Index',
             'Status',
-            'PSNR',
+            metric,
             'Is Lossy',
             'Reason',
             'Command',
@@ -115,7 +159,7 @@ class TestSummary:
                 item.sub_mix_index,
                 item.layout_index,
                 status.name,
-                item.psnr_score if item.psnr_score is not None else '',
+                item.score if item.score is not None else '',
                 'lossy' if item.is_lossy else 'lossless',
                 item.reason if item.reason is not None else '',
                 item.iamfdec_command
@@ -148,15 +192,35 @@ def run_decoder(args, metadata):
   return True, cmd_str
 
 
-def run_psnr_test(args, metadata):
-  """Gets PSNR score, returns None if calculation fails.
+def get_threshold(metric: str, is_lossy: bool, is_stress_signal: bool):
+  """Gets threshold value.
+
+  Args:
+    metric: Metric name.
+    is_lossy: Whether the codec used is lossy or lossless.
+    is_stress_signal: Whether the signal used is a stress signal type.
+
+  Returns:
+    The threshold value.
+  """
+  codec_type = 'lossy' if is_lossy else 'lossless'
+  threshold_options = THRESHOLDS.get(metric, {}).get(codec_type,{})
+
+  if is_stress_signal and 'stress' in threshold_options:
+    return threshold_options['stress']
+
+  return threshold_options['base']
+
+
+def compute_metrics(args, metadata):
+  """Gets output score, returns None if calculation fails.
 
   Args:
     args: Command line arguments.
     metadata: Metadata for the test vector.
 
   Returns:
-    A tuple of (ResultStatus, reason, psnr_score).
+    A tuple of (ResultStatus, reason, score).
   """
   ref_file = os.path.join(
       args.test_file_directory, metadata.golden_wav_file_name
@@ -168,25 +232,29 @@ def run_psnr_test(args, metadata):
   assert os.path.exists(test_file), f'Test file {test_file} does not exist.'
   logging.debug('ref_file: %s', ref_file)
   logging.debug('test_file: %s', test_file)
-  try:
-    raw_psnr_score = dsp_utils.calc_average_channel_psnr_wav(
-        ref_file, test_file
-    )
-  except ValueError as e:
-    print(f'Failed to calculate PSNR: {e}')
-    return ResultStatus.CRASH, 'PSNR calculation failed', None
 
-  psnr_score = 100 if raw_psnr_score == -1 else raw_psnr_score
-  # Check if this PSNR is a pass or a fail, it depends on whether the test
+  try:
+    score = dsp_utils.calc_score_wav(ref_file, test_file, args.metric)
+  except ValueError as e:
+    print(f'Failed to calculate {args.metric}: {e}')
+    return ResultStatus.CRASH, f'{args.metric} calculation failed', None
+
+  # Check if this score is a pass or a fail, it depends on whether the test
   # represents a lossy or lossless codec.
-  logging.debug('psnr score: %s', psnr_score)
-  threshold = (
-      LOSSY_PSNR_THRESHOLD if metadata.is_lossy else LOSSLESS_PSNR_THRESHOLD
-  )
-  if psnr_score >= threshold:
-    return ResultStatus.SUCCESS, None, psnr_score
+  logging.debug('%s score: %s', args.metric, score)
+  threshold = get_threshold(args.metric, metadata.is_lossy,
+                            metadata.is_stress_signal)
+
+  if args.metric == 'LSD':
+    if score <= threshold:
+      return ResultStatus.SUCCESS, None, score
+    else:
+      return ResultStatus.FAILURE, 'Score above threshold.', score
   else:
-    return ResultStatus.FAILURE, 'PSNR score below threshold.', psnr_score
+    if score >= threshold:
+      return ResultStatus.SUCCESS, None, score
+    else:
+      return ResultStatus.FAILURE, 'Score below threshold.', score
 
 
 def _is_excluded(metadata, exclusions, args):
@@ -241,7 +309,7 @@ def run_tests(args, text_proto_files) -> TestSummary:
       cleanup_after_decode = (
           generated_file_is_new and not args.preserve_output_files
       )
-      status, reason, psnr_score, cmd_str = None, None, None, None
+      status, reason, score, cmd_str = None, None, None, None
       if skip_reason := _is_excluded(metadata, exclusions, args):
         # Test was intentionally excluded.
         reason = skip_reason
@@ -249,9 +317,9 @@ def run_tests(args, text_proto_files) -> TestSummary:
       else:
         decoder_success, cmd_str = run_decoder(args, metadata)
         if decoder_success:
-          # Run the PSNR test, this could crash, or be better than or worse than
-          # the threshold PSNR.
-          status, reason, psnr_score = run_psnr_test(args, metadata)
+          # Compute the score, this could crash, or be better than or worse than
+          # the threshold score.
+          status, reason, score = compute_metrics(args, metadata)
         else:
           # Decoder crashed.
           reason = 'iamfdec crash'
@@ -264,7 +332,7 @@ def run_tests(args, text_proto_files) -> TestSummary:
           metadata.mix_presentation_id,
           metadata.sub_mix_index,
           metadata.layout_index,
-          psnr_score,
+          score,
           reason,
           iamfdec_command=cmd_str,
       )
@@ -308,6 +376,13 @@ def main():
       action='store_true',
       help='Enable testing binaural layouts.',
   )
+  parser.add_argument(
+      '-m',
+      '--metric',
+      default='PSNR',
+      choices=['PSNR', 'LSD'],
+      help='The metric to use: PSNR or LSD.',
+  )
   args = parser.parse_args()
 
   logging.basicConfig(
@@ -329,7 +404,7 @@ def main():
   text_proto_files.sort()
 
   test_summary = run_tests(args, text_proto_files)
-  test_summary.print_test_summary(args.csv_summary_file)
+  test_summary.print_test_summary(args.csv_summary_file, args.metric)
 
 
 if __name__ == '__main__':

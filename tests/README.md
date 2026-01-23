@@ -119,7 +119,7 @@ To set up a python environment using pip
 ```
 python3 -m venv venv
 source venv/bin/activate
-pip install scipy protobuf tqdm numpy
+pip install scipy protobuf tqdm numpy librosa
 ```
 
 Run the test suite.

@@ -30,10 +30,10 @@ class TestCombinationMetadata:
   layout_type_enum: mix_presentation_pb2.LayoutType = field(repr=False)
   sound_system_enum: mix_presentation_pb2.SoundSystem | None = field(repr=False)
   is_lossy: bool = field(repr=False)
+  is_stress_signal: bool = field(repr=False)
   is_binaural: bool = False
   bit_depth: int = 16
   sample_rate: int = 48000
-
 
 _SOUND_SYSTEM_TO_FLAG = {
     mix_presentation_pb2.SOUND_SYSTEM_A_0_2_0: '0',
@@ -134,6 +134,11 @@ def get_test_combination_metadata(user_metadata_proto, test_file_directory):
       codec_config_pb2.CODEC_ID_OPUS,
   ]
 
+  is_stress_signal = False
+  for audio_frame_metadata in user_metadata_proto.audio_frame_metadata:
+    if audio_frame_metadata.wav_filename.startswith('sawtooth'):
+        is_stress_signal = True
+
   result = []
   for mp_metadata in user_metadata_proto.mix_presentation_metadata:
     for sub_mix_idx, sub_mix in enumerate(mp_metadata.sub_mixes):
@@ -172,6 +177,7 @@ def get_test_combination_metadata(user_metadata_proto, test_file_directory):
             layout_type_enum=layout.loudness_layout.layout_type,
             sound_system_enum=ss_enum,
             is_lossy=is_lossy,
+            is_stress_signal=is_stress_signal,
             bit_depth=bit_depth,
             sample_rate=sample_rate,
             is_binaural=layout.loudness_layout.layout_type
