@@ -132,7 +132,7 @@ iamf_parameter_block_obu_t *iamf_parameter_block_obu_new(
   vlog_obu(ck_iamf_obu_parameter_block, obu, 0, 0);
 #endif
 
-  // iamf_parameter_block_obu_display(obu);
+  iamf_parameter_block_obu_display(obu);
 
   return obu;
 }
@@ -143,29 +143,6 @@ void iamf_parameter_block_obu_free(iamf_parameter_block_obu_t *obu) {
     array_free(obu->subblocks,
                def_default_free_ptr(iamf_parameter_subblock_free));
   free(obu);
-}
-
-uint32_t iamf_parameter_subblock_size(iamf_parameter_type_t type) {
-  switch (type) {
-    case ck_iamf_parameter_type_mix_gain:
-      return sizeof(mix_gain_parameter_subblock_t);
-    case ck_iamf_parameter_type_demixing:
-      return sizeof(demixing_info_parameter_subblock_t);
-    case ck_iamf_parameter_type_polar:
-    case ck_iamf_parameter_type_dual_polar:
-      return sizeof(polars_parameter_subblock_t);
-    case ck_iamf_parameter_type_cartesian_8:
-    case ck_iamf_parameter_type_cartesian_16:
-    case ck_iamf_parameter_type_dual_cartesian_8:
-    case ck_iamf_parameter_type_dual_cartesian_16:
-      return sizeof(cartesians_parameter_subblock_t);
-    case ck_iamf_parameter_type_recon_gain:
-      return sizeof(recon_gain_parameter_subblock_t);
-    case ck_iamf_parameter_type_momentary_loudness:
-      return sizeof(momentary_loudness_parameter_subblock_t);
-    default:
-      return 0;
-  }
 }
 
 void iamf_parameter_subblock_free(parameter_subblock_t *subblock) {
@@ -387,26 +364,32 @@ static void _obu_pb_animated_parameter_data_elevation_clip(
 }
 
 static polars_parameter_subblock_t *_obu_pb_polars_parameter_subblock_new(
-    io_context_t *ior, uint32_t duration, int count) {
+    io_context_t *ior, uint32_t duration, uint32_t count) {
   io_context_t *r = ior;
-  polars_parameter_subblock_t *data =
-      def_mallocz(polars_parameter_subblock_t, 1);
+  polars_parameter_subblock_t *data;
   bits_io_context_t bits_ioc, *bits_r;
 
+  if (count < 1 || count > def_max_audio_objects) {
+    error("Invalid polar count: %u (must be 1-%d)", count,
+          def_max_audio_objects);
+    return 0;
+  }
+
+  data = def_mallocz(polars_parameter_subblock_t, 1);
   if (!data) {
     def_err_msg_enomem("polars parameter data", def_pbo_str);
     return 0;
   }
+
   data->base.type = count == 1 ? ck_iamf_parameter_type_polar
                                : ck_iamf_parameter_type_dual_polar;
   data->base.subblock_duration = duration;
   data->num_polars = count;
   data->animation_type = ior_leb128_u32(r);
-
   bits_r = &bits_ioc;
   bits_ioc_init(bits_r, r);
 
-  for (int i = 0; i < count; ++i) {
+  for (int i = 0; i < count && i < def_max_audio_objects; ++i) {
     animated_parameter_data_read_bits(bits_r, def_azimuth_num_bits,
                                       data->animation_type,
                                       &data->encoded_polars[i].azimuth);
@@ -445,11 +428,17 @@ static polars_parameter_subblock_t *_obu_pb_polars_parameter_subblock_new(
 static cartesians_parameter_subblock_t *
 _obu_pb_cartesians_parameter_subblock_new(io_context_t *ior, uint32_t duration,
                                           iamf_parameter_type_t type,
-                                          int count) {
+                                          uint32_t count) {
   io_context_t *r = ior;
   cartesians_parameter_subblock_t *data;
   bits_io_context_t bits_ioc, *bits_r;
   uint32_t num_bits = iamf_parameter_type_get_cartesian_bit_depth(type);
+
+  if (count < 1 || count > def_max_audio_objects) {
+    error("Invalid cartesian count: %u (must be 1-%d)", count,
+          def_max_audio_objects);
+    return 0;
+  }
 
   if (!num_bits) return 0;
 
@@ -467,7 +456,7 @@ _obu_pb_cartesians_parameter_subblock_new(io_context_t *ior, uint32_t duration,
   bits_r = &bits_ioc;
   bits_ioc_init(bits_r, r);
 
-  for (int i = 0; i < count; ++i) {
+  for (int i = 0; i < count && i < def_max_audio_objects; ++i) {
     animated_parameter_data_read_bits(bits_r, num_bits, data->animation_type,
                                       &data->encoded_cartesians[i].x);
     animated_parameter_data_read_bits(bits_r, num_bits, data->animation_type,

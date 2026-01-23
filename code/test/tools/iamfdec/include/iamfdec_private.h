@@ -42,6 +42,13 @@ typedef struct Layout {
   };
 } layout_t;
 
+#define def_max_element_gain_offsets 28
+
+typedef struct {
+  uint32_t element_id;
+  float gain_offset;
+} element_gain_offset_t;
+
 typedef struct DecoderArgs {
   const char *path;
   const char *output_path;
@@ -54,6 +61,8 @@ typedef struct DecoderArgs {
   uint32_t bit_depth;
   int64_t mix_presentation_id;
   IA_Profile profile;
+  element_gain_offset_t element_gain_offsets[def_max_element_gain_offsets];
+  uint32_t element_gain_count;
 } decoder_args_t;
 
 #endif  // __IAMFDEC_PRIVATE_H__

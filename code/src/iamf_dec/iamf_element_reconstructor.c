@@ -1315,25 +1315,6 @@ int iamf_element_reconstructor_set_channel_based_target_layout(
   return IAMF_ERR_BAD_ARG;
 }
 
-iamf_loudspeaker_layout_t
-iamf_element_reconstructor_get_channel_based_reconstructed_layout(
-    iamf_element_reconstructor_t* reconstructor, int audio_element_id) {
-  if (!reconstructor) return ck_iamf_loudspeaker_layout_none;
-  base_reconstructor_t* br = def_value_wrap_optional_ptr(
-      hash_map_get(reconstructor->reconstructor_map, audio_element_id));
-  if (!br) return ck_iamf_loudspeaker_layout_none;
-  if (br->type == ck_audio_element_type_channel_based) {
-    channel_based_reconstructor_t* cbr = (channel_based_reconstructor_t*)br;
-    // Add bounds checking for target_layout_index
-    if (cbr->target_layout_index >= 0 &&
-        cbr->target_layout_index < cbr->num_groups) {
-      return cbr->group_infos[cbr->target_layout_index].layout;
-    }
-  }
-
-  return ck_iamf_loudspeaker_layout_none;
-}
-
 int iamf_element_reconstructor_get_channel_based_reconstructed_layout_index(
     iamf_element_reconstructor_t* self, int audio_element_id) {
   if (!self) return IAMF_ERR_BAD_ARG;

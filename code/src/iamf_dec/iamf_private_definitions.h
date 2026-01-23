@@ -87,6 +87,8 @@
 #define def_cartesian_8_num_bits 8
 #define def_cartesian_16_num_bits 16
 
+#define def_max_audio_objects 2
+
 #define def_max_opus_frame_size 960 * 6
 #define def_max_aac_frame_size 2048
 #define def_max_flac_frame_size 32768

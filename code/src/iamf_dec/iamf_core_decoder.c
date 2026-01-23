@@ -284,10 +284,6 @@ int iamf_core_decoder_decode(iamf_core_decoder_t *ths, uint8_t *buffer[],
   return ret;
 }
 
-int iamf_core_decoder_flush(iamf_core_decoder_t *ths) {
-  return ths->cdec->flush ? ths->cdec->flush(ths->ctx) : IAMF_OK;
-}
-
 uint32_t iamf_core_decoder_get_delay(iamf_core_decoder_t *ths) {
   if (ths) {
     if (ths->cdec && ths->cdec->info) (ths->cdec->info)(ths->ctx);

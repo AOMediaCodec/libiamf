@@ -73,7 +73,7 @@ iamf_audio_frame_obu_t *iamf_audio_frame_obu_new(io_context_t *ior,
            obu->num_samples_to_trim_at_end);
 #endif
 
-  // iamf_audio_frame_obu_display(obu);
+  iamf_audio_frame_obu_display(obu);
 
   return obu;
 }

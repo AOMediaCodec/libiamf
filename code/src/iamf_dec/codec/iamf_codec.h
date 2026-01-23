@@ -47,7 +47,6 @@ typedef struct IamfCodec {
   int (*init)(iamf_codec_context_t *ths);
   int (*decode)(iamf_codec_context_t *ths, uint8_t *buf[], uint32_t len[],
                 uint32_t count, void *pcm, const uint32_t frame_size);
-  int (*flush)(iamf_codec_context_t *ths);
   int (*info)(iamf_codec_context_t *ths);
   int (*close)(iamf_codec_context_t *ths);
 } iamf_codec_t;

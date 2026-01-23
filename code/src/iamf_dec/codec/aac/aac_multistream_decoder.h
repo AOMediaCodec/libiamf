@@ -13,7 +13,7 @@
 /**
  * @file aac_multistream_decoder.h
  * @brief AAC decoder APIs.
- * @version 0.1
+ * @version 2.0.0
  * @date Created 03/03/2023
  **/
 
@@ -49,13 +49,6 @@ aac_ms_decoder_t *aac_multistream_decoder_open(uint8_t *config, uint32_t size,
  */
 int aac_multistream_decode(aac_ms_decoder_t *st, uint8_t *buffer[],
                            uint32_t len[], void *pcm, uint32_t frame_size);
-
-/**
- * @brief     Flush the aac decoder.
- * @param     [in] st : aac decoder handle.
- * @return    Error code.
- */
-int aac_multistream_decoder_flush(aac_ms_decoder_t *st);
 
 /**
  * @brief     Close the aac decoder.

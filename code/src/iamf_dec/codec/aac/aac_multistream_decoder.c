@@ -13,7 +13,7 @@
 /**
  * @file aac_multistream_decoder.c
  * @brief AAC decoder.
- * @version 0.1
+ * @version 2.0.0
  * @date Created 03/03/2023
  **/
 
@@ -236,20 +236,6 @@ int aac_multistream_decode(aac_ms_decoder_t *st, uint8_t *buffer[],
                                          aac_copy_channel_out_short_plane);
   error("flags is 0x%x, is not implmeneted.", st->flags);
   return IAMF_ERR_UNIMPLEMENTED;
-}
-
-int aac_multistream_decoder_flush(aac_ms_decoder_t *st) {
-  AAC_DECODER_ERROR err;
-  int ret = IAMF_OK;
-  debug("aac decoder clear buffer.");
-  for (int i = 0; i < st->streams; ++i) {
-    if ((err = aacDecoder_SetParam(st->handles[i], AAC_TPDEC_CLEAR_BUFFER,
-                                   1)) != AAC_DEC_OK) {
-      warning("failed to clear buffer when flushing\n");
-      ret = IAMF_ERR_INTERNAL;
-    }
-  }
-  return ret;
 }
 
 void aac_multistream_decoder_close(aac_ms_decoder_t *st) {

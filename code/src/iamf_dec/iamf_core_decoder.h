@@ -90,13 +90,6 @@ int iamf_core_decoder_decode(iamf_core_decoder_t *ths, uint8_t *buffers[],
                              uint32_t frame_size);
 
 /**
- * @brief     Flush the iamf core decoder.
- * @param     [in] ths : the core decoder handle.
- * @return    @ref IAErrCode.
- */
-int iamf_core_decoder_flush(iamf_core_decoder_t *ths);
-
-/**
  * @brief     Get the delay of iamf decoding.
  * @return    return the decoder delay.
  */

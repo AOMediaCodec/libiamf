@@ -13,7 +13,7 @@
 /**
  * @file mp4demux.h
  * @brief MP4 and fMP4 demux.
- * @version 0.1
+ * @version 2.0.0
  * @date Created 03/03/2023
  **/
 

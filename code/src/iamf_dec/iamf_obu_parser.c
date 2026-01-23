@@ -53,7 +53,7 @@ iamf_obu_parser_t *iamf_obu_parser_create(
   }
 
   parser->obu_process = obu_process;
-  parser->state = ck_iamf_parser_state_none;
+  parser->state = ck_iamf_parser_state_idle;
   parser->user_data = user_data;
 
   // Initialize and copy extra parameters if provided
@@ -88,7 +88,7 @@ uint32_t iamf_obu_parser_parse(iamf_obu_parser_t *parser, const uint8_t *data,
     if (!obu_size) break;
 
     state = iamf_obu_parser_process_single_obu(parser, &raw_obu);
-    if (state == ck_iamf_parser_state_ahead) {
+    if (state == ck_iamf_parser_state_switch) {
       debug("parsed OBU to the next step.");
       break;
     }
@@ -104,13 +104,8 @@ uint32_t iamf_obu_parser_parse(iamf_obu_parser_t *parser, const uint8_t *data,
   return current_ptr - data;
 }
 
-iamf_profile_t iamf_obu_parser_get_profile(iamf_obu_parser_t *parser) {
-  if (!parser) return ck_iamf_profile_none;
-  return parser->profile;
-}
-
 iamf_parser_state_t iamf_obu_parser_get_state(iamf_obu_parser_t *parser) {
-  return parser ? parser->state : ck_iamf_parser_state_none;
+  return parser ? parser->state : ck_iamf_parser_state_idle;
 }
 
 // Internal function: process a single OBU

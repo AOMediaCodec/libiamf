@@ -120,10 +120,6 @@ int iamf_element_reconstructor_set_channel_based_target_layout(
     iamf_element_reconstructor_t* self, int audio_element_id,
     iamf_loudspeaker_layout_t target_layout);
 
-iamf_loudspeaker_layout_t
-iamf_element_reconstructor_get_channel_based_reconstructed_layout(
-    iamf_element_reconstructor_t* self, int audio_element_id);
-
 int iamf_element_reconstructor_get_channel_based_reconstructed_layout_index(
     iamf_element_reconstructor_t* self, int audio_element_id);
 /**

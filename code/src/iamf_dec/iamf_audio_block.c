@@ -389,18 +389,3 @@ int iamf_audio_block_partial_copy_data(iamf_audio_block_t* dst,
 
   return 0;
 }
-
-void iamf_audio_block_display(iamf_audio_block_t* block) {
-  if (!block) return;
-
-  debug("iamf_audio_block_t details:");
-  debug("  id: %u", block->id);
-  debug("  num_channels: %u", block->num_channels);
-  debug("  num_samples: %u", block->num_samples_per_channel);
-  debug("  capacity_per_channel: %u", block->capacity_per_channel);
-  debug("  skip: %u", block->skip);
-  debug("  padding: %u", block->padding);
-  debug("  second_skip: %u", block->second_skip);
-  debug("  second_padding: %u", block->second_padding);
-  debug("  data pointer: %p", (void*)block->data);
-}

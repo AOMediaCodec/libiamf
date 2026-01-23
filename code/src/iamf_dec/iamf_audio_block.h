@@ -74,6 +74,4 @@ int iamf_audio_block_trim(iamf_audio_block_t* block);
 int iamf_audio_block_gain(iamf_audio_block_t* block, float gain);
 uint32_t iamf_audio_block_available_samples(iamf_audio_block_t* block);
 
-void iamf_audio_block_display(iamf_audio_block_t* block);
-
 #endif  //__IAMF_AUDIO_BLOCK_H__

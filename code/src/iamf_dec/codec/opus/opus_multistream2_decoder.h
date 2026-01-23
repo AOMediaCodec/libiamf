@@ -51,13 +51,6 @@ int opus_multistream2_decode(Opus_Ms2_Decoder_t *st, uint8_t *buffer[],
                              uint32_t len[], void *pcm, uint32_t frame_size);
 
 /**
- * @brief     Flush an opus decoder.
- * @param     [in] st : opus decoder handle.
- * @return    Error code.
- */
-int opus_multistream2_decoder_flush(Opus_Ms2_Decoder_t *st);
-
-/**
  * @brief     Destroy an opus decoder.
  * @param     [in] st : opus decoder handle.
  */

@@ -13,7 +13,7 @@
 /**
  * @file iamf_utils.h
  * @brief Utils APIs.
- * @version 0.1
+ * @version 2.0.0
  * @date Created 03/03/2023
  **/
 
@@ -43,9 +43,6 @@ iamf_loudspeaker_layout_t iamf_audio_layer_layout_get(
     iamf_expanded_loudspeaker_layout_t expanded);
 
 int bit1_count(uint32_t value);
-
-int iamf_valid_mix_mode(int mode);
-const mix_factors_t *iamf_get_mix_factors(int mode);
 
 float iamf_q15_to_float(int16_t q);
 float iamf_gain_q78_to_db(int16_t q78);

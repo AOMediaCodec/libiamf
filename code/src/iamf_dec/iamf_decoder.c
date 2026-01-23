@@ -172,7 +172,6 @@ static float iamf_mix_presentation_get_best_loudness(
 static int iamf_decoder_priv_decode(iamf_decoder_t *self, const uint8_t *data,
                                     int32_t size, uint32_t *rsize, void *pcm) {
   iamf_decoder_context_t *ctx = &self->ctx;
-  // iamf_database_t *database = &ctx->database;
   iamf_presentation_t *pst = self->presentation;
   iamf_audio_block_t *audio_block = 0;
   iamf_audio_block_t *out = 0;
@@ -184,7 +183,7 @@ static int iamf_decoder_priv_decode(iamf_decoder_t *self, const uint8_t *data,
 
     iamf_parser_state_t state = iamf_obu_parser_get_state(self->parser);
     if (state == ck_iamf_parser_state_run) return 0;
-    if (state == ck_iamf_parser_state_ahead) {
+    if (state == ck_iamf_parser_state_switch) {
       ctx->status = ck_iamf_decoder_status_reconfigure;
       return IAMF_ERR_INVALID_STATE;
     }
@@ -582,7 +581,7 @@ static iamf_parser_state_t iamf_decoder_priv_process_descriptor_obus(
       iamf_database_descriptors_complete(database)) {
     if (obu) iamf_obu_free(obu);
     info("All descriptor OBUs are received.");
-    return ck_iamf_parser_state_ahead;
+    return ck_iamf_parser_state_switch;
   }
 
   iamf_database_add_obu(database, obu);
@@ -722,7 +721,7 @@ static iamf_parser_state_t iamf_decoder_priv_process_data_obus(
 
     case ck_iamf_obu_sequence_header: {
       info("*********** FOUND NEW MAGIC CODE **********");
-      state = ck_iamf_parser_state_ahead;
+      state = ck_iamf_parser_state_switch;
     }
 
     default: {
@@ -907,7 +906,8 @@ int IAMF_decoder_configure(IAMF_DecoderHandle handle, const uint8_t *data,
     if ((ret != IAMF_OK && ret != IAMF_ERR_BUFFER_TOO_SMALL) ||
         (ret == IAMF_ERR_BUFFER_TOO_SMALL &&
          self->ctx.status != ck_iamf_decoder_status_parse_2))
-      error("fail to configure decoder.");
+      error("fail to configure decoder with errno %d (%s).", ret,
+            iamf_error_code_string(ret));
     return ret;
   }
 
@@ -919,7 +919,9 @@ int IAMF_decoder_configure(IAMF_DecoderHandle handle, const uint8_t *data,
     ret = iamf_decoder_priv_configure(self, 0, 0, 0);
   }
 
-  if (ret != IAMF_OK) error("fail to configure decoder.");
+  if (ret != IAMF_OK)
+    error("fail to configure decoder with errno %d (%s).", ret,
+          iamf_error_code_string(ret));
 
   return ret;
 }

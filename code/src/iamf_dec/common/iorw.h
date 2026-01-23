@@ -39,19 +39,13 @@ void ioc_init(io_context_t* ctx, uint8_t* buffer, uint32_t size);
 uint32_t ioc_tell(io_context_t* ctx);
 uint32_t ioc_remain(io_context_t* ctx);
 
-uint32_t iow_write(io_context_t* ctx, const uint8_t* data, uint32_t n);
 uint32_t iow_8(io_context_t* ctx, uint32_t value);
-uint32_t iow_b16(io_context_t* ctx, uint32_t value);
-uint32_t iow_b32(io_context_t* ctx, uint32_t value);
-uint32_t iow_b64(io_context_t* ctx, uint64_t value);
-uint32_t iow_leb128(io_context_t* ctx, uint64_t value);
 
 uint32_t ior_read(io_context_t* ctx, uint8_t* data, uint32_t n);
 uint32_t ior_8(io_context_t* ctx);
 uint32_t ior_b16(io_context_t* ctx);
 uint32_t ior_b24(io_context_t* ctx);
 uint32_t ior_b32(io_context_t* ctx);
-uint64_t ior_b64(io_context_t* ctx);
 uint64_t ior_leb128(io_context_t* ctx);
 uint32_t ior_leb128_u32(io_context_t* ctx);
 uint32_t ior_expandable(io_context_t* ctx);

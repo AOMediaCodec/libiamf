@@ -26,11 +26,28 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Enumeration of IAMF OBU parser states.
+ *
+ * This enumeration defines the possible states of the IAMF OBU parser during
+ * the parsing process. The parser transitions between these states based on
+ * the processing results of individual OBUs and the callback function return
+ * values.
+ */
 typedef enum EIamfParserState {
-  ck_iamf_parser_state_none,
+  /** Parser is idle - not initialized or ready for new parsing session. */
+  ck_iamf_parser_state_idle,
+
+  /** Parser is running and actively processing OBUs. */
   ck_iamf_parser_state_run,
+
+  /** Parser has stopped processing due to error or completion. */
   ck_iamf_parser_state_stop,
-  ck_iamf_parser_state_ahead,
+
+  /** Parser detected new stream and requires calling module to handle
+   *  switching.
+   */
+  ck_iamf_parser_state_switch,
 } iamf_parser_state_t;
 
 /**
@@ -130,19 +147,22 @@ uint32_t iamf_obu_parser_parse(iamf_obu_parser_t *parser, const uint8_t *data,
                                uint32_t size);
 
 /**
- * @brief Retrieves the IAMF profile associated with the parser.
+ * @brief Retrieves the current state of the IAMF OBU parser.
  *
- * This function returns the IAMF profile that the parser is currently using.
- * The profile can be set during the parsing of specific OBUs (like the
- * IAMF Parameter Data OBU) that contain profile information. Initially,
- * the profile is set to `def_iamf_profile_default`.
+ * This function returns the current parsing state of the IAMF OBU parser
+ * instance. The state reflects the result of the most recent parsing operation
+ * and indicates the current operational status of the parser. This can be used
+ * to monitor the parsing progress, determine if the parser encountered errors,
+ * or check if more data is needed to continue processing.
+ *
+ * The parser state is updated after each call to `iamf_obu_parser_parse` and
+ * reflects the final state returned by the OBU processing callback function.
+ * The state transitions are managed by the parser based on the processing
+ * results of individual OBUs and the callback return values.
  *
  * @param parser Pointer to the IAMF OBU parser instance.
- * @return The current IAMF profile as an `iamf_profile_t`. If the parser
- *         pointer is NULL, it returns `ck_iamf_profile_none`.
+ * @return iamf_parser_state_t The current state of the parser.
  */
-iamf_profile_t iamf_obu_parser_get_profile(iamf_obu_parser_t *parser);
-
 iamf_parser_state_t iamf_obu_parser_get_state(iamf_obu_parser_t *parser);
 
 #ifdef __cplusplus

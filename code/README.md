@@ -82,7 +82,8 @@ This tool aims to decode IA bitstream and dump to wav file.
 options:
 -i[0-1]    0 : IAMF bitstream input.(default)
            1 : MP4 input.
--o[2-3]    2 : WAVE output, same path as binary.(default)
+-o[1-3]    1 : Output IAMF stream info.
+           2 : WAVE output, same path as binary.(default)
            3 [path]
              : WAVE output, user setting path.
 -r [rate]    : Audio signal sampling rate, 48000 is the default.
@@ -104,12 +105,14 @@ options:
           14 : Sound system extension 7154 (5+7+4)
            b : Binaural.
 -p [dB]      : Peak threshold in dB.
--l [LKFS]    : Normalization loudness(<0dB) in LKFS.
+-l [LKFS]    : Normalization loudness(<0) in LKFS.
 -d [bits]    : Bit depth of pcm output.
 -mp [id]     : Set mix presentation id.
 -disable_limiter
              : Disable peak limiter.
 -profile [n] : Set IAMF profile (0=SIMPLE, 1=BASE, 2=BASE_ENHANCED, 3=BASE_ADVANCED, 4=ADVANCED_1, 5=ADVANCED_2).
+-ego id1:gain1,id2:gain2,...
+             : Set element gain offsets for multiple audio elements.
 
 Example:  ./iamfdec -o2 -s9 simple_profile.iamf
           ./iamfdec -i1 -o2 -s9 simple_profile.mp4

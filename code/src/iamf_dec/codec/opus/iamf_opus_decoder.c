@@ -13,7 +13,7 @@
 /**
  * @file IAMF_opus_decoder.c
  * @brief opus codec.
- * @version 0.1
+ * @version 2.0.0
  * @date Created 03/03/2023
  **/
 
@@ -116,11 +116,6 @@ static int iamf_opus_decode(iamf_codec_context_t *ths, uint8_t *buf[],
   return ret;
 }
 
-static int iamf_opus_flush(iamf_codec_context_t *ths) {
-  iamf_opus_context_t *ctx = (iamf_opus_context_t *)ths->priv;
-  return opus_multistream2_decoder_flush(ctx->dec);
-}
-
 int iamf_opus_close(iamf_codec_context_t *ths) {
   iamf_opus_context_t *ctx = (iamf_opus_context_t *)ths->priv;
   Opus_Ms2_Decoder_t *dec = (Opus_Ms2_Decoder_t *)ctx->dec;
@@ -141,7 +136,6 @@ const iamf_codec_t iamf_opus_decoder = {
     .priv_size = sizeof(iamf_opus_context_t),
     .init = iamf_opus_init,
     .decode = iamf_opus_decode,
-    .flush = iamf_opus_flush,
     .close = iamf_opus_close,
 };
 #endif

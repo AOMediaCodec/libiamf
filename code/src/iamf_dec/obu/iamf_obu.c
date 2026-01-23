@@ -167,7 +167,7 @@ uint32_t iamf_obu_raw_split(uint8_t *data, uint32_t size, iamf_obu_raw_t *raw) {
   obu_dump(data, val, (data[0] >> 3) & 0x1f);
 #endif
 
-  // iamf_obu_raw_header_display(raw);
+  iamf_obu_raw_header_display(raw);
 
   return val;
 }

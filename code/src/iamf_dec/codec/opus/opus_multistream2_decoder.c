@@ -211,24 +211,6 @@ int opus_multistream2_decode(Opus_Ms2_Decoder_t *st, uint8_t *buffer[],
   return IAMF_ERR_UNIMPLEMENTED;
 }
 
-int opus_multistream2_decoder_flush(Opus_Ms2_Decoder_t *st) {
-  char *ptr;
-  int coupled_size, mono_size;
-  OpusDecoder *dec;
-
-  ptr = (char *)st + align(sizeof(Opus_Ms2_Decoder_t));
-  coupled_size = opus_decoder_get_size(2);
-  mono_size = opus_decoder_get_size(1);
-  debug("opus decoder reset state.");
-  for (int s = 0; s < st->streams; s++) {
-    dec = (OpusDecoder *)ptr;
-    ptr += (s < st->coupled_streams) ? align(coupled_size) : align(mono_size);
-    opus_decoder_ctl(dec, OPUS_RESET_STATE);
-  }
-
-  return IAMF_OK;
-}
-
 void opus_multistream2_decoder_destroy(Opus_Ms2_Decoder_t *st) {
   if (st->buffer) {
     free(st->buffer);

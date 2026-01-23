@@ -22,6 +22,7 @@
 
 #include "IAMF_defines.h"
 #include "carray.h"
+#include "iamf_private_definitions.h"
 #include "iamf_types.h"
 #include "iorw.h"
 #include "oar_base.h"
@@ -79,15 +80,15 @@ typedef struct PolarsParameterBase {
   parameter_base_t base;
 
   uint32_t num_polars;
-  encoded_polar_t encoded_default_polars[2];
-  polar_t default_polars[2];
+  encoded_polar_t encoded_default_polars[def_max_audio_objects];
+  polar_t default_polars[def_max_audio_objects];
 } polars_parameter_base_t;
 
 typedef struct CartesiansParameterBase {
   parameter_base_t base;
 
   uint32_t num_cartesians;
-  encoded_cartesian_t encoded_default_cartesians[2];
+  encoded_cartesian_t encoded_default_cartesians[def_max_audio_objects];
 
   /**
    * @brief Following the Cartesian coordinates axes for Objects in
@@ -99,7 +100,7 @@ typedef struct CartesiansParameterBase {
    * Y: front to back, with positive values to the front.
    * Z: top to bottom, with positive values to the top.
    */
-  cartesian_t default_cartesians[2];
+  cartesian_t default_cartesians[def_max_audio_objects];
 } cartesians_parameter_base_t;
 
 typedef struct MomentaryLoudnessParameterBase {

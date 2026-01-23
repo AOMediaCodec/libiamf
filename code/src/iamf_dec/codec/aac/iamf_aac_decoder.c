@@ -13,7 +13,7 @@
 /**
  * @file IAMF_aac_decoder.c
  * @brief aac codec.
- * @version 0.1
+ * @version 2.0.0
  * @date Created 03/03/2023
  **/
 
@@ -121,11 +121,6 @@ static int iamf_aac_decode(iamf_codec_context_t *ths, uint8_t *buffer[],
   return ret;
 }
 
-static int iamf_aac_flush(iamf_codec_context_t *ths) {
-  iamf_aac_context_t *ctx = (iamf_aac_context_t *)ths->priv;
-  return aac_multistream_decoder_flush(ctx->dec);
-}
-
 static int iamf_aac_info(iamf_codec_context_t *ths) {
   iamf_aac_context_t *ctx = (iamf_aac_context_t *)ths->priv;
   aac_ms_decoder_t *dec = (aac_ms_decoder_t *)ctx->dec;
@@ -153,7 +148,6 @@ const iamf_codec_t iamf_aac_decoder = {
     .priv_size = sizeof(iamf_aac_context_t),
     .init = iamf_aac_init,
     .decode = iamf_aac_decode,
-    .flush = iamf_aac_flush,
     .info = iamf_aac_info,
     .close = iamf_aac_close,
 };

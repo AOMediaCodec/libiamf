@@ -13,7 +13,7 @@
 /**
  * @file iorw.c
  * @brief iorw APIs.
- * @version 0.1
+ * @version 2.0.0
  * @date Created 19/02/2025
  **/
 
@@ -37,54 +37,10 @@ static inline int ioc_precheck(io_context_t* ctx, uint32_t n) {
   return ctx->idx + n <= ctx->size;
 }
 
-uint32_t iow_write(io_context_t* ctx, const uint8_t* data, uint32_t n) {
-  if (!ioc_precheck(ctx, n)) return 0;
-  memcpy(&ctx->buffer[ctx->idx], data, n);
-  ctx->idx += n;
-  return n;
-}
-
 uint32_t iow_8(io_context_t* ctx, uint32_t value) {
   if (!ioc_precheck(ctx, 1)) return 0;
   ctx->buffer[ctx->idx++] = (uint8_t)(value & 0xff);
   return 1;
-}
-
-uint32_t iow_b16(io_context_t* ctx, uint32_t value) {
-  if (!ioc_precheck(ctx, 2)) return 0;
-  iow_8(ctx, value >> 8);
-  iow_8(ctx, value);
-  return 2;
-}
-
-uint32_t iow_b32(io_context_t* ctx, uint32_t value) {
-  if (!ioc_precheck(ctx, 4)) return 0;
-  iow_b16(ctx, value >> 16);
-  iow_b16(ctx, value);
-  return 4;
-}
-
-uint32_t iow_b64(io_context_t* ctx, uint64_t value) {
-  if (!ioc_precheck(ctx, 8)) return 0;
-  iow_b32(ctx, (uint32_t)(value >> 32));
-  iow_b32(ctx, (uint32_t)(value & 0xffffffffL));
-  return 8;
-}
-
-uint32_t iow_leb128(io_context_t* ctx, uint64_t value) {
-  int n = 0;
-  uint8_t buffer[8];  // max leb128 is 8 bytes long
-
-  do {
-    uint8_t byte = value & 0x7F;
-    value >>= 7;
-    if (value != 0) byte |= 0x80;
-    buffer[n++] = byte;
-    if (n == 8) break;
-  } while (value != 0);
-
-  if (value > 0) return 0;  // overflow
-  return iow_write(ctx, buffer, n);
 }
 
 uint32_t ior_read(io_context_t* ctx, uint8_t* data, uint32_t n) {
@@ -113,12 +69,6 @@ uint32_t ior_b24(io_context_t* ctx) {
 uint32_t ior_b32(io_context_t* ctx) {
   uint32_t val = ior_b16(ctx) << 16;
   val |= ior_b16(ctx);
-  return val;
-}
-
-uint64_t ior_b64(io_context_t* ctx) {
-  uint64_t val = (uint64_t)ior_b32(ctx) << 32;
-  val |= (uint64_t)ior_b32(ctx);
   return val;
 }
 

@@ -13,7 +13,7 @@
 /**
  * @file IAMF_utils.c
  * @brief Utils.
- * @version 0.1
+ * @version 2.0.0
  * @date Created 03/03/2023
  **/
 
@@ -68,19 +68,6 @@ int bit1_count(uint32_t value) {
     value &= (value - 1);
   }
   return n;
-}
-
-int iamf_valid_mix_mode(int mode) { return mode >= 0 && mode != 3 && mode < 7; }
-
-const mix_factors_t mix_factors_mat[] = {
-    {1.0, 1.0, 0.707, 0.707, -1},   {0.707, 0.707, 0.707, 0.707, -1},
-    {1.0, 0.866, 0.866, 0.866, -1}, {0, 0, 0, 0, 0},
-    {1.0, 1.0, 0.707, 0.707, 1},    {0.707, 0.707, 0.707, 0.707, 1},
-    {1.0, 0.866, 0.866, 0.866, 1},  {0, 0, 0, 0, 0}};
-
-const mix_factors_t *iamf_get_mix_factors(int mode) {
-  if (iamf_valid_mix_mode(mode)) return &mix_factors_mat[mode];
-  return 0;
 }
 
 static float q16_1xy_float(int16_t q, int frac) {

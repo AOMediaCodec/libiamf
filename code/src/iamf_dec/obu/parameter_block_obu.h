@@ -24,6 +24,7 @@
 #include "carray.h"
 #include "cvector.h"
 #include "iamf_obu.h"
+#include "iamf_private_definitions.h"
 #include "parameter_base.h"
 
 /**
@@ -90,8 +91,8 @@ typedef struct PolarsParameterSubblock {
   iamf_animation_type_t animation_type;
   struct {
     apd_u32_t azimuth, elevation, distance;
-  } encoded_polars[2];
-  animated_polar_t polars[2];
+  } encoded_polars[def_max_audio_objects];
+  animated_polar_t polars[def_max_audio_objects];
 } polars_parameter_subblock_t;
 
 typedef struct CartesiansParameterSubblock {
@@ -102,8 +103,8 @@ typedef struct CartesiansParameterSubblock {
 
   struct {
     apd_u32_t x, y, z;
-  } encoded_cartesians[2];
-  animated_cartesian_t cartesians[2];
+  } encoded_cartesians[def_max_audio_objects];
+  animated_cartesian_t cartesians[def_max_audio_objects];
 } cartesians_parameter_subblock_t;
 
 typedef struct MomentaryLoudnessParameterSubblock {
@@ -114,7 +115,6 @@ typedef struct MomentaryLoudnessParameterSubblock {
 iamf_parameter_block_obu_t *iamf_parameter_block_obu_new(
     io_context_t *ior, iamf_pbo_extra_interfaces_t *interfaces);
 void iamf_parameter_block_obu_free(iamf_parameter_block_obu_t *obu);
-uint32_t iamf_parameter_subblock_size(iamf_parameter_type_t type);
 void iamf_parameter_subblock_free(parameter_subblock_t *subblock);
 void iamf_parameter_block_obu_display(iamf_parameter_block_obu_t *obu);
 
