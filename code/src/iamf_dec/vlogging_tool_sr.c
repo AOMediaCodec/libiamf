@@ -1028,6 +1028,9 @@ static void write_mix_presentation_log(uint64_t idx, void* obu, char* log) {
           if (element_config->rendering_config.flags &
               def_rendering_config_flag_element_gain_offset) {
             log += write_yaml_form(log, 4, "element_gain_offset_config:");
+            log += write_yaml_form(
+                log, 4, "- element_gain_offset_type: %u",
+                element_config->rendering_config.element_gain_offset_type);
             if (element_config->rendering_config.element_gain_offset_type ==
                 ck_element_gain_offset_type_value) {
               log += write_yaml_form(log, 5, "value_type:");
@@ -1211,6 +1214,12 @@ static void write_mix_presentation_log(uint64_t idx, void* obu, char* log) {
       log += write_yaml_form(log, 3, "tag_value: \"%s\"", tag->value);
     }
   }
+
+  log += write_yaml_form(log, 1, "optional_fields:");
+  log += write_yaml_form(log, 2, "preferred_loudspeaker_renderer: %u",
+                         mix_presentation->preferred_loudspeaker_renderer);
+  log += write_yaml_form(log, 2, "preferred_binaural_renderer: %u",
+                         mix_presentation->preferred_binaural_renderer);
 
   write_postfix(LOG_OBU, log);
 }
@@ -1420,28 +1429,62 @@ static void write_temporal_delimiter_block_log(uint64_t idx, void* obu,
   write_postfix(LOG_OBU, log);
 }
 
-#ifdef SYNC_OBU
-static void write_sync_log(uint64_t idx, void* obu, char* log) {
-  IAMF_Sync* sc_obu = (IAMF_Sync*)obu;
+static void write_metadata_log(uint64_t idx, void* obu, char* log) {
+  // Input validation
+  if (!obu) {
+    log += write_prefix(LOG_OBU, log);
+    log += write_yaml_form(log, 0, "MetadataOBU_%u:", idx);
+    log += write_yaml_form(log, 0, "- error: \"NULL OBU pointer\"");
+    write_postfix(LOG_OBU, log);
+    return;
+  }
+  if (!log) return;
+
+  iamf_metadata_obu_t* metadata = (iamf_metadata_obu_t*)obu;
 
   log += write_prefix(LOG_OBU, log);
-  log += write_yaml_form(log, 0, "SyncOBU_%u:", idx);
-  log += write_yaml_form(log, 0, "- global_offset: %u", sc_obu->global_offset);
-  log += write_yaml_form(log, 1, "num_obu_ids: %u", sc_obu->nb_obu_ids);
+  log += write_yaml_form(log, 0, "MetadataObuOBU_%u:", idx);
+  log +=
+      write_yaml_form(log, 0, "- metadata type: %u", metadata->metadata_type);
 
-  log += write_yaml_form(log, 1, "sync_array:");
-  for (uint64_t i = 0; i < sc_obu->nb_obu_ids; ++i) {
-    log += write_yaml_form(log, 1, "- obu_id: %u", sc_obu->objs[i].obu_id);
-    log += write_yaml_form(log, 2, "obu_data_type: %u",
-                           sc_obu->objs[i].obu_data_type);
-    log += write_yaml_form(log, 2, "reinitialize_decoder: %u",
-                           sc_obu->objs[i].reinitialize_decoder);
-    log += write_yaml_form(log, 2, "relative_offset: %d",
-                           sc_obu->objs[i].relative_offset);
+  switch (metadata->metadata_type) {
+    case ck_iamf_metadata_type_itut_t35: {
+      metadata_itut_t35_t* itu_t35_metadata = (metadata_itut_t35_t*)metadata;
+      log += write_yaml_form(log, 1, "metadata_itu_t_t35:");
+      log += write_yaml_form(log, 2, "itu_t_t35_country_code: 0x%02X",
+                             itu_t35_metadata->itu_t_t35_country_code);
+      if (itu_t35_metadata->itu_t_t35_country_code == 0xFF) {
+        log += write_yaml_form(
+            log, 2, "itu_t_t35_country_code_extension_byte: %u",
+            itu_t35_metadata->itu_t_t35_country_code_extension_byte);
+      }
+      break;
+    }
+    case ck_iamf_metadata_type_iamf_tags: {
+      metadata_iamf_tags* tags_metadata = (metadata_iamf_tags*)metadata;
+      log += write_yaml_form(log, 1, "metadata_iamf_tags:");
+      if (tags_metadata->tags) {
+        log += write_yaml_form(log, 2, "tags:");
+        int32_t tag_count = array_size(tags_metadata->tags);
+        for (int32_t i = 0; i < tag_count; ++i) {
+          value_wrap_t* v = array_at(tags_metadata->tags, i);
+          iamf_tag_t* tag = (iamf_tag_t*)v->ptr;
+          if (tag) {
+            log += write_yaml_form(log, 2, "- name: %s", tag->name);
+            log += write_yaml_form(log, 3, "value: %s", tag->value);
+          }
+        }
+      }
+      break;
+    }
+    default:
+      log += write_yaml_form(log, 1, "error: \"Unsupported metadata type: %u\"",
+                             metadata->metadata_type);
+      break;
   }
+
   write_postfix(LOG_OBU, log);
 }
-#endif
 
 /**
  * @brief Main OBU logging function that dispatches to specific OBU type
@@ -1503,11 +1546,9 @@ int vlog_obu(uint32_t obu_type, void* obu,
       write_temporal_delimiter_block_log(obu_count++, obu, log);
       break;
 
-#ifdef SYNC_OBU
-    case ck_iamf_obu_sync:
-      write_sync_log(obu_count++, obu, log);
+    case ck_iamf_obu_metadata:
+      write_metadata_log(obu_count++, obu, log);
       break;
-#endif
 
     case ck_iamf_obu_sequence_header:
       write_sequence_header_log(obu_count++, obu, log);

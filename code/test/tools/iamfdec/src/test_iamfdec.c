@@ -53,15 +53,22 @@ typedef struct Decoder {
 
 static int parse_element_gain_offsets(const char *ego_str,
                                       decoder_args_t *das) {
+#if defined(_WIN32)
+  char *str_copy = _strdup(ego_str);
+#else
   char *str_copy = strdup(ego_str);
-  char *token, *saveptr;
-  char *colon_pos;
+#endif
+  char *token = NULL, *saveptr = NULL;
+  char *colon_pos = NULL;
 
   if (!str_copy || !das) return -1;
 
   das->element_gain_count = 0;
-
+#if defined(_WIN32)
+  token = strtok_s(str_copy, ",", &saveptr);
+#else
   token = strtok_r(str_copy, ",", &saveptr);
+#endif
   while (token != NULL &&
          das->element_gain_count < def_max_element_gain_offsets) {
     colon_pos = strchr(token, ':');
@@ -85,8 +92,11 @@ static int parse_element_gain_offsets(const char *ego_str,
     fprintf(stdout, "Element gain offset: id=%u, gain=%.1f dB\n",
             das->element_gain_offsets[das->element_gain_count - 1].element_id,
             das->element_gain_offsets[das->element_gain_count - 1].gain_offset);
-
+#if defined(_WIN32)
+    token = strtok_s(NULL, ",", &saveptr);
+#else
     token = strtok_r(NULL, ",", &saveptr);
+#endif
   }
 
   free(str_copy);
@@ -201,7 +211,7 @@ static void print_usage(char *argv[]) {
           "3=BASE_ADVANCED, 4=ADVANCED_1, 5=ADVANCED_2).\n");
   fprintf(stderr,
           "-ego id1:gain1,id2:gain2,...\n             : Set element gain "
-          "offsets for multiple audio elements.\n");
+          "offsets in dB for multiple audio elements.\n");
 }
 
 static uint32_t sound_system_layout_check(uint32_t ss) {
