@@ -27,6 +27,7 @@
 #endif
 
 #define def_flag_disable_limiter 0x4
+#define def_flag_enable_head_tracking 0x8
 
 
 #define def_default_sampling_rate 48000
@@ -63,6 +64,10 @@ typedef struct DecoderArgs {
   IA_Profile profile;
   element_gain_offset_t element_gain_offsets[def_max_element_gain_offsets];
   uint32_t element_gain_count;
+  float head_rotation_w;
+  float head_rotation_x;
+  float head_rotation_y;
+  float head_rotation_z;
 } decoder_args_t;
 
 #endif  // __IAMFDEC_PRIVATE_H__

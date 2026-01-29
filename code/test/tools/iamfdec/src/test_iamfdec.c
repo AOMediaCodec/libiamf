@@ -212,6 +212,8 @@ static void print_usage(char *argv[]) {
   fprintf(stderr,
           "-ego id1:gain1,id2:gain2,...\n             : Set element gain "
           "offsets in dB for multiple audio elements.\n");
+  fprintf(stderr, "-ht          : Enable head tracking.\n");
+  fprintf(stderr, "-hr w,x,y,z  : Set head rotation quaternion.\n");
 }
 
 static uint32_t sound_system_layout_check(uint32_t ss) {
@@ -328,6 +330,22 @@ static int decoder_init(decoder_t *decoder, decoder_args_t *das) {
     IAMF_decoder_output_layout_set_binaural(decoder->dec);
     decoder->channels = IAMF_layout_binaural_channels_count();
     fprintf(stdout, "Binaural has %d channels\n", decoder->channels);
+
+    // Apply head tracking settings for binaural output
+    if (das->flags & def_flag_enable_head_tracking) {
+      IAMF_decoder_enable_head_tracking(decoder->dec, 1);
+      fprintf(stdout, "Head tracking enabled for binaural output\n");
+
+      // Set head rotation if provided (only effective when head tracking is
+      // enabled)
+      if (das->head_rotation_w != 0.0f || das->head_rotation_x != 0.0f ||
+          das->head_rotation_y != 0.0f || das->head_rotation_z != 0.0f) {
+        IAMF_decoder_set_head_rotation(
+            decoder->dec, das->head_rotation_w, das->head_rotation_x,
+            das->head_rotation_y, das->head_rotation_z);
+        fprintf(stdout, "Head rotation set for binaural output\n");
+      }
+    }
   }
 
   decoder->f = fopen(das->path, "rb");
@@ -965,9 +983,12 @@ int main(int argc, char *argv[]) {
         vlog_file = argv[++args];
         fprintf(stdout, "Verification log file : %s\n", vlog_file);
 #endif
-      } else if (argv[args][1] == 'h') {
+      } else if (!strcmp(argv[args], "-h")) {
         print_usage(argv);
         return 0;
+      } else if (!strcmp(argv[args], "-ht")) {
+        das.flags |= def_flag_enable_head_tracking;
+        fprintf(stdout, "Head tracking enabled\n");
       } else if (!strcmp(argv[args], "-r")) {
         das.rate = strtoul(argv[++args], NULL, 10);
         fprintf(stdout, "sampling rate : %u\n", das.rate);
@@ -980,6 +1001,14 @@ int main(int argc, char *argv[]) {
         fprintf(stdout, "Disable peak limiter\n");
       } else if (!strcmp(argv[args], "-ego")) {
         parse_element_gain_offsets(argv[++args], &das);
+      } else if (!strcmp(argv[args], "-hr")) {
+        char *rotation_str = argv[++args];
+        sscanf(rotation_str, "%f,%f,%f,%f", &das.head_rotation_w,
+               &das.head_rotation_x, &das.head_rotation_y,
+               &das.head_rotation_z);
+        fprintf(stdout, "Head rotation: w=%f, x=%f, y=%f, z=%f\n",
+                das.head_rotation_w, das.head_rotation_x, das.head_rotation_y,
+                das.head_rotation_z);
       } else if (!strcmp(argv[args], "-profile")) {
         int profile_val = atoi(argv[++args]);
         if (profile_val > IA_PROFILE_NONE &&

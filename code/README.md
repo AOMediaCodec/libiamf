@@ -113,6 +113,8 @@ options:
 -profile [n] : Set IAMF profile (0=SIMPLE, 1=BASE, 2=BASE_ENHANCED, 3=BASE_ADVANCED, 4=ADVANCED_1, 5=ADVANCED_2).
 -ego id1:gain1,id2:gain2,...
              : Set element gain offsets in dB for multiple audio elements.
+-ht          : Enable head tracking.
+-hr w,x,y,z  : Set head rotation quaternion.
 
 Example:  ./iamfdec -o2 -s9 simple_profile.iamf
           ./iamfdec -i1 -o2 -s9 simple_profile.mp4
