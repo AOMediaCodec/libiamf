@@ -235,23 +235,6 @@ static int mov_read_ftyp(mp4r_t *mp4r, int size) {
   return size;
 }
 
-enum { SECSINDAY = 24 * 60 * 60 };
-
-#if 0
-static char *mp4time(time_t t) {
-  int y;
-
-  // subtract some seconds from the start of 1904 to the start of 1970
-  for (y = 1904; y < 1970; y++) {
-    t -= 365 * SECSINDAY;
-    if (!(y & 3)) {
-      t -= SECSINDAY;
-    }
-  }
-  return ctime(&t);
-}
-#endif
-
 static int mov_read_mvhd(mp4r_t *mp4r, int size) {
 #if SUPPORT_VERIFIER
   char *atom_d = (char *)malloc(size);
@@ -1591,27 +1574,6 @@ int mp4demux_seek(mp4r_t *mp4r, int trakn, int framenum) {
   return ERR_OK;
 }
 
-#if 0
-void mp4demux_info(mp4r_t *mp4r, int trakn, int print) {
-  audio_rtr_t *atr = mp4r->a_trak;
-  fprintf(stderr, "Modification Time:\t\t%s\n", mp4time(mp4r->mtime));
-  if (trakn < mp4r->num_a_trak) {
-    int s = (trakn < 0) ? 0 : trakn;
-    int e = (trakn < 0) ? mp4r->num_a_trak - 1 : trakn;
-    for (int i = s; i <= e; i++) {
-      if (print) {
-        fprintf(stderr, "Audio track#%d -------------\n", i);
-        fprintf(stderr, "Samplerate:\t\t%u\n", atr[i].samplerate);
-        fprintf(stderr, "Total samples:\t\t%d\n", atr[i].samples);
-        fprintf(stderr, "Total channels:\t\t%d\n", atr[i].channels);
-        fprintf(stderr, "Bits per sample:\t%d\n", atr[i].bits);
-        fprintf(stderr, "Frames:\t\t\t%d\n", atr[i].frame.ents);
-      }
-    }
-  }
-}
-#endif
-
 #define FREE_FUN(x, f, c) \
   if (x) {                \
     f(x, c);              \
@@ -1723,13 +1685,10 @@ mp4r_t *mp4demux_open(const char *name, FILE *logger) {
 
   //////////////////////////
 
-  // mp4demux_info(mp4r, -1, 1);
-
   return mp4r;
 
 err:
-  if (mp4r != NULL) {
-    mp4demux_close(mp4r);
-  }
+  if (mp4r) mp4demux_close(mp4r);
+
   return NULL;
 }

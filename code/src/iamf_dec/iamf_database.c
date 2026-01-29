@@ -146,7 +146,8 @@ static int _iadb_parameter_block_manager_add_obu(
             obu->base->parameter_id);
     } else {
       int idx = deque_length(block->subblocks);
-      if (block->elapsed < 0 || block->elapsed > block->duration) {
+      if (block->reset_start_time || block->elapsed < 0 ||
+          block->elapsed > block->duration) {
         if (block->base->type == ck_iamf_parameter_type_mix_gain) {
           mix_gain_parameter_block_t *pblock =
               def_mix_gain_parameter_block_ptr(block);
@@ -187,6 +188,7 @@ static int _iadb_parameter_block_manager_add_obu(
                 pblock->end_cartesians[i].z, block->base->parameter_id, i);
           }
         }
+        block->reset_start_time = 0;
       }
 
       for (int i = 0; i < n; ++i) {
@@ -400,7 +402,10 @@ static int _iadb_parameter_block_manager_time_elapse(
           block->duration = 0;
         }
       }
+    } else {
+      block->reset_start_time = 1;
     }
+
     debug("E: pid %u, duration %u, elapsed %d", block->base->parameter_id,
           block->duration, block->elapsed,
           block->elapsed < 0 || block->elapsed > block->duration

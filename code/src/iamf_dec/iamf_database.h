@@ -74,6 +74,7 @@ typedef struct DBParameterBlock {
   // Default start of first block is 0, this variable records the start position
   // of second block, If 0, it means there is no second block.
   int next_block_index;
+  int reset_start_time;
 } parameter_block_t;
 
 typedef struct DBMixGainParameterBlock {

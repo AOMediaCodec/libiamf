@@ -536,12 +536,15 @@ parameter_subblock_t *_obu_pb_subblock_new(
       break;
     case ck_iamf_parameter_type_cartesian_8:
     case ck_iamf_parameter_type_cartesian_16:
+      data =
+          def_parameter_subblock_ptr(_obu_pb_cartesians_parameter_subblock_new(
+              r, duration, base->type, 1));
+      break;
     case ck_iamf_parameter_type_dual_cartesian_8:
     case ck_iamf_parameter_type_dual_cartesian_16:
       data =
           def_parameter_subblock_ptr(_obu_pb_cartesians_parameter_subblock_new(
-              r, duration, base->type,
-              iamf_parameter_type_get_cartesian_bit_depth(base->type) / 8));
+              r, duration, base->type, 2));
       break;
     case ck_iamf_parameter_type_momentary_loudness:
       data = def_parameter_subblock_ptr(
