@@ -358,13 +358,13 @@ static int _obu_pb_polars_init(polars_parameter_base_t *pos_param,
          pos_param->encoded_default_polars[i].elevation,
          pos_param->encoded_default_polars[i].distance);
 
-    pos_param->default_polars[i].azimuth = def_azimuth_clip3(iamf_u32_to_i16(
+    pos_param->default_polars[i].azimuth = def_azimuth_clip(iamf_u32_to_i16(
         pos_param->encoded_default_polars[i].azimuth, def_azimuth_num_bits));
-    pos_param->default_polars[i].elevation = def_elevation_clip3(
+    pos_param->default_polars[i].elevation = def_elevation_clip(
         iamf_u32_to_i16(pos_param->encoded_default_polars[i].elevation,
                         def_elevation_num_bits));
-    pos_param->default_polars[i].distance = iamf_u32_to_f32(
-        pos_param->encoded_default_polars[i].distance, def_distance_num_bits);
+    pos_param->default_polars[i].distance = def_distance_clip(iamf_u32_to_f32(
+        pos_param->encoded_default_polars[i].distance, def_distance_num_bits));
 
     info("Position(%d) azimuth(%f), elevation(%f), distance(%f)", i,
          pos_param->default_polars[i].azimuth,
@@ -420,15 +420,15 @@ static int _obu_pb_cartesians_init(cartesians_parameter_base_t *cart_param,
     cart_param->encoded_default_cartesians[i].z =
         bits_ior_le32(bits_r, num_bits);
 
-    cart_param->default_cartesians[i].x = iamf_i16_to_f32(
+    cart_param->default_cartesians[i].x = def_clip_normalized(iamf_i16_to_f32(
         iamf_u32_to_i16(cart_param->encoded_default_cartesians[i].x, num_bits),
-        num_bits);
-    cart_param->default_cartesians[i].y = iamf_i16_to_f32(
+        num_bits));
+    cart_param->default_cartesians[i].y = def_clip_normalized(iamf_i16_to_f32(
         iamf_u32_to_i16(cart_param->encoded_default_cartesians[i].y, num_bits),
-        num_bits);
-    cart_param->default_cartesians[i].z = iamf_i16_to_f32(
+        num_bits));
+    cart_param->default_cartesians[i].z = def_clip_normalized(iamf_i16_to_f32(
         iamf_u32_to_i16(cart_param->encoded_default_cartesians[i].z, num_bits),
-        num_bits);
+        num_bits));
 
     info("Cartesian(%d) x(%f), y(%f), z(%f)", i,
          cart_param->default_cartesians[i].x,

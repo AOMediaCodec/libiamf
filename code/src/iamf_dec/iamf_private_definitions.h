@@ -94,8 +94,10 @@
 #define def_max_flac_frame_size 32768
 
 #define def_clip3(min, max, val) (val < min ? min : val > max ? max : val)
-#define def_azimuth_clip3(val) def_clip3(-180, 180, val)
-#define def_elevation_clip3(val) def_clip3(-90, 90, val)
+#define def_azimuth_clip(val) def_clip3(-180, 180, val)
+#define def_elevation_clip(val) def_clip3(-90, 90, val)
+#define def_distance_clip(val) def_clip3(0.0f, 1.0f, val)
+#define def_clip_normalized(val) def_clip3(-1.0f, 1.0f, val)
 
 #define def_ptr(type, a) ((type##_t *)(a))
 #define def_cast(type, a) ((type)(a))

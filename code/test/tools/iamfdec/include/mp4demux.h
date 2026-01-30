@@ -168,7 +168,6 @@ enum { ERR_OK = 0, ERR_FAIL = -1, ERR_UNSUPPORTED = -2 };
 #endif
 
 mp4r_t *mp4demux_open(const char *name, FILE *logger);
-int mp4demux_getframenum(mp4r_t *mp4r, int trak, uint32_t offs);
 int mp4demux_seek(mp4r_t *mp4r, int trak, int framenum);
 int mp4demux_audio(mp4r_t *mp4r, int trak, int *delta);
 int mp4demux_parse(mp4r_t *mp4r, int trak);

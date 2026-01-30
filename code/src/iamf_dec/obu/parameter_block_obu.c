@@ -34,6 +34,13 @@
 #define def_iamf_u32_to_i16_to_f32(v, bits) \
   iamf_i16_to_f32(iamf_u32_to_i16((v), (bits)), (bits))
 
+#define def_iamf_animated_data_clip(data, _clip) \
+  do {                                           \
+    (data)->start = _clip((data)->start);        \
+    (data)->end = _clip((data)->end);            \
+    (data)->control = _clip((data)->control);    \
+  } while (0)
+
 static parameter_subblock_t *_obu_pb_subblock_new(
     io_context_t *, parameter_base_t *, uint32_t,
     iamf_pbo_extra_interfaces_t *);
@@ -349,20 +356,6 @@ _obu_pb_recon_gain_info_parameter_subblock_new(
   return data;
 }
 
-static void _obu_pb_animated_parameter_data_azimuth_clip(
-    animated_data_float32_t *azimuth) {
-  def_azimuth_clip3(azimuth->start);
-  def_azimuth_clip3(azimuth->end);
-  def_azimuth_clip3(azimuth->control);
-}
-
-static void _obu_pb_animated_parameter_data_elevation_clip(
-    animated_data_float32_t *elevation) {
-  def_elevation_clip3(elevation->start);
-  def_elevation_clip3(elevation->end);
-  def_elevation_clip3(elevation->control);
-}
-
 static polars_parameter_subblock_t *_obu_pb_polars_parameter_subblock_new(
     io_context_t *ior, uint32_t duration, uint32_t count) {
   io_context_t *r = ior;
@@ -411,8 +404,9 @@ static polars_parameter_subblock_t *_obu_pb_polars_parameter_subblock_new(
         &data->polars[i].distance, &data->encoded_polars[i].distance,
         def_distance_num_bits, iamf_u32_to_f32);
 
-    _obu_pb_animated_parameter_data_azimuth_clip(&data->polars[i].azimuth);
-    _obu_pb_animated_parameter_data_elevation_clip(&data->polars[i].elevation);
+    def_iamf_animated_data_clip(&data->polars[i].azimuth, def_azimuth_clip);
+    def_iamf_animated_data_clip(&data->polars[i].elevation, def_elevation_clip);
+    def_iamf_animated_data_clip(&data->polars[i].distance, def_distance_clip);
   }
 
   if (data->animation_type != ck_iamf_animation_type_step &&
@@ -474,6 +468,10 @@ _obu_pb_cartesians_parameter_subblock_new(io_context_t *ior, uint32_t duration,
     def_animated_parameter_data_convert_bits_function(
         &data->cartesians[i].z, &data->encoded_cartesians[i].z, num_bits,
         def_iamf_u32_to_i16_to_f32);
+
+    def_iamf_animated_data_clip(&data->cartesians[i].x, def_clip_normalized);
+    def_iamf_animated_data_clip(&data->cartesians[i].y, def_clip_normalized);
+    def_iamf_animated_data_clip(&data->cartesians[i].z, def_clip_normalized);
   }
 
   if (data->animation_type != ck_iamf_animation_type_step &&
