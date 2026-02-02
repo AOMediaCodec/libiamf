@@ -115,36 +115,42 @@ iamf_mix_presentation_obu_t *iamf_mix_presentation_obu_new(
     def_value_wrap_ptr(array_at(obu->sub_mixes, i)) = sub;
   }
 
-  val = ior_8(r);
-  info("Number of mix presentation tags(%u):", val);
-  if (val) {
-    obu->mix_presentation_tags = array_new(val);
-    if (!obu->mix_presentation_tags) {
-      def_err_msg_enomem("tags", def_mp_str);
-      iamf_mix_presentation_obu_free(obu);
-      return 0;
-    }
+  val = ioc_remain(r);
 
-    for (uint32_t i = 0; i < val; ++i) {
-      value_wrap_t *v = 0;
-      iamf_tag_t *tag = iamf_tag_new(r);
-      if (!tag) {
+  if (val) {
+    val = ior_8(r);
+    info("Number of mix presentation tags(%u):", val);
+    if (val) {
+      obu->mix_presentation_tags = array_new(val);
+      if (!obu->mix_presentation_tags) {
+        def_err_msg_enomem("tags", def_mp_str);
         iamf_mix_presentation_obu_free(obu);
         return 0;
       }
-      info("\tTag(%u): (%s:%s)", i, tag->name, tag->value);
-      v = array_at(obu->mix_presentation_tags, i);
-      v->ptr = tag;
-    }
-  }
 
-  if (header && header->optional_fields_flag) {
-    uint32_t size = ior_leb128_u32(r);
-    obu->preferred_loudspeaker_renderer = ior_8(r);
-    obu->preferred_binaural_renderer = ior_8(r);
-    ior_skip(r, size - 2);
-    info("Preferred loudspeaker renderer(%u), preferred binaural renderer(%u)",
-         obu->preferred_loudspeaker_renderer, obu->preferred_binaural_renderer);
+      for (uint32_t i = 0; i < val; ++i) {
+        value_wrap_t *v = 0;
+        iamf_tag_t *tag = iamf_tag_new(r);
+        if (!tag) {
+          iamf_mix_presentation_obu_free(obu);
+          return 0;
+        }
+        info("\tTag(%u): (%s:%s)", i, tag->name, tag->value);
+        v = array_at(obu->mix_presentation_tags, i);
+        v->ptr = tag;
+      }
+    }
+
+    if (header && header->optional_fields_flag) {
+      uint32_t size = ior_leb128_u32(r);
+      obu->preferred_loudspeaker_renderer = ior_8(r);
+      obu->preferred_binaural_renderer = ior_8(r);
+      ior_skip(r, size - 2);
+      info(
+          "Preferred loudspeaker renderer(%u), preferred binaural renderer(%u)",
+          obu->preferred_loudspeaker_renderer,
+          obu->preferred_binaural_renderer);
+    }
   }
 
 #if SUPPORT_VERIFIER

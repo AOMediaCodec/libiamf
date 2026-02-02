@@ -125,13 +125,13 @@ iamf_core_decoder_t *iamf_core_decoder_open(iamf_codec_id_t cid) {
   int ec = IAMF_OK;
 
   if (!iamf_codec_id_check(cid)) {
-    error("Invlid codec id %u", cid);
+    error("Invalid codec id %u", cid);
     return 0;
   }
 
   type = iamf_codec_type_get(cid);
   if (!_g_codecs[type]) {
-    error("Unimplment %s decoder.", iamf_codec_type_string(type));
+    error("Unimplemented %s decoder.", iamf_codec_type_string(type));
     return 0;
   }
 
@@ -172,9 +172,7 @@ void iamf_core_decoder_close(iamf_core_decoder_t *ths) {
   if (ths) {
     if (ths->ctx) {
       if (ths->cdec) ths->cdec->close(ths->ctx);
-      if (ths->ctx->priv) {
-        free(ths->ctx->priv);
-      }
+      if (ths->ctx->priv) free(ths->ctx->priv);
       free(ths->ctx);
     }
 

@@ -1200,9 +1200,9 @@ static void write_mix_presentation_log(uint64_t idx, void* obu, char* log) {
       }
     }
   }
+  log += write_yaml_form(log, 1, "mix_presentation_tags:");
   if (mix_presentation->mix_presentation_tags &&
       array_size(mix_presentation->mix_presentation_tags) > 0) {
-    log += write_yaml_form(log, 1, "mix_presentation_tags:");
     log += write_yaml_form(log, 2, "num_tags: %u",
                            array_size(mix_presentation->mix_presentation_tags));
     log += write_yaml_form(log, 2, "tags:");
@@ -1213,6 +1213,8 @@ static void write_mix_presentation_log(uint64_t idx, void* obu, char* log) {
       log += write_yaml_form(log, 2, "- tag_name: \"%s\"", tag->name);
       log += write_yaml_form(log, 3, "tag_value: \"%s\"", tag->value);
     }
+  } else {
+    log += write_yaml_form(log, 2, "num_tags: %u", 0);
   }
 
   log += write_yaml_form(log, 1, "optional_fields:");
