@@ -50,6 +50,7 @@ _SOUND_SYSTEM_TO_FLAG = {
     mix_presentation_pb2.SOUND_SYSTEM_11_2_3_0: '11',
     mix_presentation_pb2.SOUND_SYSTEM_12_0_1_0: '12',
     mix_presentation_pb2.SOUND_SYSTEM_13_6_9_0: '13',
+    mix_presentation_pb2.SOUND_SYSTEM_14_5_7_4: '14',
 }
 
 
@@ -127,12 +128,12 @@ def get_test_combination_metadata(user_metadata_proto, test_file_directory):
     # Skip test vectors that are not valid to decode.
     return []
 
-  assert len(user_metadata_proto.codec_config_metadata) == 1
-  codec_id = user_metadata_proto.codec_config_metadata[0].codec_config.codec_id
-  is_lossy = codec_id in [
-      codec_config_pb2.CODEC_ID_AAC_LC,
-      codec_config_pb2.CODEC_ID_OPUS,
-  ]
+  assert 1 <= len(user_metadata_proto.codec_config_metadata) <= 2
+  is_lossy = any(
+      codec_config_metadata.codec_config.codec_id
+      in [codec_config_pb2.CODEC_ID_AAC_LC, codec_config_pb2.CODEC_ID_OPUS]
+      for codec_config_metadata in user_metadata_proto.codec_config_metadata
+  )
 
   is_stress_signal = False
   for audio_frame_metadata in user_metadata_proto.audio_frame_metadata:
