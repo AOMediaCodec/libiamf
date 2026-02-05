@@ -72,6 +72,9 @@ iamf_audio_element_obu_t *iamf_audio_element_obu_new(io_context_t *ior) {
   } else if (type == ck_audio_element_type_object_based) {
     object_based_audio_element_obu_t *oae = _obu_ae_object_based_new(val, ior);
     if (oae) obu = def_audio_element_obu_ptr(oae);
+  } else {
+    warning("Unsupported type %u of audio element %u", type, val);
+    return 0;
   }
 
   if (!obu) {
@@ -82,8 +85,6 @@ iamf_audio_element_obu_t *iamf_audio_element_obu_new(io_context_t *ior) {
 #if SUPPORT_VERIFIER
   vlog_obu(ck_iamf_obu_audio_element, obu, 0, 0);
 #endif
-
-  iamf_audio_element_obu_display(obu);
 
   if (_obu_ae_check(obu) != def_pass) {
     iamf_audio_element_obu_free(obu);
@@ -134,157 +135,6 @@ parameter_base_t *iamf_audio_element_obu_get_parameter(
   v = array_find(obu->parameters, def_value_wrap_instance_u32(type),
                  _obu_ae_find_parameter);
   return v ? v->ptr : 0;
-}
-
-void iamf_audio_element_obu_display(iamf_audio_element_obu_t *obu) {
-  if (!obu) {
-    warning("Audio Element OBU is NULL, cannot display.");
-    return;
-  }
-
-  debug("Displaying Audio Element OBU:");
-  debug("  audio_element_id: %u", obu->audio_element_id);
-  debug("  audio_element_type: %u (%s)", obu->audio_element_type,
-        iamf_audio_element_type_string(obu->audio_element_type));
-  debug("  codec_config_id: %u", obu->codec_config_id);
-
-  if (obu->audio_substream_ids) {
-    uint32_t num_substreams = array_size(obu->audio_substream_ids);
-    debug("  Number of audio substreams: %u", num_substreams);
-    for (uint32_t i = 0; i < num_substreams; ++i) {
-      value_wrap_t *v = array_at(obu->audio_substream_ids, i);
-      debug("  Audio Substream [%u]: %u", i, v->u32);
-    }
-  } else {
-    debug("  No audio substreams.");
-  }
-
-  if (obu->parameters) {
-    uint32_t num_parameters = array_size(obu->parameters);
-    debug("  Number of parameters: %u", num_parameters);
-    for (uint32_t i = 0; i < num_parameters; ++i) {
-      value_wrap_t *v = array_at(obu->parameters, i);
-      parameter_base_t *param = (parameter_base_t *)v->ptr;
-      if (param) parameter_base_display(param);
-    }
-  } else {
-    debug("  No parameters.");
-  }
-
-  // Display type-specific information
-  if (obu->audio_element_type == ck_audio_element_type_channel_based) {
-    channel_based_audio_element_obu_t *cae =
-        def_channel_based_audio_element_obu_ptr(obu);
-    debug("  Channel-based Audio Element:");
-    debug("    max_valid_layers: %u", cae->max_valid_layers);
-
-    if (cae->channel_audio_layer_configs) {
-      uint32_t num_layers = array_size(cae->channel_audio_layer_configs);
-      debug("    Number of channel audio layer configs: %u", num_layers);
-      for (uint32_t i = 0; i < num_layers; ++i) {
-        value_wrap_t *v = array_at(cae->channel_audio_layer_configs, i);
-        obu_channel_layer_config_t *layer_config =
-            (obu_channel_layer_config_t *)v->ptr;
-        if (!layer_config) {
-          warning("    Channel layer config [%u] is NULL.", i);
-          continue;
-        }
-        debug("    Channel Layer Config [%u]:", i);
-        debug("      loudspeaker_layout: %u (%s)",
-              layer_config->loudspeaker_layout,
-              iamf_loudspeaker_layout_string(layer_config->loudspeaker_layout));
-        debug("      output_gain_is_present_flag: %u",
-              layer_config->output_gain_is_present_flag);
-        debug("      recon_gain_is_present_flag: %u",
-              layer_config->recon_gain_is_present_flag);
-        debug("      substream_count: %u", layer_config->substream_count);
-        debug("      coupled_substream_count: %u",
-              layer_config->coupled_substream_count);
-
-        if (layer_config->output_gain_is_present_flag) {
-          debug("      output_gain_info:");
-          debug("        output_gain_flag: %u",
-                layer_config->output_gain_info.output_gain_flag);
-          debug("        output_gain: %d",
-                layer_config->output_gain_info.output_gain);
-        }
-
-        if (i == 0 && layer_config->loudspeaker_layout ==
-                          def_iamf_loudspeaker_layout_expanded) {
-          debug("      expanded_loudspeaker_layout: %u (%s)",
-                layer_config->expanded_loudspeaker_layout,
-                iamf_expanded_loudspeaker_layout_string(
-                    layer_config->expanded_loudspeaker_layout));
-        }
-      }
-    } else {
-      debug("    No channel audio layer configs.");
-    }
-
-  } else if (obu->audio_element_type == ck_audio_element_type_scene_based) {
-    scene_based_audio_element_obu_t *sae =
-        def_scene_based_audio_element_obu_ptr(obu);
-    debug("  Scene-based Audio Element:");
-    debug("    ambisonics_mode: %u (%s)", sae->ambisonics_mode,
-          iamf_ambisonics_mode_string(sae->ambisonics_mode));
-    debug("    output_channel_count: %u", sae->output_channel_count);
-    debug("    substream_count: %u", sae->substream_count);
-    debug("    coupled_substream_count: %u", sae->coupled_substream_count);
-    debug("    mapping_size: %u", sae->mapping_size);
-
-    if (sae->ambisonics_mode == ck_ambisonics_mode_mono) {
-      debug("    Channel mapping:");
-      if (sae->channel_mapping) {
-        char mapping_str[1024] = {0};
-        int offset = 0;
-        offset += snprintf(mapping_str + offset, sizeof(mapping_str) - offset,
-                           "      Channels:");
-        for (uint32_t i = 0; i < sae->output_channel_count; ++i) {
-          offset += snprintf(mapping_str + offset, sizeof(mapping_str) - offset,
-                             " %u", sae->channel_mapping[i]);
-        }
-        debug("%s", mapping_str);
-      } else {
-        debug("      No channel mapping data.");
-      }
-    } else if (sae->ambisonics_mode == ck_ambisonics_mode_projection) {
-      debug("    Demixing matrix (%u x %u):", sae->output_channel_count,
-            sae->substream_count + sae->coupled_substream_count);
-      if (sae->demixing_matrix) {
-        uint32_t matrix_cols =
-            sae->substream_count + sae->coupled_substream_count;
-
-        // Create a temporary io_context to read the matrix values
-        io_context_t temp_ctx;
-        ioc_init(&temp_ctx, sae->demixing_matrix, sae->mapping_size);
-
-        for (uint32_t i = 0; i < sae->output_channel_count; ++i) {
-          // Print entire row at once
-          char row_str[1024] = {0};
-          int offset = 0;
-          offset += snprintf(row_str + offset, sizeof(row_str) - offset,
-                             "      Row [%u]:", i);
-
-          for (uint32_t j = 0; j < matrix_cols; ++j) {
-            // Use ior_b16 to read each matrix element properly
-            uint32_t value = ior_b16(&temp_ctx);
-            offset += snprintf(row_str + offset, sizeof(row_str) - offset,
-                               " %u", value);
-          }
-          debug("%s", row_str);
-        }
-      } else {
-        debug("      No demixing matrix data.");
-      }
-    }
-  } else if (obu->audio_element_type == ck_audio_element_type_object_based) {
-    object_based_audio_element_obu_t *oae =
-        def_object_based_audio_element_obu_ptr(obu);
-    debug("  Object-based Audio Element:");
-    debug("    num_objects: %u", oae->num_objects);
-  }
-
-  debug("Finished displaying Audio Element OBU.");
 }
 
 int _obu_ae_common_init(iamf_audio_element_obu_t *obu, uint32_t id,

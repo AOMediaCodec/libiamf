@@ -763,61 +763,6 @@ static int iamf_decoder_priv_create_parser(iamf_decoder_t *self) {
   return self->parser ? IAMF_OK : IAMF_ERR_ALLOC_FAIL;
 }
 
-static void iamf_decoder_priv_display_stream_info(iamf_stream_info_t *info) {
-  if (!info) {
-    error("Stream info is null");
-    return;
-  }
-
-  info("=== IAMF Stream Information ===");
-  info("Max frame size: %u samples", info->max_frame_size);
-
-  // Display profile information
-  info("Primary profile: %d", info->iamf_stream_info.primary_profile);
-  info("Additional profile: %d", info->iamf_stream_info.additional_profile);
-
-  // Display codec information
-  info("Codec ID 0: %d", info->iamf_stream_info.codec_ids[0]);
-  info("Codec ID 1: %d", info->iamf_stream_info.codec_ids[1]);
-  info("Sampling rate: %u Hz", info->iamf_stream_info.sampling_rate);
-  info("Samples per channel in frame: %u",
-       info->iamf_stream_info.samples_per_channel_in_frame);
-
-  // Display mix presentation information
-  info("Mix presentation count: %u",
-       info->iamf_stream_info.mix_presentation_count);
-
-  if (info->iamf_stream_info.mix_presentations) {
-    for (uint32_t i = 0; i < info->iamf_stream_info.mix_presentation_count;
-         ++i) {
-      iamf_mix_presentation_info_t *mix_presentation =
-          &info->iamf_stream_info.mix_presentations[i];
-
-      info("  Mix Presentation[%u]:", i);
-      info("    ID: %u", mix_presentation->id);
-      info("    Number of audio elements: %u",
-           mix_presentation->num_audio_elements);
-
-      if (mix_presentation->elements) {
-        for (uint32_t j = 0; j < mix_presentation->num_audio_elements; ++j) {
-          iamf_element_presentation_info_t *element =
-              &mix_presentation->elements[j];
-          info("    Element[%u]: ID=%u, Mode=%d, Profile=%d", j, element->eid,
-               element->mode, element->profile);
-
-          if (element->gain_offset_range) {
-            info("      Gain Offset Range: Min=%.2f dB, Max=%.2f dB",
-                 element->gain_offset_range->min,
-                 element->gain_offset_range->max);
-          }
-        }
-      }
-    }
-  }
-
-  info("=== End of Stream Information ===");
-}
-
 /* ----------------------------- APIs ----------------------------- */
 
 IAMF_DecoderHandle IAMF_decoder_open(void) {
@@ -1415,9 +1360,6 @@ IAMF_StreamInfo *IAMF_decoder_get_stream_info(IAMF_DecoderHandle handle) {
       }
     }
   }
-
-  // Display stream information for debugging
-  iamf_decoder_priv_display_stream_info(info);
 
   return info;
 }

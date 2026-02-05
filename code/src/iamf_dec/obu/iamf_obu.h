@@ -141,8 +141,6 @@ typedef struct IamfProfileInfo {
 uint32_t iamf_obu_raw_split(uint8_t *data, uint32_t size, iamf_obu_raw_t *raw);
 int iamf_obu_raw_check(iamf_obu_raw_t *raw);
 int iamf_obu_raw_is_reserved_obu(iamf_obu_raw_t *raw, iamf_profile_t profile);
-int iamf_obu_raw_header_display(iamf_obu_raw_t *raw);
-
 iamf_obu_t *iamf_obu_new(iamf_obu_raw_t *raw,
                          iamf_obu_extra_parameters_t *param);
 void iamf_obu_free(iamf_obu_t *obu);

@@ -116,6 +116,4 @@ iamf_parameter_block_obu_t *iamf_parameter_block_obu_new(
     io_context_t *ior, iamf_pbo_extra_interfaces_t *interfaces);
 void iamf_parameter_block_obu_free(iamf_parameter_block_obu_t *obu);
 void iamf_parameter_subblock_free(parameter_subblock_t *subblock);
-void iamf_parameter_block_obu_display(iamf_parameter_block_obu_t *obu);
-
 #endif  // __PARAMETER_BLOCK_OBU_H__

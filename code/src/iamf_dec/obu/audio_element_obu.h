@@ -116,6 +116,5 @@ int iamf_audio_element_obu_check_profile(iamf_audio_element_obu_t *obu,
                                          iamf_profile_t profile);
 parameter_base_t *iamf_audio_element_obu_get_parameter(
     iamf_audio_element_obu_t *obu, iamf_parameter_type_t type);
-void iamf_audio_element_obu_display(iamf_audio_element_obu_t *obu);
 
 #endif  // __AUDIO_ELEMENT_OBU_H__

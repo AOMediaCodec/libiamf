@@ -38,6 +38,4 @@ typedef struct IamfSequenceHeaderObu {
 
 iamf_sequence_header_obu_t *iamf_sequence_header_obu_new(io_context_t *ioc);
 void iamf_sequence_header_obu_free(iamf_sequence_header_obu_t *obu);
-void iamf_sequence_header_obu_display(iamf_sequence_header_obu_t *obu);
-
 #endif  // __IA_SEQUENCE_HEADER_OBU_H__

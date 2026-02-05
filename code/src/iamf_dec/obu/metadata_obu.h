@@ -59,6 +59,4 @@ typedef struct MetadataIamfTags {
 
 iamf_metadata_obu_t *iamf_metadata_obu_new(io_context_t *ior);
 void iamf_metadata_obu_free(iamf_metadata_obu_t *obu);
-void iamf_metadata_obu_display(iamf_metadata_obu_t *obu);
-
 #endif  // __METADATA_OBU_H__

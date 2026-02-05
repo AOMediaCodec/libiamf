@@ -55,8 +55,6 @@ iamf_sequence_header_obu_t *iamf_sequence_header_obu_new(io_context_t *ioc) {
   vlog_obu(ck_iamf_obu_sequence_header, obu, 0, 0);
 #endif
 
-  iamf_sequence_header_obu_display(obu);
-
   if (_obu_sh_check(obu) != def_pass) {
     iamf_sequence_header_obu_free(obu);
     obu = 0;
@@ -66,23 +64,6 @@ iamf_sequence_header_obu_t *iamf_sequence_header_obu_new(io_context_t *ioc) {
 
 void iamf_sequence_header_obu_free(iamf_sequence_header_obu_t *obu) {
   free(obu);
-}
-
-void iamf_sequence_header_obu_display(iamf_sequence_header_obu_t *obu) {
-  if (!obu) {
-    warning("IAMF Sequence Header OBU is NULL, cannot display.");
-    return;
-  }
-
-  debug("Displaying IAMF Sequence Header OBU:");
-  debug("  iamf_code: 0x%08x ('%.4s')", obu->iamf_code,
-        (char *)&obu->iamf_code);
-  debug("  primary_profile: %u (%s)", obu->primary_profile,
-        iamf_profile_type_string(obu->primary_profile));
-  debug("  additional_profile: %u (%s)", obu->additional_profile,
-        iamf_profile_type_string(obu->primary_profile));
-
-  debug("Finished displaying IAMF Sequence Header OBU.");
 }
 
 static int _obu_sh_valid_profile(uint8_t primary, uint8_t addional) {

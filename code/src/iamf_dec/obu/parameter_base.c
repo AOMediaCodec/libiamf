@@ -37,23 +37,10 @@ static polars_parameter_base_t *_obu_pb_polars_new(io_context_t *ior,
 static cartesians_parameter_base_t *_obu_pb_cartesians_new(
     io_context_t *ior, iamf_parameter_type_t type, uint32_t num_cartesians);
 static void _obu_pb_clear(parameter_base_t *param);
-static void _obu_pb_display(parameter_base_t *param);
 static int _obu_pb_init(parameter_base_t *param_base,
                         iamf_parameter_type_t type, io_context_t *r);
 static int _obu_pb_mix_gain_init(mix_gain_parameter_base_t *mix_gain_param,
                                  io_context_t *ior);
-
-// Internal display functions with _obu_pb prefix
-static void _obu_pb_mix_gain_display(mix_gain_parameter_base_t *mix_gain_param);
-static void _obu_pb_demixing_info_display(
-    demixing_info_parameter_base_t *demixing_info_param);
-static void _obu_pb_recon_gain_display(
-    recon_gain_parameter_base_t *recon_gain_param);
-static void _obu_pb_polars_display(polars_parameter_base_t *polars_param);
-static void _obu_pb_cartesians_display(
-    cartesians_parameter_base_t *cartesians_param);
-static void _obu_pb_momentary_loudness_display(
-    momentary_loudness_parameter_base_t *momentary_loudness_param);
 
 parameter_base_t *iamf_parameter_base_new(io_context_t *ior,
                                           iamf_parameter_type_t type) {
@@ -159,63 +146,6 @@ uint32_t iamf_parameter_type_get_cartesian_bit_depth(
       error("Invalid cartesian parameter type %d for bit depth retrieval",
             type);
       return 0;
-  }
-}
-
-void parameter_base_display(parameter_base_t *param_base) {
-  if (!param_base) {
-    warning("Parameter Base is NULL, cannot display.");
-    return;
-  }
-
-  debug("Displaying Parameter Base:");
-  _obu_pb_display(param_base);
-
-  // Display specific parameter type details based on the type
-  switch (param_base->type) {
-    case ck_iamf_parameter_type_demixing: {
-      demixing_info_parameter_base_t *demixing_info_param =
-          def_demixing_info_param_base_ptr(param_base);
-      _obu_pb_demixing_info_display(demixing_info_param);
-      break;
-    }
-    case ck_iamf_parameter_type_recon_gain: {
-      recon_gain_parameter_base_t *recon_gain_param =
-          (recon_gain_parameter_base_t *)param_base;
-      _obu_pb_recon_gain_display(recon_gain_param);
-      break;
-    }
-    case ck_iamf_parameter_type_polar:
-    case ck_iamf_parameter_type_dual_polar: {
-      polars_parameter_base_t *polars_param =
-          def_polars_parameter_base_ptr(param_base);
-      _obu_pb_polars_display(polars_param);
-      break;
-    }
-    case ck_iamf_parameter_type_cartesian_8:
-    case ck_iamf_parameter_type_cartesian_16:
-    case ck_iamf_parameter_type_dual_cartesian_8:
-    case ck_iamf_parameter_type_dual_cartesian_16: {
-      cartesians_parameter_base_t *cartesians_param =
-          def_cartesians_parameter_base_ptr(param_base);
-      _obu_pb_cartesians_display(cartesians_param);
-      break;
-    }
-    case ck_iamf_parameter_type_mix_gain: {
-      mix_gain_parameter_base_t *mix_gain_param =
-          def_mix_gain_parameter_base_ptr(param_base);
-      _obu_pb_mix_gain_display(mix_gain_param);
-      break;
-    }
-    case ck_iamf_parameter_type_momentary_loudness: {
-      momentary_loudness_parameter_base_t *momentary_loudness_param =
-          (momentary_loudness_parameter_base_t *)param_base;
-      _obu_pb_momentary_loudness_display(momentary_loudness_param);
-      break;
-    }
-    default:
-      debug("  Unknown parameter type: %u", param_base->type);
-      break;
   }
 }
 
@@ -480,118 +410,4 @@ momentary_loudness_parameter_base_t *_obu_pb_momentary_loudness_new(
 
 void _obu_pb_clear(parameter_base_t *param) {
   if (param->subblock_durations) array_free(param->subblock_durations, 0);
-}
-
-static void _obu_pb_display(parameter_base_t *param) {
-  if (!param) {
-    warning("Parameter Base is NULL, cannot display.");
-    return;
-  }
-
-  debug("  type: %u (%s)", param->type,
-        iamf_parameter_block_type_string(param->type));
-  debug("  parameter_id: %u", param->parameter_id);
-  debug("  parameter_rate: %u", param->parameter_rate);
-  debug("  param_definition_mode: %u", param->param_definition_mode);
-  if (!param->param_definition_mode) {
-    debug("  duration: %u", param->duration);
-    debug("  constant_subblock_duration: %u",
-          param->constant_subblock_duration);
-
-    if (param->subblock_durations) {
-      uint32_t num_subblocks = array_size(param->subblock_durations);
-      debug("  num_subblocks: %u", num_subblocks);
-      for (uint32_t i = 0; i < num_subblocks; ++i) {
-        value_wrap_t *v = array_at(param->subblock_durations, i);
-        debug("    subblock_duration[%u]: %u", i, v->u32);
-      }
-    } else {
-      debug("  No subblock durations.");
-    }
-  }
-}
-
-// Convert existing display functions to internal functions with _obu_pb prefix
-static void _obu_pb_mix_gain_display(
-    mix_gain_parameter_base_t *mix_gain_param) {
-  if (!mix_gain_param) {
-    warning("Mix Gain Parameter Base is NULL, cannot display.");
-    return;
-  }
-
-  debug("  default_mix_gain: %d", mix_gain_param->default_mix_gain);
-  debug("  default_mix_gain_db: %f", mix_gain_param->default_mix_gain_db);
-}
-
-static void _obu_pb_demixing_info_display(
-    demixing_info_parameter_base_t *demixing_info_param) {
-  if (!demixing_info_param) {
-    warning("Demixing Info Parameter Base is NULL, cannot display.");
-    return;
-  }
-
-  debug("  dmixp_mode: %u", demixing_info_param->dmixp_mode);
-  debug("  default_w: %u", demixing_info_param->default_w);
-}
-
-static void _obu_pb_recon_gain_display(
-    recon_gain_parameter_base_t *recon_gain_param) {
-  if (!recon_gain_param) {
-    warning("Recon Gain Parameter Base is NULL, cannot display.");
-    return;
-  }
-}
-
-static void _obu_pb_polars_display(polars_parameter_base_t *polars_param) {
-  if (!polars_param) {
-    warning("Polars Parameter Base is NULL, cannot display.");
-    return;
-  }
-
-  debug("  num_polars: %u", polars_param->num_polars);
-
-  for (int i = 0; i < polars_param->num_polars && i < 2; i++) {
-    debug("  encoded_default_polars[%d]:", i);
-    debug("    azimuth: %u", polars_param->encoded_default_polars[i].azimuth);
-    debug("    elevation: %u",
-          polars_param->encoded_default_polars[i].elevation);
-    debug("    distance: %u", polars_param->encoded_default_polars[i].distance);
-
-    debug("  default_polars[%d]:", i);
-    debug("    azimuth: %f", polars_param->default_polars[i].azimuth);
-    debug("    elevation: %f", polars_param->default_polars[i].elevation);
-    debug("    distance: %f", polars_param->default_polars[i].distance);
-  }
-}
-
-static void _obu_pb_cartesians_display(
-    cartesians_parameter_base_t *cartesians_param) {
-  if (!cartesians_param) {
-    warning("Cartesians Parameter Base is NULL, cannot display.");
-    return;
-  }
-
-  debug("  num_cartesians: %u", cartesians_param->num_cartesians);
-
-  for (int i = 0; i < cartesians_param->num_cartesians && i < 2; i++) {
-    debug("  encoded_default_cartesians[%d]:", i);
-    debug("    x: %u", cartesians_param->encoded_default_cartesians[i].x);
-    debug("    y: %u", cartesians_param->encoded_default_cartesians[i].y);
-    debug("    z: %u", cartesians_param->encoded_default_cartesians[i].z);
-
-    debug("  default_cartesians[%d]:", i);
-    debug("    x: %f", cartesians_param->default_cartesians[i].x);
-    debug("    y: %f", cartesians_param->default_cartesians[i].y);
-    debug("    z: %f", cartesians_param->default_cartesians[i].z);
-  }
-}
-
-static void _obu_pb_momentary_loudness_display(
-    momentary_loudness_parameter_base_t *momentary_loudness_param) {
-  if (!momentary_loudness_param) {
-    warning("Momentary Loudness Parameter Base is NULL, cannot display.");
-    return;
-  }
-
-  // Momentary loudness has no additional fields to display
 }

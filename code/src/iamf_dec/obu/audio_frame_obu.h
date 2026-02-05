@@ -41,6 +41,4 @@ typedef struct IamfAudioFrameObu {
 iamf_audio_frame_obu_t *iamf_audio_frame_obu_new(io_context_t *ior,
                                                  iamf_obu_header_t *header);
 void iamf_audio_frame_obu_free(iamf_audio_frame_obu_t *obu);
-void iamf_audio_frame_obu_display(iamf_audio_frame_obu_t *obu);
-
 #endif  // __AUDIO_FRAME_OBU_H__

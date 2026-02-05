@@ -37,13 +37,5 @@ const char *iamf_expanded_loudspeaker_layout_string(
 const char *iamf_layout_type_string(iamf_layout_type_t type);
 const char *iamf_layout_string(iamf_layout_t layout);
 const char *iamf_channel_name(iamf_channel_t ch);
-const char *iamf_binaural_filter_profile_string(
-    IAMF_BinauralFilterProfile profile);
-const char *iamf_headphones_rendering_mode_string(
-    IAMF_HeadphonesRenderingMode mode);
-const char *iamf_metadata_type_string(iamf_metadata_type_t type);
-const char *iamf_anchor_element_string(uint32_t anchor_element);
-const char *iamf_loudness_info_type_string(uint32_t type);
-const char *iamf_animation_type_string(iamf_animation_type_t type);
 
 #endif  //__IAMF_STRING_H__

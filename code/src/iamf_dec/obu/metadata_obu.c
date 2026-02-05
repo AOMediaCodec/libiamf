@@ -39,7 +39,7 @@ static metadata_itut_t35_t *_metadata_itut_t35_new(io_context_t *ior) {
   io_context_t *r = ior;
   metadata_itut_t35_t *metadata = 0;
 
-  metadata = (metadata_itut_t35_t *)def_malloc(metadata_itut_t35_t, 1);
+  metadata = (metadata_itut_t35_t *)def_mallocz(metadata_itut_t35_t, 1);
   if (!metadata) {
     def_err_msg_enomem("Metadata ITU-T T.35", def_metadata_str);
     return 0;
@@ -57,8 +57,6 @@ static metadata_itut_t35_t *_metadata_itut_t35_new(io_context_t *ior) {
     metadata->itu_t_t35_country_code_extension_byte = ior_8(r);
     info("ITU-T T.35 Country Code Extension Byte: 0x%02X",
          metadata->itu_t_t35_country_code_extension_byte);
-  } else {
-    metadata->itu_t_t35_country_code_extension_byte = 0;
   }
 
   // Calculate and read payload data
@@ -76,11 +74,10 @@ static metadata_itut_t35_t *_metadata_itut_t35_new(io_context_t *ior) {
     // Read payload data
     ior_read(r, metadata->itu_t_t35_payload_bytes,
              metadata->itu_t_t35_payload_size);
-    info("ITU-T T.35 Payload Size: %u bytes", metadata->itu_t_t35_payload_size);
   } else {
     metadata->itu_t_t35_payload_bytes = 0;
-    info("ITU-T T.35 Payload Size: 0 bytes");
   }
+  info("ITU-T T.35 Payload Size: %u bytes", metadata->itu_t_t35_payload_size);
 
   return metadata;
 }
@@ -168,30 +165,13 @@ iamf_metadata_obu_t *iamf_metadata_obu_new(io_context_t *ior) {
     }
 
     default:
-      if (metadata_type >= ck_iamf_metadata_type_reserved_future_start) {
-        warning("Reserved or future metadata type: %u. Skipping payload.",
-                metadata_type);
-      } else if ((metadata_type >= ck_iamf_metadata_type_reserved_start &&
-                  metadata_type <= ck_iamf_metadata_type_reserved_end) ||
-                 (metadata_type >=
-                      ck_iamf_metadata_type_unregistered_user_private_start &&
-                  metadata_type <=
-                      ck_iamf_metadata_type_unregistered_user_private_end)) {
-        warning("Unsupported or reserved metadata type: %u. Skipping payload.",
-                metadata_type);
-      } else {
-        error("Invalid metadata type: %u", metadata_type);
-        iamf_metadata_obu_free(obu);
-        return 0;
-      }
-      break;
+      warning("Unsupport metadata type: %u", metadata_type);
+      return 0;
   }
 
 #if SUPPORT_VERIFIER
   vlog_obu(ck_iamf_obu_metadata, obu, 0, 0);
 #endif
-
-  iamf_metadata_obu_display(obu);
 
   return obu;
 }
@@ -217,106 +197,4 @@ void iamf_metadata_obu_free(iamf_metadata_obu_t *obu) {
       def_free(obu);
       break;
   }
-}
-
-void iamf_metadata_obu_display(iamf_metadata_obu_t *obu) {
-  if (!obu) {
-    debug("IAMF Metadata OBU is 0, cannot display.");
-    return;
-  }
-
-  debug("Displaying IAMF Metadata OBU:");
-  debug("  obu_type: %u (%s)", obu->obu.obu_type,
-        iamf_obu_type_string(obu->obu.obu_type));
-  debug("  metadata_type: %u (%s)", obu->metadata_type,
-        iamf_metadata_type_string(obu->metadata_type));
-
-  switch (obu->metadata_type) {
-    case ck_iamf_metadata_type_itut_t35: {
-      metadata_itut_t35_t *itu_t35_metadata = (metadata_itut_t35_t *)obu;
-      debug("  ITU-T T.35 Metadata:");
-      debug("    country_code: 0x%02X",
-            itu_t35_metadata->itu_t_t35_country_code);
-      if (itu_t35_metadata->itu_t_t35_country_code == 0xFF) {
-        debug("    country_code_extension_byte: 0x%02X",
-              itu_t35_metadata->itu_t_t35_country_code_extension_byte);
-      }
-      debug("    payload_size: %u bytes",
-            itu_t35_metadata->itu_t_t35_payload_size);
-      if (itu_t35_metadata->itu_t_t35_payload_bytes &&
-          itu_t35_metadata->itu_t_t35_payload_size > 0) {
-        uint32_t display_size = itu_t35_metadata->itu_t_t35_payload_size;
-        char buffer[256];
-        int buffer_pos = 0;
-
-        for (uint32_t i = 0; i < display_size; i++) {
-          if (i % 8 == 0) {
-            buffer_pos +=
-                snprintf(buffer + buffer_pos, sizeof(buffer) - buffer_pos,
-                         "      %04x: ", i);
-          }
-          buffer_pos +=
-              snprintf(buffer + buffer_pos, sizeof(buffer) - buffer_pos,
-                       "%02x ", itu_t35_metadata->itu_t_t35_payload_bytes[i]);
-          if (i % 8 == 7 || i == display_size - 1) {
-            // Add newline and output the complete line
-            buffer_pos += snprintf(buffer + buffer_pos,
-                                   sizeof(buffer) - buffer_pos, "\n");
-            debug("%s", buffer);
-            // Reset buffer for next line
-            buffer[0] = '\0';
-            buffer_pos = 0;
-          }
-        }
-
-        for (uint32_t i = 0; i < display_size; i++) {
-          if (i % 8 == 0) {
-            buffer_pos +=
-                snprintf(buffer + buffer_pos, sizeof(buffer) - buffer_pos,
-                         "      %04x: ", i);
-          }
-          buffer_pos +=
-              snprintf(buffer + buffer_pos, sizeof(buffer) - buffer_pos, "%c ",
-                       itu_t35_metadata->itu_t_t35_payload_bytes[i]);
-          if (i % 8 == 7 || i == display_size - 1) {
-            // Add newline and output the complete line
-            buffer_pos += snprintf(buffer + buffer_pos,
-                                   sizeof(buffer) - buffer_pos, "\n");
-            debug("%s", buffer);
-            // Reset buffer for next line
-            buffer[0] = '\0';
-            buffer_pos = 0;
-          }
-        }
-      }
-      break;
-    }
-
-    case ck_iamf_metadata_type_iamf_tags: {
-      metadata_iamf_tags *tags_metadata = (metadata_iamf_tags *)obu;
-      debug("  IAMF Tags Metadata:");
-      if (tags_metadata->tags) {
-        uint32_t num_tags = array_size(tags_metadata->tags);
-        debug("    Number of tags: %u", num_tags);
-        for (uint32_t i = 0; i < num_tags; ++i) {
-          value_wrap_t *v = array_at(tags_metadata->tags, i);
-          iamf_tag_t *tag = (iamf_tag_t *)v->ptr;
-          if (tag) {
-            debug("    Tag [%u]:", i);
-            debug("      name: %s", tag->name);
-            debug("      value: %s", tag->value);
-          }
-        }
-      } else {
-        debug("    No tags.");
-      }
-      break;
-    }
-
-    default:
-      debug("  Unknown or unsupported metadata type: %u", obu->metadata_type);
-      break;
-  }
-
-  debug("Finished displaying IAMF Metadata OBU.");
 }

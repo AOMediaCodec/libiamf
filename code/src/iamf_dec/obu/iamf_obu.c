@@ -167,8 +167,6 @@ uint32_t iamf_obu_raw_split(uint8_t *data, uint32_t size, iamf_obu_raw_t *raw) {
   obu_dump(data, val, (data[0] >> 3) & 0x1f);
 #endif
 
-  iamf_obu_raw_header_display(raw);
-
   return val;
 }
 
@@ -277,40 +275,4 @@ iamf_tag_t *iamf_tag_new(io_context_t *ior) {
   }
 
   return tag;
-}
-
-int iamf_obu_raw_header_display(iamf_obu_raw_t *raw) {
-  io_context_t ioc, *r;
-  iamf_obu_header_t header;
-
-  if (!iamf_obu_raw_check(raw)) {
-    trace("Invalid OBU raw data");
-    return -1;
-  }
-
-  ioc = raw->ioctx;
-  r = &ioc;
-
-  _iamf_obu_header_init(&header);
-  _iamf_obu_raw_parse_header(r, &header);
-
-  trace("=== OBU Header Display ===");
-  trace("OBU Type: %s (%d)", iamf_obu_type_string(header.obu_type),
-        header.obu_type);
-  trace("Redundant Copy: %s", header.obu_redundant_copy ? "Yes" : "No");
-  trace("Trimming Status Flag: %s",
-        header.obu_trimming_status_flag ? "Yes" : "No");
-
-  uint32_t header_size = ioc_tell(r);
-  trace("OBU Header Size: %u bytes", header_size);
-
-  if (_iamf_obu_type_is_audio_frame(header.obu_type) &&
-      header.obu_trimming_status_flag) {
-    trace("Samples to Trim at End: %u", header.num_samples_to_trim_at_end);
-    trace("Samples to Trim at Start: %u", header.num_samples_to_trim_at_start);
-  }
-
-  trace("========================");
-
-  return 0;
 }

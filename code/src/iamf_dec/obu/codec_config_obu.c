@@ -73,8 +73,6 @@ iamf_codec_config_obu_t *iamf_codec_config_obu_new(io_context_t *ior) {
   vlog_obu(ck_iamf_obu_codec_config, obu, 0, 0);
 #endif
 
-  iamf_codec_config_obu_display(obu);
-
   if (_obu_cc_check(obu) != def_pass) {
     iamf_codec_config_obu_free(obu);
     return 0;
@@ -106,73 +104,6 @@ int iamf_codec_config_obu_get_parameter(iamf_codec_config_obu_t *obu,
   if (ret != IAMF_OK) return ret;
 
   return IAMF_OK;
-}
-
-void iamf_codec_config_obu_display(iamf_codec_config_obu_t *obu) {
-  if (!obu) {
-    warning("IAMF Codec Config OBU is NULL, cannot display.");
-    return;
-  }
-
-  debug("Displaying IAMF Codec Config OBU:");
-  debug("  codec_config_id: %u", obu->codec_config_id);
-  debug("  codec_id: 0x%08x ('%.4s')", obu->codec_id, (char *)&obu->codec_id);
-  debug("  num_samples_per_frame: %u", obu->num_samples_per_frame);
-  debug("  audio_roll_distance: %d", obu->audio_roll_distance);
-
-  if (obu->decoder_config) {
-    debug("  decoder_config_size: %u bytes", obu->decoder_config->size);
-
-    uint32_t display_size = obu->decoder_config->size;
-    char buffer[256];
-    int buffer_pos = 0;
-
-    for (uint32_t i = 0; i < display_size; i++) {
-      if (i % 8 == 0) {
-        buffer_pos += snprintf(buffer + buffer_pos, sizeof(buffer) - buffer_pos,
-                               "    %04x: ", i);
-      }
-      buffer_pos += snprintf(buffer + buffer_pos, sizeof(buffer) - buffer_pos,
-                             "%02x ", obu->decoder_config->data[i]);
-      if (i % 8 == 7 || i == display_size - 1) {
-        // Add newline and output the complete line
-        buffer_pos +=
-            snprintf(buffer + buffer_pos, sizeof(buffer) - buffer_pos, "\n");
-        debug("%s", buffer);
-        // Reset buffer for next line
-        buffer[0] = '\0';
-        buffer_pos = 0;
-      }
-    }
-  } else {
-    warning("  decoder_config is NULL");
-  }
-
-  // Display codec type information
-  iamf_codec_type_t codec_type = iamf_codec_type_get(obu->codec_id);
-  const char *codec_type_str = iamf_codec_type_string(codec_type);
-  debug("  codec_type: %s", codec_type_str ? codec_type_str : "Unknown");
-
-  // Get and display additional codec parameters
-  audio_codec_parameter_t param;
-  if (iamf_codec_config_obu_get_parameter(obu, &param) == IAMF_OK) {
-    debug("  codec_parameters:");
-    debug("    sample_rate: %u Hz", param.sample_rate);
-    debug("    frame_size: %u samples", param.frame_size);
-    debug("    bits_per_sample: %u", param.bits_per_sample);
-
-    if (param.type == ck_iamf_codec_type_lpcm) {
-      if (param.big_endian) {
-        debug("    byte_order: Big Endian");
-      } else {
-        debug("    byte_order: Little Endian");
-      }
-    }
-  } else {
-    debug("  Failed to get codec parameters");
-  }
-
-  debug("Finished displaying IAMF Codec Config OBU.");
 }
 
 static int _obu_cc_codec_id_check(uint32_t codec_id) {

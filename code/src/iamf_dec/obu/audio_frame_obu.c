@@ -73,8 +73,6 @@ iamf_audio_frame_obu_t *iamf_audio_frame_obu_new(io_context_t *ior,
            obu->num_samples_to_trim_at_end);
 #endif
 
-  iamf_audio_frame_obu_display(obu);
-
   return obu;
 }
 
@@ -82,25 +80,4 @@ void iamf_audio_frame_obu_free(iamf_audio_frame_obu_t *obu) {
   if (!obu) return;
   if (obu->audio_frame) buffer_wrap_free(obu->audio_frame);
   free(obu);
-}
-
-void iamf_audio_frame_obu_display(iamf_audio_frame_obu_t *obu) {
-  if (!obu) {
-    debug("Audio Frame OBU: NULL pointer");
-    return;
-  }
-
-  debug("Audio Frame OBU:");
-  debug("  OBU Type: %d (%s)", obu->obu.obu_type,
-        iamf_obu_type_string(obu->obu.obu_type));
-  debug("  Audio Substream ID: %u", obu->audio_substream_id);
-  debug("  Num Samples to Trim at Start: %u",
-        obu->num_samples_to_trim_at_start);
-  debug("  Num Samples to Trim at End: %u", obu->num_samples_to_trim_at_end);
-
-  if (obu->audio_frame) {
-    debug("  Audio Frame Size: %u bytes", obu->audio_frame->size);
-  } else {
-    debug("  Audio Frame: NULL");
-  }
 }

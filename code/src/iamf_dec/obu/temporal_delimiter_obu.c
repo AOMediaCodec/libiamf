@@ -38,8 +38,6 @@ iamf_temporal_delimiter_obu_t *iamf_temporal_delimiter_obu_new(
   obu->obu.obu_type = ck_iamf_obu_temporal_delimiter;
   obu->key_frame = !header->is_not_key_frame;
 
-  iamf_temporal_delimiter_obu_display(obu);
-
   return obu;
 }
 
@@ -49,18 +47,4 @@ void iamf_temporal_delimiter_obu_free(iamf_temporal_delimiter_obu_t *obu) {
   debug("Free iamf_temporal_delimiter_obu_t %p", obu);
 
   def_free(obu);
-}
-
-void iamf_temporal_delimiter_obu_display(iamf_temporal_delimiter_obu_t *obu) {
-  if (!obu) {
-    debug("IAMF Temporal Delimiter OBU is NULL, cannot display.");
-    return;
-  }
-
-  debug("Displaying IAMF Temporal Delimiter OBU:");
-  debug("  obu_type: %u (%s)", obu->obu.obu_type,
-        iamf_obu_type_string(obu->obu.obu_type));
-  debug("  key_frame: %s", obu->key_frame ? "Yes" : "No");
-
-  debug("Finished displaying IAMF Temporal Delimiter OBU.");
 }

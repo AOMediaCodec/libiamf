@@ -37,6 +37,4 @@ typedef struct IamfTemporalDelimiterObu {
 iamf_temporal_delimiter_obu_t *iamf_temporal_delimiter_obu_new(
     io_context_t *ior, iamf_obu_header_t *header);
 void iamf_temporal_delimiter_obu_free(iamf_temporal_delimiter_obu_t *obu);
-void iamf_temporal_delimiter_obu_display(iamf_temporal_delimiter_obu_t *obu);
-
 #endif  // __TEMPORAL_DELIMITER_OBU_H__

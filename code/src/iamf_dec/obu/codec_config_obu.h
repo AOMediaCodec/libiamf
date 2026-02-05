@@ -46,6 +46,4 @@ iamf_codec_config_obu_t *iamf_codec_config_obu_new(io_context_t *ior);
 void iamf_codec_config_obu_free(iamf_codec_config_obu_t *obu);
 int iamf_codec_config_obu_get_parameter(iamf_codec_config_obu_t *obu,
                                         audio_codec_parameter_t *param);
-void iamf_codec_config_obu_display(iamf_codec_config_obu_t *obu);
-
 #endif  // __CODEC_CONFIG_OBU_H__

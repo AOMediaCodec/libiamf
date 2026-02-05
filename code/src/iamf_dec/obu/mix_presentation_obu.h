@@ -134,5 +134,4 @@ void iamf_mix_presentation_obu_free(iamf_mix_presentation_obu_t *obu);
 int iamf_mix_presentation_obu_check_profile(iamf_mix_presentation_obu_t *obu,
                                             vector_t *audio_element_obus,
                                             iamf_profile_t profile);
-void iamf_mix_presentation_obu_display(iamf_mix_presentation_obu_t *obu);
 #endif  // __MIX_PRESENTATION_OBU_H__

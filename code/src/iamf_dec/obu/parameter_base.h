@@ -127,5 +127,4 @@ int iamf_parameter_type_is_coordinate(iamf_parameter_type_t type);
 uint32_t iamf_parameter_type_get_cartesian_bit_depth(
     iamf_parameter_type_t type);
 
-void parameter_base_display(parameter_base_t *param_base);
 #endif  //__PARAMETER_BASE_H__
