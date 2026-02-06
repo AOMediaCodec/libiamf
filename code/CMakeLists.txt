@@ -95,7 +95,6 @@ include_directories(
 
 link_directories (
     ${DEP_CODECS_DIR}/lib
-    ${DEP_EXTERNAL_DIR}/lib
 )
 
 if(IAMF_BUILD_SHARED_LIB)
