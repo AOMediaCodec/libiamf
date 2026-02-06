@@ -950,8 +950,10 @@ iamf_mix_presentation_obu_t *iamf_database_get_mix_presentation_obu_default(
 }
 
 iamf_mix_presentation_obu_t *iamf_database_find_mix_presentation_obu(
-    iamf_database_t *database, func_sub_mix_check_t check_func,
+    iamf_database_t *database, func_mix_presentation_obu_check_t check_func,
     iamf_layout_t target_layout) {
+  if (!database || !check_func) return 0;
+
   int n = vector_size(database->descriptors.mix_presentation_obus);
 
   for (int i = 0; i < n; ++i) {
@@ -959,14 +961,7 @@ iamf_mix_presentation_obu_t *iamf_database_find_mix_presentation_obu(
         iamf_mix_presentation_obu_t,
         vector_at(database->descriptors.mix_presentation_obus, i));
 
-    if (obu) {
-      int m = array_size(obu->sub_mixes);
-      for (int j = 0; j < m; ++j) {
-        obu_sub_mix_t *sub =
-            def_value_wrap_optional_ptr(array_at(obu->sub_mixes, j));
-        if (check_func(sub, target_layout, database)) return obu;
-      }
-    }
+    if (obu && check_func(obu, target_layout, database)) return obu;
   }
   return 0;
 }

@@ -48,59 +48,97 @@ extern void iamf_mix_stream_log(int chs, float *out, int size);
 extern void iamf_stream_log_free();
 #endif
 
-// Helper function to check if audio element has binaural layout
-static int _audio_element_binaural_layout_check(obu_sub_mix_t *sub_mix,
-                                                iamf_database_t *database) {
-  int n = array_size(sub_mix->audio_element_configs);
+static int _matching_loudess_layout_check(iamf_mix_presentation_obu_t *mpo,
+                                          iamf_layout_t target_layout,
+                                          void *data) {
+  int m = array_size(mpo->sub_mixes);
+  for (int j = 0; j < m; ++j) {
+    obu_sub_mix_t *sub =
+        def_value_wrap_optional_ptr(array_at(mpo->sub_mixes, j));
+    int n = array_size(sub->loudness_layouts);
 
-  for (int i = 0; i < n; i++) {
-    obu_audio_element_config_t *aec = def_value_wrap_optional_ptr(
-        array_at(sub_mix->audio_element_configs, i));
-    iamf_audio_element_obu_t *e =
-        iamf_database_get_audio_element_obu(database, aec->element_id);
+    for (int i = 0; i < n; ++i) {
+      iamf_layout_t *check_layout =
+          def_value_wrap_optional_ptr(array_at(sub->loudness_layouts, i));
+      if (!check_layout) continue;
+      if (iamf_layout_is_equal(target_layout, *check_layout)) return def_true;
+    }
+  }
 
-    if (e && e->audio_element_type == ck_audio_element_type_channel_based) {
-      channel_based_audio_element_obu_t *cae =
-          def_channel_based_audio_element_obu_ptr(e);
-      if (array_size(cae->channel_audio_layer_configs) == 1) {
-        obu_channel_layer_config_t *clc = def_value_wrap_optional_ptr(
-            array_at(cae->channel_audio_layer_configs, 0));
-        if (clc->loudspeaker_layout == ck_iamf_loudspeaker_layout_binaural)
-          return def_true;
-      }
+  return def_false;
+}
+
+static int _stereo_layout_and_headphones_check_internal(
+    iamf_mix_presentation_obu_t *mpo, void *data, int headphones) {
+  iamf_database_t *database = (iamf_database_t *)data;
+  if (array_size(mpo->sub_mixes) != 1) return def_false;
+
+  obu_sub_mix_t *sub_mix =
+      def_value_wrap_optional_ptr(array_at(mpo->sub_mixes, 0));
+
+  if (array_size(sub_mix->audio_element_configs) != 1 ||
+      array_size(sub_mix->loudness_layouts) != 1 ||
+      !_matching_loudess_layout_check(
+          mpo, def_sound_system_layout_instance(SOUND_SYSTEM_A), data))
+    return def_false;
+
+  obu_audio_element_config_t *aec =
+      def_value_wrap_optional_ptr(array_at(sub_mix->audio_element_configs, 0));
+  iamf_audio_element_obu_t *e =
+      iamf_database_get_audio_element_obu(database, aec->element_id);
+
+  if (e && e->audio_element_type == ck_audio_element_type_channel_based) {
+    channel_based_audio_element_obu_t *cae =
+        def_channel_based_audio_element_obu_ptr(e);
+    if (array_size(cae->channel_audio_layer_configs) == 1) {
+      obu_channel_layer_config_t *clc = def_value_wrap_optional_ptr(
+          array_at(cae->channel_audio_layer_configs, 0));
+      if (clc->loudspeaker_layout == ck_iamf_loudspeaker_layout_stereo &&
+          (!headphones || !aec->rendering_config.headphones_rendering_mode))
+        return def_true;
     }
   }
   return def_false;
 }
 
-static int _matching_loudess_layout_check(obu_sub_mix_t *sub,
-                                          iamf_layout_t target_layout,
-                                          void *data) {
-  int n = array_size(sub->loudness_layouts);
+static int _stereo_layout_and_headphones_check(iamf_mix_presentation_obu_t *mpo,
+                                               iamf_layout_t unused,
+                                               void *data) {
+  return _stereo_layout_and_headphones_check_internal(mpo, data, 1);
+}
 
-  for (int i = 0; i < n; ++i) {
-    iamf_layout_t *check_layout =
-        def_value_wrap_optional_ptr(array_at(sub->loudness_layouts, i));
-    if (!check_layout) continue;
-    if (iamf_layout_is_equal(target_layout, *check_layout)) return def_true;
+static int _stereo_layout_check(iamf_mix_presentation_obu_t *mpo,
+                                iamf_layout_t unused, void *data) {
+  return _stereo_layout_and_headphones_check_internal(mpo, data, 0);
+}
+
+static int _binaural_layout_check(iamf_mix_presentation_obu_t *mpo,
+                                  iamf_layout_t unused, void *data) {
+  iamf_database_t *database = (iamf_database_t *)data;
+  if (array_size(mpo->sub_mixes) != 1) return def_false;
+
+  obu_sub_mix_t *sub_mix =
+      def_value_wrap_optional_ptr(array_at(mpo->sub_mixes, 0));
+
+  if (array_size(sub_mix->audio_element_configs) != 1) return def_false;
+
+  obu_audio_element_config_t *aec =
+      def_value_wrap_optional_ptr(array_at(sub_mix->audio_element_configs, 0));
+  iamf_audio_element_obu_t *e =
+      iamf_database_get_audio_element_obu(database, aec->element_id);
+
+  if (e && e->audio_element_type == ck_audio_element_type_channel_based) {
+    channel_based_audio_element_obu_t *cae =
+        def_channel_based_audio_element_obu_ptr(e);
+    if (array_size(cae->channel_audio_layer_configs) == 1) {
+      obu_channel_layer_config_t *clc = def_value_wrap_optional_ptr(
+          array_at(cae->channel_audio_layer_configs, 0));
+      if (clc->loudspeaker_layout == ck_iamf_loudspeaker_layout_binaural)
+        return def_true;
+    }
   }
 
   return def_false;
-}
-
-static int _stereo_layout_check(obu_sub_mix_t *sub, iamf_layout_t unused,
-                                void *data) {
-  return _matching_loudess_layout_check(
-             sub, def_sound_system_layout_instance(SOUND_SYSTEM_A), data) &&
-         (array_size(sub->loudness_layouts) == 1);
-}
-
-static int _binaural_layout_check(obu_sub_mix_t *sub,
-                                  iamf_layout_t target_layout, void *data) {
-  iamf_database_t *database = (iamf_database_t *)data;
-  return target_layout.type == ck_iamf_layout_type_binaural
-             ? _audio_element_binaural_layout_check(sub, database)
-             : def_false;
 }
 
 static sample_format_t _get_sample_format(uint32_t bit_depth, int interleaved) {
@@ -319,6 +357,10 @@ static iamf_mix_presentation_obu_t *iamf_decoder_priv_get_best_mix_presentation(
   } else if (ctx->layout.type ==
              ck_iamf_layout_type_loudspeakers_ss_convention) {
     if (ctx->layout.sound_system == SOUND_SYSTEM_A) {
+      obu = iamf_database_find_mix_presentation_obu(
+          database, _stereo_layout_and_headphones_check, target_layout);
+      if (obu) return obu;
+
       obu = iamf_database_find_mix_presentation_obu(
           database, _stereo_layout_check, target_layout);
       if (obu) return obu;

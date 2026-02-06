@@ -32,7 +32,8 @@
 #define def_cartesians_parameter_block_ptr(a) \
   def_ptr(cartesians_parameter_block, a)
 
-typedef int (*func_sub_mix_check_t)(obu_sub_mix_t *, iamf_layout_t, void *);
+typedef int (*func_mix_presentation_obu_check_t)(iamf_mix_presentation_obu_t *,
+                                                 iamf_layout_t, void *);
 
 typedef enum EDBDescriptorsState {
   ck_descriptors_state_none = 0,
@@ -164,7 +165,7 @@ iamf_mix_presentation_obu_t *iamf_database_get_mix_presentation_obu(
 iamf_mix_presentation_obu_t *iamf_database_get_mix_presentation_obu_default(
     iamf_database_t *database);
 iamf_mix_presentation_obu_t *iamf_database_find_mix_presentation_obu(
-    iamf_database_t *database, func_sub_mix_check_t check_func,
+    iamf_database_t *database, func_mix_presentation_obu_check_t check_func,
     iamf_layout_t target_layout);
 iamf_mix_presentation_obu_t *
 iamf_database_find_mix_presentation_obu_with_highest_layout(
