@@ -1017,7 +1017,6 @@ int main(int argc, char *argv[]) {
           fprintf(stdout, "Profile set to %d\n", profile_val);
         } else {
           fprintf(stderr, "Invalid profile value %d\n", profile_val);
-          return -1;
         }
       }
     } else {
