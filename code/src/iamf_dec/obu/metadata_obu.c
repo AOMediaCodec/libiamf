@@ -195,6 +195,5 @@ void iamf_metadata_obu_free(iamf_metadata_obu_t *obu) {
     default:
       // For other types, just free the basic structure
       def_free(obu);
-      break;
   }
 }
