@@ -819,10 +819,11 @@ static int mp4_input_wav_output2(decoder_args_t *das) {
 
   if (!das->path) return -1;
 
+  memset(&mp4par, 0, sizeof(mp4par));
+
   ret = decoder_init(&decoder, das);
   if (ret < 0) goto end;
 
-  memset(&mp4par, 0, sizeof(mp4par));
   mp4_iamf_parser_init(&mp4par);
   mp4_iamf_parser_set_logger(&mp4par, 0);
   ret = mp4_iamf_parser_open_audio_track(&mp4par, das->path, &header);
