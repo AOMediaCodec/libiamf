@@ -13,7 +13,7 @@
 /**
  * @file mp4iamfpar.h
  * @brief MP4 and fMP4 file parser.
- * @version 0.1
+ * @version 2.0.0
  * @date Created 03/03/2023
  **/
 

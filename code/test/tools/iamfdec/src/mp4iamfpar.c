@@ -13,7 +13,7 @@
 /**
  * @file mp4iamfpar.c
  * @brief MP4 and fMP4 file parser.
- * @version 0.1
+ * @version 2.0.0
  * @date Created 03/03/2023
  **/
 
@@ -58,7 +58,7 @@ int mp4_iamf_parser_get_audio_track_header(MP4IAMFParser *ths,
   }
 
   iamf_header = (IAMFHeader *)atr->csc;
-  if (iamf_header == NULL || atr == NULL) {
+  if (!iamf_header) {
     fprintf(stderr, "MP4 file does not have audio track.\n");
     return -1;
   }

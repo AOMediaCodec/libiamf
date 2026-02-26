@@ -31,19 +31,19 @@ This software module is out of scope and not part of the IAMF Final Deliverable.
 #include <stdlib.h>
 #include <string.h>
 
-#include "IAMF_debug.h"
+#include "clog.h"
 
 static int init_default(AudioEffectPeakLimiter*);
 static float compute_target_gain(AudioEffectPeakLimiter*, float);
 inline static float curve_accel(float x);
 
 AudioEffectPeakLimiter* audio_effect_peak_limiter_create(void) {
-  return (AudioEffectPeakLimiter* )calloc(1, sizeof(AudioEffectPeakLimiter));
+  return (AudioEffectPeakLimiter*)calloc(1, sizeof(AudioEffectPeakLimiter));
 }
 
 void audio_effect_peak_limiter_uninit(AudioEffectPeakLimiter* ths) {
 #if USE_TRUEPEAK
-  for (int c = 0; c < MAX_OUTPUT_CHANNELS; ++c) {
+  for (int c = 0; c < MAX_LIMITER_OUTPUT_CHANNELS; ++c) {
     audio_true_peak_meter_deinit(&ths->truePeakMeters[c]);
   }
 #endif
@@ -54,32 +54,33 @@ void audio_effect_peak_limiter_destroy(AudioEffectPeakLimiter* ths) {
   if (ths) free(ths);
 }
 
-// threashold_db: Peak threshold in dB
+// threshold_db: Peak threshold in dB
 // sample_rate : Sample rate of the samples
 // num_channels: number of channels in frame
 // atk_sec : attack duration in seconds
 // rel_sec : release duration in seconds
 // delay_size: number of samples in delay buffer
 void audio_effect_peak_limiter_init(AudioEffectPeakLimiter* ths,
-                                    float threashold_db, int sample_rate,
+                                    float threshold_db, int sample_rate,
                                     int num_channels, float atk_sec,
                                     float rel_sec, int delay_size) {
   init_default(ths);
 
-  ths->linearThreashold = pow(10, threashold_db / 20);
+  ths->linearThreshold = pow(10, threshold_db / 20);
   ths->attackSec = atk_sec;
   ths->releaseSec = rel_sec;
   ths->incTC = (float)1 / (float)sample_rate;
   ths->numChannels = num_channels;
 
   ths->delaySize = delay_size;
-  ths->delayBufferSize = delay_size;
+  ths->delayBufferSize = (delay_size > 0) ? delay_size : 1;
   ths->padsize = delay_size;
 
   for (int channel = 0; channel < num_channels; channel++) {
     for (int i = 0; i < MAX_DELAYSIZE + 1; i++)
       ths->delayData[channel][i] = 0.0f;
   }
+  ths->init = 0;
 }
 
 int audio_effect_peak_limiter_process_block(AudioEffectPeakLimiter* ths,
@@ -123,13 +124,13 @@ int audio_effect_peak_limiter_process_block(AudioEffectPeakLimiter* ths,
       peak = ths->peakData[ths->peak_pos];
     }
 
-    ia_logt("index %d : peak value %f vs %f", k, peak,
-            ths->peak_pos < 0 ? 0 : ths->peakData[ths->peak_pos]);
+    // trace("index %d : peak value %f vs %f", k, peak,
+    //       ths->peak_pos < 0 ? 0 : ths->peakData[ths->peak_pos]);
 #else
-    ia_logt("index %d : peak value %f", k, peak);
+    // trace("index %d : peak value %f", k, peak);
 #endif
     gain = compute_target_gain(ths, peak);
-    ia_logt("index %d : gain value %f", k, gain);
+    // trace("index %d : gain value %f", k, gain);
     peakMax = 0;
 
     for (int channel = 0; channel < ths->numChannels; channel++) {
@@ -140,21 +141,27 @@ int audio_effect_peak_limiter_process_block(AudioEffectPeakLimiter* ths,
         data =
 #endif
             ths->delayData[channel][DB_IDX(idx)] = inblock[pos + k];
-        audioBlock[pos + k] = out;
       } else {  // no delay mode
+        out = inblock[pos + k] * gain;
 #if USE_TRUEPEAK
         data = inblock[pos + k];
 #endif
-        audioBlock[pos + k] = inblock[pos + k] * gain;
       }
+
+      // hard limiter
+      if (fabs(out) > ths->linearThreshold) {
+        out = (out > 0) ? ths->linearThreshold : (-ths->linearThreshold);
+      }
+      audioBlock[pos + k] = out;
+
 #if USE_TRUEPEAK
       // compute true peak if you want
-      ia_logt("data value %f", data);
+      // trace("data value %f", data);
       channel_peak = audio_true_peak_meter_next_true_peak(
           &ths->truePeakMeters[channel], data);
       channel_peak = fabs(channel_peak);
 #else
-      channel_peak = fabs(ths->delayData[channel][DB_IDX(idx)]);
+      channel_peak = fabs(inblock[pos + k]);
 #endif
       if (channel_peak > peakMax) peakMax = channel_peak;
     }
@@ -167,7 +174,7 @@ int audio_effect_peak_limiter_process_block(AudioEffectPeakLimiter* ths,
 #endif
 
     ths->peakData[DB_IDX(idx)] = peakMax;
-    ia_logt("index %d : peak max value %.10f", k, peakMax);
+    // trace("index %d : peak max value %.10f", k, peakMax);
   }
 
   if (ths->delaySize > 0) {
@@ -187,6 +194,7 @@ int audio_effect_peak_limiter_process_block(AudioEffectPeakLimiter* ths,
       }
       frame_size -= ths->padsize;
       ths->init = 1;
+      ths->padsize = 0;
     }
   }
   // transmit the block and release memory
@@ -214,7 +222,7 @@ int init_default(AudioEffectPeakLimiter* ths) {
 #endif
 
 #if USE_TRUEPEAK
-    for (int c = 0; c < MAX_OUTPUT_CHANNELS; ++c) {
+    for (int c = 0; c < MAX_LIMITER_OUTPUT_CHANNELS; ++c) {
       audio_true_peak_meter_init(&ths->truePeakMeters[c]);
     }
 #endif
@@ -244,9 +252,9 @@ float compute_target_gain(AudioEffectPeakLimiter* ths, float peak) {
     ths->currentGain = 1.0;
   }
 
-  if (peak * ths->currentGain > ths->linearThreashold) {  // peak detect
+  if (peak * ths->currentGain > ths->linearThreshold) {  // peak detect
     ths->targetStartGain = ths->currentGain;
-    ths->targetEndGain = ths->linearThreashold / peak;
+    ths->targetEndGain = ths->linearThreshold / peak;
     ths->currentTC = 0.0f;
   }
 

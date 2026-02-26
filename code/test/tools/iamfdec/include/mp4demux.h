@@ -13,7 +13,7 @@
 /**
  * @file mp4demux.h
  * @brief MP4 and fMP4 demux.
- * @version 0.1
+ * @version 2.0.0
  * @date Created 03/03/2023
  **/
 
@@ -65,13 +65,16 @@ typedef struct {
   uint32_t sample_size;  // samples per packet (varable mode = 0, constant mode
                          // = size > 0)
   uint32_t sample_duration;
+  uint32_t default_sample_flags;
   struct {
     chunkinfo *chunks;
     uint32_t chunk_count;
 
-    uint32_t *offs;    // sample offs array(stco)
-    uint32_t *sizes;   // sample size array(stsz)
-    uint32_t *deltas;  // sample count array(stts)
+    uint32_t *offs;       // sample offs array(stco)
+    uint32_t *sizes;      // sample size array(stsz)
+    uint32_t *deltas;     // sample count array(stts)
+    uint32_t *syncs;      // sync sample array(stss)
+    uint32_t sync_count;  // number of sync samples
     uint32_t bufsize;
     uint32_t ents;
     uint32_t ents_offset;
@@ -165,7 +168,6 @@ enum { ERR_OK = 0, ERR_FAIL = -1, ERR_UNSUPPORTED = -2 };
 #endif
 
 mp4r_t *mp4demux_open(const char *name, FILE *logger);
-int mp4demux_getframenum(mp4r_t *mp4r, int trak, uint32_t offs);
 int mp4demux_seek(mp4r_t *mp4r, int trak, int framenum);
 int mp4demux_audio(mp4r_t *mp4r, int trak, int *delta);
 int mp4demux_parse(mp4r_t *mp4r, int trak);
