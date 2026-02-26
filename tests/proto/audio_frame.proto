@@ -8,30 +8,207 @@
 // source code in the PATENTS file, you can obtain it at
 // www.aomedia.org/license/patent.
 
-syntax = "proto2";
+edition = "2023";
 
 package libiamf_proto;
 
-message AudioFrameObuMetadata {
-  optional string wav_filename = 1;
-  reserved 2;
-  reserved 3;
+option features.utf8_validation = NONE;
 
-  // Trimming information.
-  optional uint32 samples_to_trim_at_end = 4;
-  optional uint32 samples_to_trim_at_start = 5;
+enum ChannelLabel {
+  option features.enum_type = CLOSED;
+
+  CHANNEL_LABEL_INVALID = 0;
+
+  reserved 1;  // Reserved for potential "omitted" label.
+
+  // Mono channels.
+  CHANNEL_LABEL_MONO = 2;
+
+  // Stereo or binaural channels.
+  CHANNEL_LABEL_L_2 = 3;
+  CHANNEL_LABEL_R_2 = 4;
+
+  // Channels for objects.
+  CHANNEL_LABEL_OBJECT_CHANNEL0 = 67;
+  CHANNEL_LABEL_OBJECT_CHANNEL1 = 68;
+
+  // Centre channel common to several layouts (e.g. 3.1.2, 5.x.y, 7.x.y).
+  CHANNEL_LABEL_CENTRE = 6;
+
+  // LFE channel common to several layouts (e.g. 3.1.2, 5.1.y, 7.1.y, 9.1.6).
+  CHANNEL_LABEL_LFE = 7;
+
+  // 3.1.2 surround channels.
+  CHANNEL_LABEL_L_3 = 8;
+  CHANNEL_LABEL_R_3 = 9;
+  CHANNEL_LABEL_LTF_3 = 10;
+  CHANNEL_LABEL_RTF_3 = 11;
+
+  // 5.x.y surround channels.
+  CHANNEL_LABEL_L_5 = 14;
+  CHANNEL_LABEL_R_5 = 15;
+  CHANNEL_LABEL_LS_5 = 16;
+  CHANNEL_LABEL_RS_5 = 17;
+
+  // Common channels between 5.1.2 and 7.1.2.
+  CHANNEL_LABEL_LTF_2 = 22;
+  CHANNEL_LABEL_RTF_2 = 23;
+
+  // Common channels between 5.1.4 and 7.1.4.
+  CHANNEL_LABEL_LTF_4 = 26;
+  CHANNEL_LABEL_RTF_4 = 27;
+  CHANNEL_LABEL_LTB_4 = 28;
+  CHANNEL_LABEL_RTB_4 = 29;
+
+  // 7.x.y surround channels.
+  CHANNEL_LABEL_L_7 = 32;
+  CHANNEL_LABEL_R_7 = 33;
+  CHANNEL_LABEL_LSS_7 = 34;
+  CHANNEL_LABEL_RSS_7 = 35;
+  CHANNEL_LABEL_LRS_7 = 36;
+  CHANNEL_LABEL_RRS_7 = 37;
+
+  // 9.1.6 surround channels.
+  CHANNEL_LABEL_FLC = 42;
+  CHANNEL_LABEL_FC = 43;
+  CHANNEL_LABEL_FRC = 44;
+  CHANNEL_LABEL_FL = 45;
+  CHANNEL_LABEL_FR = 46;
+  CHANNEL_LABEL_SI_L = 47;
+  CHANNEL_LABEL_SI_R = 48;
+  CHANNEL_LABEL_BL = 49;
+  CHANNEL_LABEL_BR = 50;
+  CHANNEL_LABEL_TP_FL = 51;
+  CHANNEL_LABEL_TP_FR = 52;
+  CHANNEL_LABEL_TP_SI_L = 53;
+  CHANNEL_LABEL_TP_SI_R = 54;
+  CHANNEL_LABEL_TP_BL = 55;
+  CHANNEL_LABEL_TP_BR = 56;
+
+  // Additional channels for 10.2.9.3.
+  CHANNEL_LABEL_BC = 57;
+  CHANNEL_LABEL_LFE2 = 58;
+  CHANNEL_LABEL_TP_FC = 59;
+  CHANNEL_LABEL_TP_C = 60;
+  CHANNEL_LABEL_TP_BC = 61;
+  CHANNEL_LABEL_BT_FC = 62;
+  CHANNEL_LABEL_BT_FL = 63;
+  CHANNEL_LABEL_BT_FR = 64;
+
+  // Reserved for possible use of demixed labels.
+  reserved 5, 12, 13, 18 to 21, 24, 25, 30, 31, 38 to 41;
+
+  // Additional channels for 7.1.5.4.
+  CHANNEL_LABEL_BT_BL = 65;
+  CHANNEL_LABEL_BT_BR = 66;
+
+  // Reserved for channel-based labels.
+  reserved 69 to 999;
+
+  CHANNEL_LABEL_A_0 = 1000;
+  CHANNEL_LABEL_A_1 = 1001;
+  CHANNEL_LABEL_A_2 = 1002;
+  CHANNEL_LABEL_A_3 = 1003;
+  CHANNEL_LABEL_A_4 = 1004;
+  CHANNEL_LABEL_A_5 = 1005;
+  CHANNEL_LABEL_A_6 = 1006;
+  CHANNEL_LABEL_A_7 = 1007;
+  CHANNEL_LABEL_A_8 = 1008;
+  CHANNEL_LABEL_A_9 = 1009;
+  CHANNEL_LABEL_A_10 = 1010;
+  CHANNEL_LABEL_A_11 = 1011;
+  CHANNEL_LABEL_A_12 = 1012;
+  CHANNEL_LABEL_A_13 = 1013;
+  CHANNEL_LABEL_A_14 = 1014;
+  CHANNEL_LABEL_A_15 = 1015;
+  CHANNEL_LABEL_A_16 = 1016;
+  CHANNEL_LABEL_A_17 = 1017;
+  CHANNEL_LABEL_A_18 = 1018;
+  CHANNEL_LABEL_A_19 = 1019;
+  CHANNEL_LABEL_A_20 = 1020;
+  CHANNEL_LABEL_A_21 = 1021;
+  CHANNEL_LABEL_A_22 = 1022;
+  CHANNEL_LABEL_A_23 = 1023;
+  CHANNEL_LABEL_A_24 = 1024;
+
+  reserved 1025 to 1224;  // Reserved for future ambisonics channels.
+
+  // Next ID: 69 (channel-based) or 1025 (ambisonics).
+}
+
+// Wrapper around the `ChannelLabel` enum to allow for serialization to the
+// protocol buffer wire format.
+message ChannelLabelMessage {
+  ChannelLabel channel_label = 1;
+}
+
+message ChannelMetadata {
+  // Used to map the index of the channel in an ADM or WAV file. Ignored when
+  // data comes from other sources.
+  uint32 channel_id = 1;
+
+  // The IAMF-based channel label.
+  ChannelLabel channel_label = 2;
+}
+
+message AudioFrameObuMetadata {
+  reserved 2, 3, 7, 8;
+  reserved channel_ids, channel_labels;
+
+  string wav_filename = 1;
+
+  // Controls whether the number of samples required to pad the final frame are
+  // automatically added to the `samples_to_trim_at_end` value.
+  //
+  // When `true` `samples_to_trim_at_end` matches `num_samples_to_trim_at_end`
+  // in the OBU header. If the actual value is too small to account for padding,
+  // then encoding will fail. This is useful to closely represent the value in
+  // the OBU (rarely needed).
+  //
+  // When `false` `num_samples_to_trim_at_end` will be incremented by the
+  // amount of required padding and may not match the OBU header value. This is
+  // useful to closely represent the trimming applied to the original audio
+  // content (typically recommended).
+  //
+  // Typically the recommended settings are:
+  //   - samples_to_trim_at_end_includes_padding: false
+  //   - samples_to_trim_at_end: 0
+  // These settings will automatically insert the correct padding to create a
+  // valid final frame and avoid trimming the original audio content.
+  bool samples_to_trim_at_end_includes_padding = 9 [default = true];
+
+  uint32 samples_to_trim_at_end = 4;
+
+  // Controls whether the number of samples required by codec delay for the
+  // initial first frames are automatically added to the
+  // `samples_to_trim_at_start` value.
+  //
+  // When `true` `samples_to_trim_at_start` relates directly to
+  // `samples_to_trim_at_start`s in the initial OBU header. If the actual
+  // value is too small to account for codec delay, then encoding will fail.
+  // This is useful to closely represent the values in the initial OBUs (rarely
+  // needed).
+  //
+  // When `false` `samples_to_trim_at_start` will be incremented by the
+  // amount of required for the codec delay and may not match the OBU header
+  // value. This is useful to closely represent the trimming applied to the
+  // original audio content (typically recommended).
+  //
+  // Typically the recommended settings are:
+  //   - samples_to_trim_at_start_includes_codec_delay: false
+  //   - samples_to_trim_at_start: 0
+  // These settings will automatically insert the correct codec delay to create
+  // a valid final frame and avoid trimming the original audio content.
+  bool samples_to_trim_at_start_includes_codec_delay = 10 [default = true];
+
+  uint32 samples_to_trim_at_start = 5;
 
   // ID of the audio element whose substreams will be provided/mixed
   // from the channels in this WAV file.
-  optional uint32 audio_element_id = 6;
+  uint32 audio_element_id = 6;
 
-  // Channels used in this WAV file, in the order as described in [ITU2051-3]
-  // for loudspeaker layouts or ACN order for ambisonics. May be fewer than
-  // the total number of channels in the WAV file if only a subset is to be
-  // used.
-  repeated uint32 channel_ids = 7 [packed = true];
+  // Metadata for each channel.
+  repeated ChannelMetadata channel_metadatas = 11;
 
-  // Channel Labels, e.g. "L2", "Ls5". For ambisonics, use "A{ACN number}",
-  // e.g. "A0", "A13". Must be of the same length as `channel_ids`.
-  repeated string channel_labels = 8;
+  // Next ID: 12
 }

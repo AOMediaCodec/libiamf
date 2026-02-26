@@ -8,11 +8,13 @@
 // source code in the PATENTS file, you can obtain it at
 // www.aomedia.org/license/patent.
 
-syntax = "proto2";
+edition = "2023";
 
 package libiamf_proto;
 
 import "obu_header.proto";
+
+option features.enum_type = CLOSED;
 
 // Valid proto enums start at index 1, which are different from the
 // corresponding enums in C++, e.g. kLpcmBigEndian = 0.
@@ -23,9 +25,9 @@ enum LpcmFormatFlags {
 }
 
 message LpcmDecoderConfig {
-  optional LpcmFormatFlags sample_format_flags = 1;
-  optional uint32 sample_size = 2;
-  optional uint32 sample_rate = 3;
+  LpcmFormatFlags sample_format_flags = 1;
+  uint32 sample_size = 2;
+  uint32 sample_rate = 3;
 }
 
 enum OpusApplicationFlag {
@@ -37,8 +39,8 @@ enum OpusApplicationFlag {
 
 // Settings to configure `libopus`.
 message OpusEncoderMetadata {
-  optional OpusApplicationFlag application = 2;
-  optional bool use_float_api = 3 [default = true];
+  OpusApplicationFlag application = 2;
+  bool use_float_api = 3 [default = true];
 
   // Fields to control the bitrate.
   //
@@ -48,19 +50,28 @@ message OpusEncoderMetadata {
   //    - One channel: `target_bitrate_per_channel`.
   //    - Two channels: `target_bitrate_per_channel * 2 *
   //  coupling_rate_adjustment`.
-  optional int32 target_bitrate_per_channel = 1;
-  optional float coupling_rate_adjustment = 4 [default = 1.0];
+  int32 target_bitrate_per_channel = 1;
+  // The coupling rate adjustment should be in the range [0.5, 1.0].
+  // At the lower bound, the effective bitrate for coupled channels would be
+  // the same as a mono channel, for highly correlated signals.
+  // At the upper bound, the effective bitrate for a coupled channel would be
+  // two times the rate for a mono channel, for highly disparate signals.
+  float coupling_rate_adjustment = 4 [default = 1.0];
+
   map<uint32, int32> substream_id_to_bitrate_override = 5;
 }
 
 message OpusDecoderConfig {
-  optional uint32 version = 1;
-  optional uint32 output_channel_count = 2 [default = 2];
-  optional uint32 pre_skip = 3;
-  optional uint32 input_sample_rate = 4;
-  optional int32 output_gain = 5 [default = 0];
-  optional uint32 mapping_family = 6 [default = 0];
-  optional OpusEncoderMetadata opus_encoder_metadata = 7;
+  uint32 version = 1;
+  uint32 output_channel_count = 2 [default = 2];
+
+  uint32 pre_skip = 3;
+  uint32 input_sample_rate = 4;
+  int32 output_gain = 5 [default = 0];
+
+  uint32 mapping_family = 6 [default = 0];
+
+  OpusEncoderMetadata opus_encoder_metadata = 7;
 }
 
 enum SampleFrequencyIndex {
@@ -71,7 +82,7 @@ enum SampleFrequencyIndex {
   AAC_SAMPLE_FREQUENCY_INDEX_48000 = 4;
   AAC_SAMPLE_FREQUENCY_INDEX_44100 = 5;
   AAC_SAMPLE_FREQUENCY_INDEX_32000 = 6;
-  AAC_SAMPLE_FREQUENCY_INDEX_23000 = 7;
+  AAC_SAMPLE_FREQUENCY_INDEX_24000 = 7;
   AAC_SAMPLE_FREQUENCY_INDEX_22050 = 8;
   AAC_SAMPLE_FREQUENCY_INDEX_16000 = 9;
   AAC_SAMPLE_FREQUENCY_INDEX_12000 = 10;
@@ -80,42 +91,54 @@ enum SampleFrequencyIndex {
   AAC_SAMPLE_FREQUENCY_INDEX_7350 = 13;
   AAC_SAMPLE_FREQUENCY_INDEX_RESERVED_A = 14;
   AAC_SAMPLE_FREQUENCY_INDEX_RESERVED_B = 15;
-  AAC_SAMPLE_FREQUENCY_INDEX_ESCAPE_VALUE = 16;
+  AAC_SAMPLE_FREQUENCY_INDEX_ESCAPE_VALUE = 16 [deprecated = true];
 }
 
 // Settings to configure `fdk_aac`.
 message AacEncoderMetadata {
-  optional int32 bitrate_mode = 1;
-  optional bool enable_afterburner = 2 [default = true];
-  optional int32 signaling_mode = 3 [default = 2];
+  int32 bitrate_mode = 1;
+  bool enable_afterburner = 2 [default = true];
+
+  int32 signaling_mode = 3 [default = 2];
 }
 
 message AacDecoderSpecificInfo {
-  optional uint32 decoder_specific_info_descriptor_tag = 5 [default = 0x05];
-  optional uint32 audio_object_type = 1 [default = 2];
-  optional SampleFrequencyIndex sample_frequency_index = 2;
-  optional uint32 sampling_frequency = 3;
-  optional uint32 channel_configuration = 4 [default = 2];
+  uint32 decoder_specific_info_descriptor_tag = 5 [default = 0x05];
+
+  uint32 audio_object_type = 1 [default = 2];
+
+  SampleFrequencyIndex sample_frequency_index = 2;
+  uint32 sampling_frequency = 3 [deprecated = true];
+  uint32 channel_configuration = 4 [default = 2];
+
+  // Next ID: 6
 }
 
 message AacGaSpecificConfig {
-  optional bool frame_length_flag = 1 [default = false];
-  optional bool depends_on_core_coder = 2 [default = false];
-  optional bool extension_flag = 3 [default = false];
+  bool frame_length_flag = 1 [default = false];
+
+  bool depends_on_core_coder = 2 [default = false];
+
+  bool extension_flag = 3 [default = false];
 }
 
 message AacDecoderConfig {
-  optional uint32 decoder_config_descriptor_tag = 11 [default = 0x04];
-  optional uint32 object_type_indication = 1 [default = 0x40];
-  optional uint32 stream_type = 2 [default = 5];
-  optional bool upstream = 3 [default = false];
-  optional bool reserved = 4 [default = true];  // As per ISO 14496-1:2010.
-  optional uint32 buffer_size_db = 5;
-  optional uint32 max_bitrate = 6;
-  optional uint32 average_bit_rate = 7;
-  optional AacDecoderSpecificInfo decoder_specific_info = 8;
-  optional AacGaSpecificConfig ga_specific_config = 9;
-  optional AacEncoderMetadata aac_encoder_metadata = 10;
+  uint32 decoder_config_descriptor_tag = 11 [default = 0x04];
+
+  uint32 object_type_indication = 1 [default = 0x40];
+
+  uint32 stream_type = 2 [default = 5];
+
+  bool upstream = 3 [default = false];
+
+  bool reserved = 4 [default = true];  // As per ISO 14496-1:2010.
+
+  uint32 buffer_size_db = 5;
+  uint32 max_bitrate = 6;
+  uint32 average_bit_rate = 7;
+  AacDecoderSpecificInfo decoder_specific_info = 8;
+  AacGaSpecificConfig ga_specific_config = 9;
+  AacEncoderMetadata aac_encoder_metadata = 10;
 }
 
 enum FlacBlockType {
@@ -130,32 +153,38 @@ enum FlacBlockType {
 }
 
 message FlacMetaBlockHeader {
-  optional bool last_metadata_block_flag = 1;
-  optional FlacBlockType block_type = 2;
-  optional uint32 metadata_data_block_length = 3;
+  // Ignored, inferred by the order of repeated fields.
+  bool last_metadata_block_flag = 1 [deprecated = true];
+  FlacBlockType block_type = 2;
+  // Ignored, inferred from the block type and payload size.
+  uint32 metadata_data_block_length = 3 [deprecated = true];
 }
 
 message FlacMetaBlockStreamInfo {
-  optional uint32 minimum_block_size = 1;
-  optional uint32 maximum_block_size = 2;
-  optional uint32 minimum_frame_size = 3 [default = 0];
-  optional uint32 maximum_frame_size = 4 [default = 0];
-  optional uint32 sample_rate = 5;
-  optional uint32 number_of_channels = 6 [default = 1];
-  optional uint32 bits_per_sample = 7;
-  optional uint64 total_samples_in_stream = 8;
-  optional bytes md5_signature = 9
+  uint32 minimum_block_size = 1;
+  uint32 maximum_block_size = 2;
+  uint32 minimum_frame_size = 3 [default = 0];
+
+  uint32 maximum_frame_size = 4 [default = 0];
+
+  uint32 sample_rate = 5;
+  uint32 number_of_channels = 6 [default = 1];
+
+  uint32 bits_per_sample = 7;
+  uint64 total_samples_in_stream = 8;
+  bytes md5_signature = 9
       [default =
-           "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"];
+           "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"];
 }
 
 // Settings to configure `libflac`.
 message FlacEncoderMetadata {
-  optional uint32 compression_level = 1;
+  uint32 compression_level = 1;
 }
 
 message FlacMetaBlock {
-  optional FlacMetaBlockHeader header = 1;
+  FlacMetaBlockHeader header = 1;
+
   oneof data {
     FlacMetaBlockStreamInfo stream_info = 2;
     bytes generic_block = 3;
@@ -163,8 +192,10 @@ message FlacMetaBlock {
 }
 
 message FlacDecoderConfig {
+  reserved 1, 2;
+
   repeated FlacMetaBlock metadata_blocks = 3;
-  optional FlacEncoderMetadata flac_encoder_metadata = 4;
+  FlacEncoderMetadata flac_encoder_metadata = 4;
 }
 
 enum CodecId {
@@ -176,21 +207,36 @@ enum CodecId {
 }
 
 message CodecConfig {
-  optional uint32 deprecated_codec_id = 1 [deprecated = true];
-  optional CodecId codec_id = 10;
-  optional uint32 num_samples_per_frame = 2;
   reserved 3, 4;
-  optional int32 audio_roll_distance = 9;
+
+  uint32 deprecated_codec_id = 1 [deprecated = true];
+
+  CodecId codec_id = 10;
+  uint32 num_samples_per_frame = 2;
+  int32 audio_roll_distance = 9;
+
   oneof decoder_config {
     LpcmDecoderConfig decoder_config_lpcm = 5;
     OpusDecoderConfig decoder_config_opus = 6;
     AacDecoderConfig decoder_config_aac = 7;
     FlacDecoderConfig decoder_config_flac = 8;
   }
+
+  // If true, the codec-delay related fields will be ignored and automatically
+  // determined. For example, the OpusDecoderConfig.pre_skip field will be
+  // ignored and set to the number of samples reported by the underlying encoder
+  // library.
+  bool automatically_override_codec_delay = 11 [default = true];
+
+  // If true, the `audio_roll_distance` will be ignored and automatically be set
+  // to the correct value.
+  bool automatically_override_audio_roll_distance = 12 [default = true];
+
+  // Next ID: 13
 }
 
 message CodecConfigObuMetadata {
-  optional uint32 codec_config_id = 1;
-  optional CodecConfig codec_config = 2;
-  optional ObuHeaderMetadata obu_header = 3;
+  uint32 codec_config_id = 1;
+  CodecConfig codec_config = 2;
+  ObuHeaderMetadata obu_header = 3;
 }

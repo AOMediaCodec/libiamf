@@ -1,4 +1,5 @@
-// Copyright (c) 2023, Alliance for Open Media. All rights reserved
+
+// Copyright (c) 2026, Alliance for Open Media. All rights reserved
 //
 // This source code is subject to the terms of the BSD 3-Clause Clear License
 // and the Alliance for Open Media Patent License 1.0. If the BSD 3-Clause Clear
@@ -12,6 +13,15 @@ edition = "2023";
 
 package libiamf_proto;
 
-message TemporalDelimiterObuMetadata {
-  bool enable_temporal_delimiters = 1;
+option java_outer_classname = "Types";
+option java_multiple_files = true;
+
+// For use when it could be convenient to represent the same logical field as
+// either floating point or Q-format in different contexts.
+message QFormatOrFloatingPoint {
+  oneof value {
+    float floating_point = 1;
+    int32 q7_dot8 = 2;
+    // TODO: b/391851526 - Add Q8.0 format.
+  }
 }

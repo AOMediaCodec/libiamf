@@ -8,7 +8,7 @@
 // source code in the PATENTS file, you can obtain it at
 // www.aomedia.org/license/patent.
 
-syntax = "proto2";
+edition = "2023";
 
 package libiamf_proto;
 
@@ -16,12 +16,15 @@ import "obu_header.proto";
 import "parameter_data.proto";
 
 message ParameterDataExtension {
-  optional uint32 parameter_data_size = 1;
-  optional bytes parameter_data_bytes = 2;
+  // `parameter_data_size` is ignored. The value in the bitstream is inferred
+  // based on the size of `parameter_data_bytes`.
+  uint32 parameter_data_size = 1 [deprecated = true];
+  bytes parameter_data_bytes = 2;
 }
 
 message ParameterSubblock {
-  optional uint32 subblock_duration = 1;
+  uint32 subblock_duration = 1;
+
   oneof parameter_data {
     MixGainParameterData mix_gain_parameter_data = 2;
     DemixingInfoParameterData demixing_info_parameter_data = 3;
@@ -31,11 +34,13 @@ message ParameterSubblock {
 }
 
 message ParameterBlockObuMetadata {
-  optional uint32 parameter_id = 1;
-  optional uint32 duration = 2;
-  optional uint32 num_subblocks = 3;
-  optional uint32 constant_subblock_duration = 4;
+  uint32 parameter_id = 1;
+  uint32 duration = 2;
+  // `num_subblocks` is ignored. The value in the bitstream is inferred based on
+  // the number of `subblocks`.
+  uint32 num_subblocks = 3 [deprecated = true];
+  uint32 constant_subblock_duration = 4;
   repeated ParameterSubblock subblocks = 5;
-  optional int32 start_timestamp = 6;
-  optional ObuHeaderMetadata obu_header = 7;
+  int64 start_timestamp = 6;
+  ObuHeaderMetadata obu_header = 7;
 }
