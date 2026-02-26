@@ -122,6 +122,9 @@ Example:  ./iamfdec -o2 -s9 simple_profile.iamf
 
 ```
 
+### Encoding IAMF content
+The `iamf-tools` reference encoder and its documentation are available at https://github.com/AOMediaCodec/iamf-tools. It provides encoding tools for standalone IAMF, these tools can be used as a complement to other tools such as ffmpeg and MP4Box.
+
 ### Channel ordering
 
 The ordering of channel from IAMF decoder is based on the related [ITU-2051-3](https://www.itu.int/rec/R-REC-BS.2051) layout.  
