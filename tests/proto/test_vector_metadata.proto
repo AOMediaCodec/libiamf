@@ -8,41 +8,53 @@
 // source code in the PATENTS file, you can obtain it at
 // www.aomedia.org/license/patent.
 
-syntax = "proto2";
+edition = "2023";
 
 package libiamf_proto;
 
+option features.utf8_validation = NONE;
+
 enum Leb128GeneratorMode {
+  option features.enum_type = CLOSED;
+
   GENERATE_LEB_INVALID = 0;
+
   // Generate values using the minimum number of bytes.
   GENERATE_LEB_MINIMUM = 1;
+
   // Generate values using the target of bytes.
   GENERATE_LEB_FIXED_SIZE = 2;
 }
 
 message Leb128Generator {
-  optional Leb128GeneratorMode mode = 1 [default = GENERATE_LEB_MINIMUM];
+  Leb128GeneratorMode mode = 1 [default = GENERATE_LEB_MINIMUM];
+
   // Configures the target number of bytes when using `GENERATE_LEB_FIXED_SIZE`
   // mode.
-  optional int32 fixed_size = 2 [default = 5];
+  int32 fixed_size = 2 [default = 5];
 }
 
+// Metadata to describe and annotate test vectors. For historical reasons, some
+// of the fields here are used to control encoder behavior.
 message TestVectorMetadata {
-  optional string human_readable_description = 1;
+  reserved 5;
+
+  string human_readable_description = 1;
+
   // Prefix of the output file names. Leave empty to skip writing to output
   // files.
-  optional string file_name_prefix = 2;
+  string file_name_prefix = 2;
 
   // TODO(b/269708630): Rename `is_valid` to `is_valid_to_encode`.
   // `true` when all mixes are valid to encode. Mixes may be invalid if they
   // contain any mixes that use certain reserved values, or if they exercise any
   // features which are not supported by the encoder.
-  optional bool is_valid = 3;
+  bool is_valid = 3;
+
   // `true` when a compliant decoder would decode at least one valid mix. Some
   // other mixes may be invalid or use reserved values which may be ignored.
-  optional bool is_valid_to_decode = 14 [default = true];
-  optional string mp4_fixed_timestamp = 4;
-  reserved 5;
+  bool is_valid_to_decode = 14 [default = true];
+
   // Tags to identify the repository this test vector belongs to. A repository
   // could be a git branch or it could refer to some other way to organize a
   // test suite.
@@ -56,23 +68,40 @@ message TestVectorMetadata {
   //     branch of https://github.com/AOMediaCodec/libiamf
   repeated string test_repository_tags = 15;
   repeated string primary_tested_spec_sections = 6;
-  optional string base_test = 7;
-  optional int32 ms_per_fragment = 8 [default = 10000];
-  optional bool override_computed_recon_gains = 9 [default = false];
+  string base_test = 7;
+
+  // TODO(b/384960137): Migrate `mp4_fixed_timestamp`, `ms_per_fragment`,
+  //                    `override_computed_recon_gains`,
+  //                    `validate_user_loudness`,
+  //                    `partition_mix_gain_parameter_blocks`, `leb_generator`
+  //                    to `EncoderControlMetadata`.
+
+  // MP4 controls.
+  string mp4_fixed_timestamp = 4;
+  int32 ms_per_fragment = 8 [default = 10000];
+
+  // TODO(b/309461674): Deprecate and add a mode in `EncoderControlMetadata` to
+  //                    use the computed gains, without checking the
+  //                    user-provided gains.
+  // `false` to check that user-provided recon gains match the computed gains.
+  // `true` to override the computed recon gains with the user-provided gains.
+  bool override_computed_recon_gains = 9 [default = false];
 
   // Controls whether to validate the user-provided loudness against the
   // computed loudness.
-  optional bool validate_user_loudness = 13 [default = false];
+  bool validate_user_loudness = 13 [default = false];
 
-  // An override to control the output bit-depth of the output `rendered` wav
-  // file.
-  optional uint32 output_wav_file_bit_depth_override = 12;
+  // Deprecated: This field should not be set and has been superseded by
+  // `EncoderControlMetadata.output_audio_format`.
+  uint32 output_wav_file_bit_depth_override = 12 [deprecated = true];
 
   // `true` partitions the input mix gain parameter blocks to be aligned with
   // single frames. The `param_definition` in the descriptor OBUs must be
   // accurate.
-  optional bool partition_mix_gain_parameter_blocks = 10 [default = true];
+  bool partition_mix_gain_parameter_blocks = 10 [default = true];
 
   // Settings to configure how `Leb128`s are generated.
-  optional Leb128Generator leb_generator = 11;
+  Leb128Generator leb_generator = 11;
+
+  // Next ID: 16
 }

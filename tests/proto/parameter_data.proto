@@ -8,9 +8,11 @@
 // source code in the PATENTS file, you can obtain it at
 // www.aomedia.org/license/patent.
 
-syntax = "proto2";
+edition = "2023";
 
 package libiamf_proto;
+
+option features.enum_type = CLOSED;
 
 enum AnimationType {
   ANIMATE_INVALID = 0;
@@ -19,20 +21,47 @@ enum AnimationType {
   ANIMATE_BEZIER = 3;
 }
 
+// Values are represented to align with the IAMF spec.
+//
+// See https://aomediacodec.github.io/iamf/v1.1.0.html#syntax-mix-gain-param for
+// further details.
+//
+// See detailed examples on Q7.8 format below in `AnimationLinearInt16`.
 message AnimationStepInt16 {
-  optional int32 start_point_value = 1;
+  int32 start_point_value = 1;  // Q7.8.
 }
 
+// Values are represented to align with the IAMF spec.
+//
+// See https://aomediacodec.github.io/iamf/v1.1.0.html#syntax-mix-gain-param for
+// further details.
+//
+// See detailed examples on Q7.8 format below in `AnimationLinearInt16`.
 message AnimationLinearInt16 {
-  optional int32 start_point_value = 1;
-  optional int32 end_point_value = 2;
+  int32 start_point_value = 1;  // Q7.8.
+  int32 end_point_value = 2;    // Q7.8.
 }
 
+// Values are represented to align with the IAMF spec.
+//
+// See https://aomediacodec.github.io/iamf/v1.1.0.html#syntax-mix-gain-param for
+// further details.
+//
+// To convert from dB to Q7.8, multiply by 256. Example:
+//  - For -3 dB, set the proto value to 256 * -3 = -768.
+//  - For +6 dB, set the proto value to 256 * 6 = 1536.
+//
+// To convert from a float in the range [0.0, 1.0] to Q0.8. Multiply by 256 and
+// clamp to the range [0, 255]. Examples:
+//  - For a control point relative time of 0.5, set the proto value to
+//    clam(0.5 * 256, 0, 255) = 128.
+//  - For a control point relative time of 1.0, set the proto value to
+//    clamp(1.0 * 256, 0, 255) = 255.
 message AnimationBezierInt16 {
-  optional int32 start_point_value = 1;
-  optional int32 end_point_value = 2;
-  optional int32 control_point_value = 3;
-  optional uint32 control_point_relative_time = 4;
+  int32 start_point_value = 1;             // Q7.8.
+  int32 end_point_value = 2;               // Q7.8.
+  int32 control_point_value = 3;           // Q7.8.
+  uint32 control_point_relative_time = 4;  // Q0.8.
 }
 
 message AnimatedParameterDataInt16 {
@@ -44,12 +73,13 @@ message AnimatedParameterDataInt16 {
 }
 
 message MixGainParameterData {
-  optional AnimationType animation_type = 1;
-  optional AnimatedParameterDataInt16 param_data = 2;
+  AnimationType animation_type = 1;
+  AnimatedParameterDataInt16 param_data = 2;
 }
 
 enum DMixPMode {
   DMIXP_MODE_INVALID = 0;
+
   //                       (alpha, beta,  gamma, delta, w_idx_offset)
   DMIXP_MODE_1 = 1;  //    (    1,     1, 0.707, 0.707,           -1)
   DMIXP_MODE_2 = 2;  //    (0.707, 0.707, 0.707, 0.707,           -1)
@@ -62,11 +92,13 @@ enum DMixPMode {
 }
 
 message DemixingInfoParameterData {
-  optional DMixPMode dmixp_mode = 1;
-  optional uint32 reserved = 2;
+  DMixPMode dmixp_mode = 1;
+  uint32 reserved = 2;
 }
 
 message ReconGains {
+  reserved 1;
+
   // Mapping from a bit position to a recon gain value.
   // If recon_gain[j] is defined, then the j-th bit of recon_gain_flags[i]
   // (for the i-th layer) will be set.
@@ -74,6 +106,8 @@ message ReconGains {
 }
 
 message ReconGainInfoParameterData {
+  reserved 1;
+
   // Length = `num_layers`.
   repeated ReconGains recon_gains_for_layer = 2;
 }

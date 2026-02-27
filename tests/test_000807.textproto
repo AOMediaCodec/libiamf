@@ -1,0 +1,154 @@
+# Copyright (c) 2025, Alliance for Open Media. All rights reserved
+#
+# This source code is subject to the terms of the BSD 3-Clause Clear License
+# and the Alliance for Open Media Patent License 1.0. If the BSD 3-Clause Clear
+# License was not distributed with this source code in the LICENSE file, you
+# can obtain it at www.aomedia.org/license/software-license/bsd-3-c-c. If the
+# Alliance for Open Media Patent License 1.0 was not distributed with this
+# source code in the PATENTS file, you can obtain it at
+# www.aomedia.org/license/patent.
+
+# proto-file: iamf/cli/proto/user_metadata.proto
+# proto-message: UserMetadata
+
+test_vector_metadata {
+  human_readable_description: "A Base-Advanced Profile Stream with Dual Cartesian 8 Object"
+  file_name_prefix: "test_000807"
+  is_valid: true
+  is_valid_to_decode: true
+  validate_user_loudness: false
+  mp4_fixed_timestamp: "2025-12-09 00:00:00"
+  test_repository_tags: [
+    "github/aomediacodec/libiamf/main"
+  ]
+  primary_tested_spec_sections: [
+    "3.6.4/objects_config with two objects",
+    "3.7.3.3/rendering_config with dual_caretsian_8_param_definition"
+  ]
+  base_test: "test_001016"
+  partition_mix_gain_parameter_blocks: false
+}
+
+encoder_control_metadata {
+  add_build_information_tag: false
+  output_rendered_file_format: OUTPUT_FORMAT_WAV_BIT_DEPTH_AUTOMATIC
+}
+
+ia_sequence_header_metadata {
+  primary_profile: PROFILE_VERSION_BASE_ADVANCED
+  additional_profile: PROFILE_VERSION_BASE_ADVANCED
+}
+
+codec_config_metadata {
+  codec_config_id: 200
+  codec_config {
+    codec_id: CODEC_ID_LPCM
+    num_samples_per_frame: 1024
+    audio_roll_distance: 0
+    decoder_config_lpcm {
+      sample_format_flags: LPCM_LITTLE_ENDIAN
+      sample_size: 16
+      sample_rate: 48000
+    }
+  }
+}
+
+audio_element_metadata {
+  audio_element_id: 300
+  audio_element_type: AUDIO_ELEMENT_OBJECT_BASED
+  reserved: 0
+  codec_config_id: 200
+  audio_substream_ids: [0]
+  objects_config {
+    num_objects: 2
+  }
+}
+
+mix_presentation_metadata {
+  mix_presentation_id: 42
+  annotations_language: ["en-us"]
+  localized_presentation_annotations: ["test_mix_pres"]
+  sub_mixes {
+    audio_elements {
+      audio_element_id: 300
+      localized_element_annotations: ["test_sub_mix_0_audio_element_0"]
+      rendering_config {
+        headphones_rendering_mode: HEADPHONES_RENDERING_MODE_STEREO
+        rendering_config_param_definitions {
+          param_definition_type: PARAM_DEFINITION_TYPE_DUAL_CART_8
+          dual_cart8_param_definition {
+            param_definition {
+              parameter_id: 1
+              parameter_rate: 48000
+              param_definition_mode: 1
+            }
+            default_first_x: 1
+            default_first_y: 2
+            default_first_z: 3
+            default_second_x: 4
+            default_second_y: 5
+            default_second_z: 6
+          }
+        }
+      }
+      element_mix_gain {
+        param_definition {
+          parameter_id: 100
+          parameter_rate: 48000
+          param_definition_mode: 1
+          reserved: 0
+        }
+        default_mix_gain: -768  # -3 dB.
+      }
+    }
+    output_mix_gain {
+      param_definition {
+        parameter_id: 101
+        parameter_rate: 48000
+        param_definition_mode: 1
+        reserved: 0
+      }
+      default_mix_gain: 0  # 0 dB.
+    }
+    layouts {
+      loudness_layout {
+        layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
+        ss_layout {
+          sound_system: SOUND_SYSTEM_A_0_2_0
+          reserved: 0
+        }
+      }
+      loudness {
+        info_type_bit_masks: []
+      }
+    }
+    layouts {
+      loudness_layout {
+        layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
+        ss_layout {
+          sound_system: SOUND_SYSTEM_10_2_7_0
+          reserved: 0
+        }
+      }
+      loudness {
+        info_type_bit_masks: []
+      }
+    }
+  }
+
+}
+
+audio_frame_metadata {
+  samples_to_trim_at_end_includes_padding: false
+  samples_to_trim_at_start_includes_codec_delay: false
+  wav_filename: "dialog_clip_stereo.wav"
+  audio_element_id: 300
+  channel_metadatas: [
+    { channel_id: 0 channel_label: CHANNEL_LABEL_OBJECT_CHANNEL0 },
+    { channel_id: 1 channel_label: CHANNEL_LABEL_OBJECT_CHANNEL1 }
+  ]
+}
+
+temporal_delimiter_metadata {
+  enable_temporal_delimiters: false
+}

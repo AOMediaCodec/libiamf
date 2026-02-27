@@ -1,0 +1,395 @@
+# Copyright (c) 2025, Alliance for Open Media. All rights reserved
+#
+# This source code is subject to the terms of the BSD 3-Clause Clear License
+# and the Alliance for Open Media Patent License 1.0. If the BSD 3-Clause Clear
+# License was not distributed with this source code in the LICENSE file, you
+# can obtain it at www.aomedia.org/license/software-license/bsd-3-c-c. If the
+# Alliance for Open Media Patent License 1.0 was not distributed with this
+# source code in the PATENTS file, you can obtain it at
+# www.aomedia.org/license/patent.
+
+# proto-file: iamf/cli/proto/user_metadata.proto
+# proto-message: UserMetadata
+
+test_vector_metadata {
+  human_readable_description: "An Advanced-1 Profile Stream using a Stereo TpSi Layout, one 0th Order Ambisonics and four Mono Polar Objects."
+  file_name_prefix: "test_000924"
+  is_valid: true
+  is_valid_to_decode: true
+  validate_user_loudness: false
+  mp4_fixed_timestamp: "2025-12-12 00:00:00"
+  test_repository_tags: [
+    "github/aomediacodec/libiamf/main"
+  ]
+  primary_tested_spec_sections: [
+    "3.6.1/expanded_loudspeaker_layout Stereo TpSi",
+    "3.6.3/ambisonics_mono_config",
+    "3.6.4/objects_config",
+    "3.7.2.1/rendering_config with polar_param_definition"
+  ]
+  base_test: "test_000919"
+  partition_mix_gain_parameter_blocks: false
+}
+
+encoder_control_metadata {
+  add_build_information_tag: false
+  output_rendered_file_format: OUTPUT_FORMAT_WAV_BIT_DEPTH_AUTOMATIC
+}
+
+ia_sequence_header_metadata {
+  primary_profile: PROFILE_VERSION_ADVANCED1
+  additional_profile: PROFILE_VERSION_ADVANCED1
+}
+
+codec_config_metadata {
+  codec_config_id: 200
+  codec_config {
+    codec_id: CODEC_ID_LPCM
+    num_samples_per_frame: 1024
+    audio_roll_distance: 0
+    decoder_config_lpcm {
+      sample_format_flags: LPCM_LITTLE_ENDIAN
+      sample_size: 16
+      sample_rate: 48000
+    }
+  }
+}
+
+audio_element_metadata {
+  audio_element_id: 300
+  audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
+  reserved: 0
+  codec_config_id: 200
+  audio_substream_ids: [0]
+  scalable_channel_layout_config {
+    reserved: 0
+    channel_audio_layer_configs: [
+      {
+        loudspeaker_layout: LOUDSPEAKER_LAYOUT_EXPANDED
+        output_gain_is_present_flag: 0
+        recon_gain_is_present_flag: 0
+        reserved_a: 0
+        substream_count: 1
+        coupled_substream_count: 1
+        expanded_loudspeaker_layout: EXPANDED_LOUDSPEAKER_LAYOUT_STEREO_TP_SI
+      }
+    ]
+  }
+}
+
+audio_element_metadata {
+  audio_element_id: 301
+  audio_element_type: AUDIO_ELEMENT_SCENE_BASED
+  reserved: 0
+  codec_config_id: 200
+  audio_substream_ids: [100]
+  ambisonics_config {
+    ambisonics_mode: AMBISONICS_MODE_MONO
+    ambisonics_mono_config {
+      output_channel_count: 1
+      substream_count: 1
+      channel_mapping: [0]
+    }
+  }
+}
+
+audio_element_metadata {
+  audio_element_id: 302
+  audio_element_type: AUDIO_ELEMENT_OBJECT_BASED
+  reserved: 0
+  codec_config_id: 200
+  audio_substream_ids: [101]
+  objects_config {
+    num_objects: 1
+  }
+}
+
+audio_element_metadata {
+  audio_element_id: 303
+  audio_element_type: AUDIO_ELEMENT_OBJECT_BASED
+  reserved: 0
+  codec_config_id: 200
+  audio_substream_ids: [102]
+  objects_config {
+    num_objects: 1
+  }
+}
+
+audio_element_metadata {
+  audio_element_id: 304
+  audio_element_type: AUDIO_ELEMENT_OBJECT_BASED
+  reserved: 0
+  codec_config_id: 200
+  audio_substream_ids: [103]
+  objects_config {
+    num_objects: 1
+  }
+}
+
+audio_element_metadata {
+  audio_element_id: 305
+  audio_element_type: AUDIO_ELEMENT_OBJECT_BASED
+  reserved: 0
+  codec_config_id: 200
+  audio_substream_ids: [104]
+  objects_config {
+    num_objects: 1
+  }
+}
+
+mix_presentation_metadata {
+  mix_presentation_id: 42
+  annotations_language: ["en-us"]
+  localized_presentation_annotations: ["test_mix_pres"]
+  sub_mixes {
+    audio_elements: [
+      {
+        audio_element_id: 300
+        localized_element_annotations: ["test_sub_mix_0_audio_element_0"]
+        rendering_config {
+          headphones_rendering_mode: HEADPHONES_RENDERING_MODE_BINAURAL_WORLD_LOCKED
+        }
+        element_mix_gain {
+          param_definition {
+            parameter_id: 100
+            parameter_rate: 48000
+            param_definition_mode: 1
+            reserved: 0
+          }
+          default_mix_gain: -768  # -3 dB.
+        }
+      },
+      {
+        audio_element_id: 301
+        localized_element_annotations: ["test_sub_mix_0_audio_element_1"]
+        rendering_config {
+          headphones_rendering_mode: HEADPHONES_RENDERING_MODE_BINAURAL_WORLD_LOCKED
+        }
+        element_mix_gain {
+          param_definition {
+            parameter_id: 100
+            parameter_rate: 48000
+            param_definition_mode: 1
+            reserved: 0
+          }
+          default_mix_gain: -768  # -3 dB.
+        }
+      },
+      {
+        audio_element_id: 302
+        localized_element_annotations: ["test_sub_mix_0_audio_element_2"]
+        rendering_config {
+          headphones_rendering_mode: HEADPHONES_RENDERING_MODE_BINAURAL_WORLD_LOCKED
+          rendering_config_param_definitions {
+            param_definition_type: PARAM_DEFINITION_TYPE_POLAR
+            polar_param_definition {
+              param_definition {
+                parameter_id: 2
+                parameter_rate: 48000
+                param_definition_mode: 1
+              }
+              default_azimuth: 30
+              default_elevation: 0
+              default_distance: 127
+            }
+          }
+        }
+        element_mix_gain {
+          param_definition {
+            parameter_id: 100
+            parameter_rate: 48000
+            param_definition_mode: 1
+            reserved: 0
+          }
+          default_mix_gain: -768  # -3 dB.
+        }
+      },
+      {
+        audio_element_id: 303
+        localized_element_annotations: ["test_sub_mix_0_audio_element_3"]
+        rendering_config {
+          headphones_rendering_mode: HEADPHONES_RENDERING_MODE_BINAURAL_WORLD_LOCKED
+          rendering_config_param_definitions {
+            param_definition_type: PARAM_DEFINITION_TYPE_POLAR
+            polar_param_definition {
+              param_definition {
+                parameter_id: 3
+                parameter_rate: 48000
+                param_definition_mode: 1
+              }
+              default_azimuth: -30
+              default_elevation: 0
+              default_distance: 127
+            }
+          }
+        }
+        element_mix_gain {
+          param_definition {
+            parameter_id: 100
+            parameter_rate: 48000
+            param_definition_mode: 1
+            reserved: 0
+          }
+          default_mix_gain: -768  # -3 dB.
+        }
+      },
+      {
+        audio_element_id: 304
+        localized_element_annotations: ["test_sub_mix_0_audio_element_4"]
+        rendering_config {
+          headphones_rendering_mode: HEADPHONES_RENDERING_MODE_BINAURAL_WORLD_LOCKED
+          rendering_config_param_definitions {
+            param_definition_type: PARAM_DEFINITION_TYPE_POLAR
+            polar_param_definition {
+              param_definition {
+                parameter_id: 4
+                parameter_rate: 48000
+                param_definition_mode: 1
+              }
+              default_azimuth: 120
+              default_elevation: 0
+              default_distance: 64
+            }
+          }
+        }
+        element_mix_gain {
+          param_definition {
+            parameter_id: 100
+            parameter_rate: 48000
+            param_definition_mode: 1
+            reserved: 0
+          }
+          default_mix_gain: -768  # -3 dB.
+        }
+      },
+      {
+        audio_element_id: 305
+        localized_element_annotations: ["test_sub_mix_0_audio_element_5"]
+        rendering_config {
+          headphones_rendering_mode: HEADPHONES_RENDERING_MODE_BINAURAL_WORLD_LOCKED
+          rendering_config_param_definitions {
+            param_definition_type: PARAM_DEFINITION_TYPE_POLAR
+            polar_param_definition {
+              param_definition {
+                parameter_id: 5
+                parameter_rate: 48000
+                param_definition_mode: 1
+              }
+              default_azimuth: -120
+              default_elevation: 0
+              default_distance: 64
+            }
+          }
+        }
+        element_mix_gain {
+          param_definition {
+            parameter_id: 100
+            parameter_rate: 48000
+            param_definition_mode: 1
+            reserved: 0
+          }
+          default_mix_gain: -768  # -3 dB.
+        }
+      }
+    ]
+    output_mix_gain {
+      param_definition {
+        parameter_id: 101
+        parameter_rate: 48000
+        param_definition_mode: 1
+        reserved: 0
+      }
+      default_mix_gain: 0  # 0 dB.
+    }
+    layouts {
+      loudness_layout {
+        layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
+        ss_layout {
+          sound_system: SOUND_SYSTEM_A_0_2_0
+          reserved: 0
+        }
+      }
+      loudness {
+        info_type_bit_masks: []
+      }
+    }
+    layouts {
+      loudness_layout {
+        layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
+        ss_layout {
+          sound_system: SOUND_SYSTEM_H_9_10_3
+          reserved: 0
+        }
+      }
+      loudness {
+        info_type_bit_masks: []
+      }
+    }
+  }
+
+}
+
+audio_frame_metadata {
+  samples_to_trim_at_end_includes_padding: false
+  samples_to_trim_at_start_includes_codec_delay: false
+  wav_filename: "Mechanism_5s.wav"
+  audio_element_id: 300
+  channel_metadatas: [
+    { channel_id: 10 channel_label: CHANNEL_LABEL_TP_SI_L },  # Ltb4 in the original file.
+    { channel_id: 11 channel_label: CHANNEL_LABEL_TP_SI_R }  # Rtb4 in the original file.
+  ]
+}
+
+audio_frame_metadata {
+  samples_to_trim_at_end_includes_padding: false
+  samples_to_trim_at_start_includes_codec_delay: false
+  wav_filename: "sine_1000_4oa_48khz.wav"
+  audio_element_id: 301
+  channel_metadatas: [
+    { channel_id: 0 channel_label: CHANNEL_LABEL_A_0 }
+  ]
+}
+
+audio_frame_metadata {
+  samples_to_trim_at_end_includes_padding: false
+  samples_to_trim_at_start_includes_codec_delay: false
+  wav_filename: "sine_1000_4oa_48khz.wav"
+  audio_element_id: 302
+  channel_metadatas: [
+    { channel_id: 0 channel_label: CHANNEL_LABEL_OBJECT_CHANNEL0 }
+  ]
+}
+
+audio_frame_metadata {
+  samples_to_trim_at_end_includes_padding: false
+  samples_to_trim_at_start_includes_codec_delay: false
+  wav_filename: "sine_1000_4oa_48khz.wav"
+  audio_element_id: 303
+  channel_metadatas: [
+    { channel_id: 0 channel_label: CHANNEL_LABEL_OBJECT_CHANNEL0 }
+  ]
+}
+
+audio_frame_metadata {
+  samples_to_trim_at_end_includes_padding: false
+  samples_to_trim_at_start_includes_codec_delay: false
+  wav_filename: "sine_1000_4oa_48khz.wav"
+  audio_element_id: 304
+  channel_metadatas: [
+    { channel_id: 0 channel_label: CHANNEL_LABEL_OBJECT_CHANNEL0 }
+  ]
+}
+
+audio_frame_metadata {
+  samples_to_trim_at_end_includes_padding: false
+  samples_to_trim_at_start_includes_codec_delay: false
+  wav_filename: "sine_1000_4oa_48khz.wav"
+  audio_element_id: 305
+  channel_metadatas: [
+    { channel_id: 0 channel_label: CHANNEL_LABEL_OBJECT_CHANNEL0 }
+  ]
+}
+
+temporal_delimiter_metadata {
+  enable_temporal_delimiters: false
+}

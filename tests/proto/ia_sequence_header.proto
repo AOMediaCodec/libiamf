@@ -8,23 +8,29 @@
 // source code in the PATENTS file, you can obtain it at
 // www.aomedia.org/license/patent.
 
-syntax = "proto2";
+edition = "2023";
 
 package libiamf_proto;
 
 import "obu_header.proto";
 
 enum ProfileVersion {
+  option features.enum_type = CLOSED;
+
   PROFILE_VERSION_INVALID = 0;
   PROFILE_VERSION_SIMPLE = 1;
   PROFILE_VERSION_BASE = 2;
   PROFILE_VERSION_BASE_ENHANCED = 3;
+  PROFILE_VERSION_BASE_ADVANCED = 4;
+  PROFILE_VERSION_ADVANCED1 = 5;
+  PROFILE_VERSION_ADVANCED2 = 6;
   PROFILE_VERSION_RESERVED_255 = 256;
 }
 
 message IASequenceHeaderObuMetadata {
-  optional uint32 ia_code = 1 [default = 0x69616d66 /* "iamf" */];
-  optional ProfileVersion primary_profile = 2;
-  optional ProfileVersion additional_profile = 3;
-  optional ObuHeaderMetadata obu_header = 4;
+  uint32 ia_code = 1 [default = 0x69616d66 /* "iamf" */, deprecated = true];
+
+  ProfileVersion primary_profile = 2;
+  ProfileVersion additional_profile = 3;
+  ObuHeaderMetadata obu_header = 4;
 }

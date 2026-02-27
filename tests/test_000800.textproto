@@ -1,0 +1,212 @@
+# Copyright (c) 2025, Alliance for Open Media. All rights reserved
+#
+# This source code is subject to the terms of the BSD 3-Clause Clear License
+# and the Alliance for Open Media Patent License 1.0. If the BSD 3-Clause Clear
+# License was not distributed with this source code in the LICENSE file, you
+# can obtain it at www.aomedia.org/license/software-license/bsd-3-c-c. If the
+# Alliance for Open Media Patent License 1.0 was not distributed with this
+# source code in the PATENTS file, you can obtain it at
+# www.aomedia.org/license/patent.
+
+# proto-file: iamf/cli/proto/user_metadata.proto
+# proto-message: UserMetadata
+
+test_vector_metadata {
+  human_readable_description: "A Base-Advanced Profile Stream with Objects and a PolarParameterDefinition"
+  file_name_prefix: "test_000800"
+  is_valid: true
+  is_valid_to_decode: true
+  validate_user_loudness: false
+  mp4_fixed_timestamp: "2025-12-09 00:00:00"
+  test_repository_tags: [
+    "github/aomediacodec/libiamf/main"
+  ]
+  primary_tested_spec_sections: [
+    "3.6.4/objects_config",
+    "3.7.1/rendering_config_ with param_definition_polar"
+  ]
+  base_test: "test_001016"
+  partition_mix_gain_parameter_blocks: false
+}
+
+encoder_control_metadata {
+  add_build_information_tag: false
+  output_rendered_file_format: OUTPUT_FORMAT_WAV_BIT_DEPTH_AUTOMATIC
+}
+
+ia_sequence_header_metadata {
+  primary_profile: PROFILE_VERSION_BASE_ADVANCED
+  additional_profile: PROFILE_VERSION_BASE_ADVANCED
+}
+
+codec_config_metadata {
+  codec_config_id: 200
+  codec_config {
+    codec_id: CODEC_ID_LPCM
+    num_samples_per_frame: 1024
+    audio_roll_distance: 0
+    decoder_config_lpcm {
+      sample_format_flags: LPCM_LITTLE_ENDIAN
+      sample_size: 16
+      sample_rate: 48000
+    }
+  }
+}
+
+audio_element_metadata {
+  audio_element_id: 300
+  audio_element_type: AUDIO_ELEMENT_OBJECT_BASED
+  reserved: 0
+  codec_config_id: 200
+  audio_substream_ids: [0]
+  objects_config {
+    num_objects: 1
+  }
+}
+
+mix_presentation_metadata {
+  mix_presentation_id: 42
+  annotations_language: ["en-us"]
+  localized_presentation_annotations: ["test_mix_pres"]
+  sub_mixes {
+    audio_elements {
+      audio_element_id: 300
+      localized_element_annotations: ["test_sub_mix_0_audio_element_0"]
+      rendering_config {
+        headphones_rendering_mode: HEADPHONES_RENDERING_MODE_STEREO
+        rendering_config_param_definitions {
+          param_definition_type: PARAM_DEFINITION_TYPE_POLAR
+          polar_param_definition {
+            param_definition {
+              parameter_id: 1
+              parameter_rate: 48000
+              param_definition_mode: 0
+              duration: 1024
+              constant_subblock_duration: 1024
+            }
+            default_azimuth: 0
+            default_elevation: 0
+            default_distance: 127
+          }
+        }
+      }
+      element_mix_gain {
+        param_definition {
+          parameter_id: 100
+          parameter_rate: 48000
+          param_definition_mode: 1
+          reserved: 0
+        }
+        default_mix_gain: -768  # -3 dB.
+      }
+    }
+    output_mix_gain {
+      param_definition {
+        parameter_id: 101
+        parameter_rate: 48000
+        param_definition_mode: 1
+        reserved: 0
+      }
+      default_mix_gain: 0  # 0 dB.
+    }
+    layouts {
+      loudness_layout {
+        layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
+        ss_layout {
+          sound_system: SOUND_SYSTEM_A_0_2_0
+          reserved: 0
+        }
+      }
+      loudness {
+        info_type_bit_masks: []
+      }
+    }
+    layouts {
+      loudness_layout {
+        layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
+        ss_layout {
+          sound_system: SOUND_SYSTEM_12_0_1_0
+          reserved: 0
+        }
+      }
+      loudness {
+        info_type_bit_masks: []
+      }
+    }
+  }
+
+}
+
+arbitrary_obu_metadata {
+  # A step parameter block in front of the listener.
+  insertion_hook: INSERTION_HOOK_AFTER_PARAMETER_BLOCKS_AT_TICK
+  insertion_tick: 0
+  obu_type: OBU_IA_PARAMETER_BLOCK
+  payload:
+    # `parameter_id` (1)`.
+    "\x01"
+    # `animation_type` = `STEP`.
+    "\x00"
+    # Azimuth: 0, Elevation: 0, Distance: 127.
+    "\x00\x00\x7f"
+}
+
+arbitrary_obu_metadata {
+  # An inter-linear parameter block in to the left of the listener.
+  insertion_hook: INSERTION_HOOK_AFTER_PARAMETER_BLOCKS_AT_TICK
+  insertion_tick: 1024
+  obu_type: OBU_IA_PARAMETER_BLOCK
+  payload:
+    # `parameter_id` (1)`.
+    "\x01"
+    # `animation_type` = `INTER_LINEAR`.
+    "\x03"
+    # Azimuth: +90, Elevation: 0, Distance: 127.
+    "\x2d\x00\x7f"
+}
+
+arbitrary_obu_metadata {
+  # An inter-linear parameter block in to the rear of the listener.
+  insertion_hook: INSERTION_HOOK_AFTER_PARAMETER_BLOCKS_AT_TICK
+  insertion_tick: 2048
+  obu_type: OBU_IA_PARAMETER_BLOCK
+  payload:
+    # `parameter_id` (1)`.
+    "\x01"
+    # `animation_type` = `INTER_LINEAR`.
+    "\x03"
+    # Azimuth: +180, Elevation: 0, Distance: 127.
+    "\x5a\x00\x7f"
+}
+
+arbitrary_obu_metadata {
+  # An inter-linear parameter block in to the right of the listener.
+  insertion_hook: INSERTION_HOOK_AFTER_PARAMETER_BLOCKS_AT_TICK
+  insertion_tick: 3072
+  obu_type: OBU_IA_PARAMETER_BLOCK
+  payload:
+    # `parameter_id` (1)`.
+    "\x01"
+    # `animation_type` = `INTER_LINEAR`.
+    "\x03"
+    # Azimuth: -90, Elevation: 0, Distance: 127.
+    "\xd3\x00\x7f"
+}
+
+# Note that remaining frames exercise "parameter block gaps". They default based
+# on the parameter definition. In this case, this is to the front of the
+# listener.
+
+audio_frame_metadata {
+  samples_to_trim_at_end_includes_padding: false
+  samples_to_trim_at_start_includes_codec_delay: false
+  wav_filename: "dialog_clip_stereo.wav"
+  audio_element_id: 300
+  channel_metadatas: [
+    { channel_id: 0 channel_label: CHANNEL_LABEL_OBJECT_CHANNEL0 }
+  ]
+}
+
+temporal_delimiter_metadata {
+  enable_temporal_delimiters: false
+}

@@ -8,7 +8,7 @@
 // source code in the PATENTS file, you can obtain it at
 // www.aomedia.org/license/patent.
 
-syntax = "proto2";
+edition = "2023";
 
 package libiamf_proto;
 
@@ -17,36 +17,112 @@ import "parameter_data.proto";
 // Valid proto enums start at index 1, which are different from the
 // corresponding enums in C++, e.g. kParameterDefinitionMixGain = 0.
 enum ParamDefinitionType {
+  option features.enum_type = CLOSED;
+
   PARAM_DEFINITION_TYPE_INVALID = 0;
   PARAM_DEFINITION_TYPE_MIX_GAIN = 1;
   PARAM_DEFINITION_TYPE_DEMIXING = 2;
   PARAM_DEFINITION_TYPE_RECON_GAIN = 3;
-  PARAM_DEFINITION_TYPE_RESERVED_3 = 4;
+  PARAM_DEFINITION_TYPE_POLAR = 4;
+  PARAM_DEFINITION_TYPE_CART_8 = 5;
+  PARAM_DEFINITION_TYPE_CART_16 = 6;
+  PARAM_DEFINITION_TYPE_DUAL_POLAR = 7;
+  PARAM_DEFINITION_TYPE_DUAL_CART_8 = 8;
+  PARAM_DEFINITION_TYPE_DUAL_CART_16 = 9;
+  PARAM_DEFINITION_TYPE_RESERVED_255 = 256;
 }
 
 message ParamDefinition {
-  optional uint32 parameter_id = 1;
-  optional uint32 parameter_rate = 2;
-  optional bool param_definition_mode = 3;
-  optional uint32 reserved = 4;
-  optional uint32 duration = 5;
-  optional uint32 constant_subblock_duration = 7;
-  optional uint32 num_subblocks = 6;
-  repeated uint32 subblock_durations = 8 [packed = true];
+  uint32 parameter_id = 1;
+  uint32 parameter_rate = 2;
+  bool param_definition_mode = 3;
+  uint32 reserved = 4;
+  uint32 duration = 5;
+  uint32 constant_subblock_duration = 7;
+  // `num_subblocks` is ignored. The value in the bitstream is inferred based on
+  // the number of `subblock_durations`.
+  uint32 num_subblocks = 6 [deprecated = true];
+  repeated uint32 subblock_durations = 8;
 }
 
+// Values are represented to align with the IAMF spec.
+//
+// See
+// https://aomediacodec.github.io/iamf/v1.1.0.html#syntax-mixgain-parameter-definition
+// for further details.
+//
+// To convert from dB to Q7.8, multiply by 256. Example:
+//  - For -3 dB, set the proto value to 256 * -3 = -768.
+//  - For +6 dB, set the proto value to 256 * 6 = 1536.
 message MixGainParamDefinition {
-  optional ParamDefinition param_definition = 1;
-  optional int32 default_mix_gain = 2;
+  ParamDefinition param_definition = 1;
+  int32 default_mix_gain = 2;  // Q7.8.
 }
 
 message DemixingParamDefinition {
-  optional ParamDefinition param_definition = 1;
-  optional DemixingInfoParameterData default_demixing_info_parameter_data = 2;
-  optional uint32 default_w = 3;
-  optional uint32 reserved = 4;
+  ParamDefinition param_definition = 1;
+  DemixingInfoParameterData default_demixing_info_parameter_data = 2;
+  uint32 default_w = 3;
+  uint32 reserved = 4;
 }
 
 message ReconGainParamDefinition {
-  optional ParamDefinition param_definition = 1;
+  ParamDefinition param_definition = 1;
+}
+
+message PolarParamDefinition {
+  ParamDefinition param_definition = 1;
+  int32 default_azimuth = 2;  // 9 bits.
+  // `default_azimuth` is clipped to [-180, 180].
+  int32 default_elevation = 3;  // 8 bits.
+  // `default_elevation` is clipped to [-90, 90].
+  int32 default_distance = 4;  // 7 bits.
+}
+
+message Cart8ParamDefinition {
+  ParamDefinition param_definition = 1;
+  int32 default_x = 2;  // 8 bits.
+  int32 default_y = 3;  // 8 bits.
+  int32 default_z = 4;  // 8 bits.
+}
+
+message Cart16ParamDefinition {
+  ParamDefinition param_definition = 1;
+  int32 default_x = 2;  // 16 bits.
+  int32 default_y = 3;  // 16 bits.
+  int32 default_z = 4;  // 16 bits.
+}
+
+message DualPolarParamDefinition {
+  ParamDefinition param_definition = 1;
+  int32 default_first_azimuth = 2;  // 9 bits.
+  // `default_first_azimuth` is clipped to [-180, 180].
+  int32 default_first_elevation = 3;  // 8 bits.
+  // `default_first_elevation` is clipped to [-90, 90].
+  int32 default_first_distance = 4;  // 7 bits.
+  int32 default_second_azimuth = 5;  // 9 bits.
+  // `default_second_azimuth` is clipped to [-180, 180].
+  int32 default_second_elevation = 6;  // 8 bits.
+  // `default_second_elevation` is clipped to [-90, 90].
+  int32 default_second_distance = 7;  // 7 bits.
+}
+
+message DualCart8ParamDefinition {
+  ParamDefinition param_definition = 1;
+  int32 default_first_x = 2;   // 8 bits.
+  int32 default_first_y = 3;   // 8 bits.
+  int32 default_first_z = 4;   // 8 bits.
+  int32 default_second_x = 5;  // 8 bits.
+  int32 default_second_y = 6;  // 8 bits.
+  int32 default_second_z = 7;  // 8 bits.
+}
+
+message DualCart16ParamDefinition {
+  ParamDefinition param_definition = 1;
+  int32 default_first_x = 2;   // 16 bits.
+  int32 default_first_y = 3;   // 16 bits.
+  int32 default_first_z = 4;   // 16 bits.
+  int32 default_second_x = 5;  // 16 bits.
+  int32 default_second_y = 6;  // 16 bits.
+  int32 default_second_z = 7;  // 16 bits.
 }

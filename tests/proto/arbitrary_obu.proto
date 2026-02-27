@@ -8,13 +8,17 @@
 // source code in the PATENTS file, you can obtain it at
 // www.aomedia.org/license/patent.
 
-syntax = "proto2";
+edition = "2023";
 
 package libiamf_proto;
 
 import "obu_header.proto";
 
+option features.enum_type = CLOSED;
+
 enum ArbitraryObuType {
+  option allow_alias = true;
+
   OBU_IA_INVALID = 0;
   OBU_IA_CODEC_CONFIG = 1;
   OBU_IA_AUDIO_ELEMENT = 2;
@@ -40,7 +44,8 @@ enum ArbitraryObuType {
   OBU_IA_AUDIO_FRAME_ID_15 = 22;
   OBU_IA_AUDIO_FRAME_ID_16 = 23;
   OBU_IA_AUDIO_FRAME_ID_17 = 24;
-  OBU_IA_RESERVED_24 = 25;
+  OBU_IA_RESERVED_24 = 25 [deprecated = true];
+  OBU_IA_METADATA = 25;
   OBU_IA_RESERVED_25 = 26;
   OBU_IA_RESERVED_26 = 27;
   OBU_IA_RESERVED_27 = 28;
@@ -52,7 +57,11 @@ enum ArbitraryObuType {
 
 enum InsertionHook {
   INSERTION_HOOK_INVALID = 0;
+  // Places this before the canonical descriptors. In an MP4 context, this would
+  // be early in the "IACB" box.
   INSERTION_HOOK_BEFORE_DESCRIPTORS = 1;
+  // Places this after the canonical descriptors. In an MP4 context, this would
+  // be late in the "IACB" box.
   INSERTION_HOOK_AFTER_DESCRIPTORS = 2;
   INSERTION_HOOK_AFTER_IA_SEQUENCE_HEADER = 3;
   INSERTION_HOOK_AFTER_CODEC_CONFIGS = 4;
@@ -64,13 +73,15 @@ enum InsertionHook {
 }
 
 message ArbitraryObuMetadata {
-  optional InsertionHook insertion_hook = 1;
-  optional ArbitraryObuType obu_type = 4;
-  optional ObuHeaderMetadata obu_header = 2;
-  optional bytes payload = 3;
+  InsertionHook insertion_hook = 1;
+  ArbitraryObuType obu_type = 4;
+  ObuHeaderMetadata obu_header = 2;
+  bytes payload = 3;
+
   // Used to force the bitstream to be invalid when this OBU is inserted.
-  optional bool invalidates_bitstream = 5;
+  bool invalidates_bitstream = 5;
+
   // Used to control the temporal unit when using the *_AT_TICK insertion hooks.
   // Ignored otherwise.
-  optional int64 insertion_tick = 6;
+  int64 insertion_tick = 6;
 }
