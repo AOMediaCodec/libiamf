@@ -8,7 +8,7 @@
 # source code in the PATENTS file, you can obtain it at
 # www.aomedia.org/license/patent.
 
-# proto-file: third_party/iamf_tools/iamf/cli/proto/user_metadata.proto
+# proto-file: iamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
 test_vector_metadata {
@@ -37,6 +37,11 @@ test_vector_metadata {
   base_test: "test_000705"
 }
 
+encoder_control_metadata {
+  add_build_information_tag: false
+  output_rendered_file_format: OUTPUT_FORMAT_WAV_BIT_DEPTH_AUTOMATIC
+}
+
 ia_sequence_header_metadata {
   primary_profile: PROFILE_VERSION_BASE_ENHANCED
   additional_profile: PROFILE_VERSION_RESERVED_255
@@ -62,11 +67,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [0]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -85,11 +87,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [1]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -108,11 +107,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [2]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -131,11 +127,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [3]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -154,11 +147,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [4]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -177,11 +167,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [5]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -200,11 +187,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [6]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -223,11 +207,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [7]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -246,11 +227,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [8]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -269,11 +247,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [9]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -292,11 +267,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [10]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -315,11 +287,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [11]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -338,11 +307,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [12]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -361,11 +327,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [13]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -384,11 +347,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [14]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -407,11 +367,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [15]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -430,11 +387,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [16]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -453,11 +407,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [17]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -476,11 +427,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [318]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -499,11 +447,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [319]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -522,11 +467,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [20]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -545,11 +487,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [21]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -568,11 +507,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [22]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -591,11 +527,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [23]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -614,11 +547,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [24]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -637,11 +567,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [25]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -660,11 +587,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [26]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -683,11 +607,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [27]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -706,11 +627,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [28]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -729,12 +647,9 @@ audio_element_metadata: [
 mix_presentation_metadata [
   {
     mix_presentation_id: 42
-    count_label: 1
     annotations_language: ["en-us"]
     localized_presentation_annotations: ["test_mix_pres"]
-    num_sub_mixes: 1
     sub_mixes {
-      num_audio_elements: 29
       audio_elements: [
         {
           audio_element_id: 300
@@ -1211,7 +1126,6 @@ mix_presentation_metadata [
         }
         default_mix_gain: 0
       }
-      num_layouts: 1
       layouts {
         loudness_layout {
           layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
@@ -1229,7 +1143,6 @@ mix_presentation_metadata [
     }
     include_mix_presentation_tags: true
     mix_presentation_tags: {
-      num_tags: 1
       tags: {
         tag_name: "content_language"
         tag_value: "eng"
@@ -1238,12 +1151,9 @@ mix_presentation_metadata [
   },
   {
     mix_presentation_id: 43
-    count_label: 1
     annotations_language: ["en-us"]
     localized_presentation_annotations: ["test_mix_pres"]
-    num_sub_mixes: 1
     sub_mixes {
-      num_audio_elements: 2
       audio_elements: [
         {
           audio_element_id: 300
@@ -1287,7 +1197,6 @@ mix_presentation_metadata [
         }
         default_mix_gain: 0
       }
-      num_layouts: 1
       layouts {
         loudness_layout {
           layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
@@ -1305,7 +1214,6 @@ mix_presentation_metadata [
     }
     include_mix_presentation_tags: true
     mix_presentation_tags: {
-      num_tags: 1
       tags: {
         tag_name: "content_language"
         tag_value: "eng"
@@ -1320,232 +1228,261 @@ audio_frame_metadata: [
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 300
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 301
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 302
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 303
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 304
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 305
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 306
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 307
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 308
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 309
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 310
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 311
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 312
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 313
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 314
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 315
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 316
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 317
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 318
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 319
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 320
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 321
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 322
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 323
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 324
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 325
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 326
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 327
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   },
   {
     wav_filename: "sine_1500_stereo_48khz_-15dBFS.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 328
-    channel_ids: [0]
-    channel_labels: ["M"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_MONO }
+    ]
   }
 ]
 
