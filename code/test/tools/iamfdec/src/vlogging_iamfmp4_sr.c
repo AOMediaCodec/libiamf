@@ -98,7 +98,8 @@ int utc2rstring(uint64_t utc, char* txt, int sizemax) {
   enum { BUFSIZE = 40 };
   char buf[BUFSIZE];
   int j;
-  if (utc >= 208284480) utc -= 2082844800;
+  uint64_t tmp = 2082844800;
+  if (utc >= tmp) utc -= tmp;
   new_tm = gmtime(&utc);
   sprintf(buf, "%04d-%02d-%02d %02d:%02d:%02d UTC",
           new_tm->tm_year + 1900,  // years since 1900
@@ -1392,6 +1393,57 @@ static void write_stts_atom_log(char** log, void* atom_d, int size,
   write_postfix(LOG_MP4BOX, *log + len);
 }
 
+static void write_stss_atom_log(char** log, void* atom_d, int size,
+                                uint64_t atom_addr) {
+  /*
+  <stss>
+  <HeaderSize Value="8"/>
+  <DataSize Value="8"/>
+  <Size Value="16"/>
+  <ParserReadBytes Value="16"/>
+  <Version Value="0"/>
+  <Flags Value="0x00000000"/>
+  <EntryCount Value="0"/>
+  </stss>
+  */
+  uint32_t val;
+  int index = 0;
+  int entry_count = 0;
+  int cnt;
+
+  int len = write_prefix(LOG_MP4BOX, *log);
+  len += write_yaml_form(*log + len, 0, "stss_%016x:", atom_addr);
+
+  // version/flags
+  val = queue_rb32(index, atom_d, size - index);
+  index += 4;
+  len += write_yaml_form(*log + len, 0, "- Version: %u", (val >> 24) & 0xff);
+  len += write_yaml_form(*log + len, 0, "- Flags: %u", val & 0xffffff);
+
+  // entry count
+  val = queue_rb32(index, atom_d, size - index);
+  index += 4;
+  len += write_yaml_form(*log + len, 0, "- EntryCount: %u", val);
+  if (val > 0) {
+    char* tmp = *log;
+    *log =
+        (char*)realloc(*log, sizeof(char) * (LOG_BUFFER_SIZE - len + 50 * val));
+    if (NULL == *log) {
+      *log = tmp;
+      return;
+    }
+
+    entry_count = val;
+    for (cnt = 0; cnt < entry_count; cnt++) {
+      val = queue_rb32(index, atom_d, size - index);
+      index += 4;
+      len += write_yaml_form(*log + len, 0, "- SampleNumber_%d: %u", cnt, val);
+    }
+  }
+
+  write_postfix(LOG_MP4BOX, *log + len);
+}
+
 static void write_stsc_atom_log(char** log, void* atom_d, int size,
                                 uint64_t atom_addr) {
   /*
@@ -1753,6 +1805,9 @@ int vlog_atom(uint32_t atom_type, void* atom_d, int size, uint64_t atom_addr) {
       break;
     case MP4BOX_STTS:
       write_stts_atom_log(&log, atom_d, size, atom_addr);
+      break;
+    case MP4BOX_STSS:
+      write_stss_atom_log(&log, atom_d, size, atom_addr);
       break;
     case MP4BOX_STSC:
       write_stsc_atom_log(&log, atom_d, size, atom_addr);

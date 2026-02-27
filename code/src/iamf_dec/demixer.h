@@ -23,7 +23,7 @@
 #include <stdint.h>
 
 #include "IAMF_defines.h"
-#include "IAMF_types.h"
+#include "iamf_types.h"
 
 typedef struct Demixer Demixer;
 
@@ -56,7 +56,7 @@ int demixer_set_frame_offset(Demixer *ths, uint32_t offset);
  * @param     [in] layout : the target layout of demixer.
  * @return    @ref IAErrCode.
  */
-int demixer_set_channel_layout(Demixer *ths, IAChannelLayoutType layout);
+int demixer_set_channel_layout(Demixer *ths, iamf_loudspeaker_layout_t layout);
 
 /**
  * @brief     Set the channle order in one audio frame.
@@ -65,7 +65,7 @@ int demixer_set_channel_layout(Demixer *ths, IAChannelLayoutType layout);
  * @param     [in] count : the number of channels in frame.
  * @return    @ref IAErrCode.
  */
-int demixer_set_channels_order(Demixer *ths, IAChannel *chs, int count);
+int demixer_set_channels_order(Demixer *ths, iamf_channel_t *chs, int count);
 
 /**
  * @brief     Set output gain for all scalable audio channel layers.
@@ -75,7 +75,7 @@ int demixer_set_channels_order(Demixer *ths, IAChannel *chs, int count);
  * gain.
  * @return    @ref IAErrCode.
  */
-int demixer_set_output_gain(Demixer *ths, IAChannel *chs, float *gain,
+int demixer_set_output_gain(Demixer *ths, iamf_channel_t *chs, float *gain,
                             int count);
 
 /**
@@ -96,7 +96,7 @@ int demixer_set_demixing_info(Demixer *ths, int mode, int w_idx);
  * applied to.
  * @return    @ref IAErrCode.
  */
-int demixer_set_recon_gain(Demixer *ths, int count, IAChannel *chs,
+int demixer_set_recon_gain(Demixer *ths, int count, iamf_channel_t *chs,
                            float *recon_gain, uint32_t flags);
 
 /**

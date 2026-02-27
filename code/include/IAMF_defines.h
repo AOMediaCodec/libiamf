@@ -13,30 +13,36 @@
 /**
  * @file IAMF_defines.h
  * @brief AMF Common defines
- * @version 0.1
+ * @version 2.0.0
  * @date Created 3/3/2023
  **/
 
-#ifndef IAMF_DEFINES_H
-#define IAMF_DEFINES_H
+#ifndef __IAMF_DEFINES_H__
+#define __IAMF_DEFINES_H__
 
 #include <stdint.h>
+
+typedef enum IA_Profile {
+  IA_PROFILE_NONE = -1,
+  IA_PROFILE_SIMPLE,
+  IA_PROFILE_BASE,
+  IA_PROFILE_BASE_ENHANCED,
+  IA_PROFILE_BASE_ADVANCED,
+  IA_PROFILE_ADVANCED_1,
+  IA_PROFILE_ADVANCED_2,
+} IA_Profile;
 
 /**
  * Audio Element Type
  * */
 
-typedef enum {
+typedef enum IAMF_AudioElementType {
   AUDIO_ELEMENT_INVALID = -1,
   AUDIO_ELEMENT_CHANNEL_BASED,
   AUDIO_ELEMENT_SCENE_BASED,
+  AUDIO_ELEMENT_OBJECT_BASED,
   AUDIO_ELEMENT_COUNT
-} AudioElementType;
-
-typedef enum AmbisonicsMode {
-  AMBISONICS_MONO,
-  AMBISONICS_PROJECTION
-} AmbisonicsMode;
+} IAMF_AudioElementType;
 
 typedef enum IAMF_LayoutType {
   IAMF_LAYOUT_TYPE_NOT_DEFINED = 0,
@@ -46,125 +52,31 @@ typedef enum IAMF_LayoutType {
 
 typedef enum IAMF_SoundSystem {
   SOUND_SYSTEM_INVALID = -1,
-  SOUND_SYSTEM_A,        // 0+2+0, 0
-  SOUND_SYSTEM_B,        // 0+5+0, 1
-  SOUND_SYSTEM_C,        // 2+5+0, 1
-  SOUND_SYSTEM_D,        // 4+5+0, 1
-  SOUND_SYSTEM_E,        // 4+5+1, 1
-  SOUND_SYSTEM_F,        // 3+7+0, 2
-  SOUND_SYSTEM_G,        // 4+9+0, 1
-  SOUND_SYSTEM_H,        // 9+10+3, 2
-  SOUND_SYSTEM_I,        // 0+7+0, 1
-  SOUND_SYSTEM_J,        // 4+7+0, 1
-  SOUND_SYSTEM_EXT_712,  // 2+7+0, 1
-  SOUND_SYSTEM_EXT_312,  // 2+3+0, 1
-  SOUND_SYSTEM_MONO,     // 0+1+0, 0
-  SOUND_SYSTEM_EXT_916,  // 6+9+0, 1
+  SOUND_SYSTEM_NONE = SOUND_SYSTEM_INVALID,
+  SOUND_SYSTEM_A,         // 0+2+0, 0
+  SOUND_SYSTEM_B,         // 0+5+0, 1
+  SOUND_SYSTEM_C,         // 2+5+0, 1
+  SOUND_SYSTEM_D,         // 4+5+0, 1
+  SOUND_SYSTEM_E,         // 4+5+1, 1
+  SOUND_SYSTEM_F,         // 3+7+0, 2
+  SOUND_SYSTEM_G,         // 4+9+0, 1
+  SOUND_SYSTEM_H,         // 9+10+3, 2
+  SOUND_SYSTEM_I,         // 0+7+0, 1
+  SOUND_SYSTEM_J,         // 4+7+0, 1
+  SOUND_SYSTEM_EXT_712,   // 2+7+0, 1
+  SOUND_SYSTEM_EXT_312,   // 2+3+0, 1
+  SOUND_SYSTEM_MONO,      // 0+1+0, 0
+  SOUND_SYSTEM_EXT_916,   // 6+9+0, 1
+  SOUND_SYSTEM_EXT_7154,  // 5+7+4, 1
   SOUND_SYSTEM_END
 } IAMF_SoundSystem;
-
-typedef enum IAMF_ParameterType {
-  IAMF_PARAMETER_TYPE_MIX_GAIN = 0,
-  IAMF_PARAMETER_TYPE_DEMIXING,
-  IAMF_PARAMETER_TYPE_RECON_GAIN,
-} IAMF_ParameterType;
-
-typedef enum IAMF_AnimationType {
-  ANIMATION_TYPE_INVALID = -1,
-  ANIMATION_TYPE_STEP,
-  ANIMATION_TYPE_LINEAR,
-  ANIMATION_TYPE_BEZIER
-} IAMF_AnimationType;
-
-/**
- *  Layout Syntax:
- *
- *  class layout() {
- *    unsigned int (2) layout_type;
- *
- *    if (layout_type == LOUDSPEAKERS_SS_CONVENTION) {
- *      unsigned int (4) sound_system;
- *      unsigned int (2) reserved;
- *    } else if (layout_type == BINAURAL or NOT_DEFINED) {
- *      unsigned int (6) reserved;
- *    }
- *  }
- *
- * */
-typedef struct IAMF_Layout {
-  union {
-    struct {
-      uint8_t reserved : 2;
-      uint8_t sound_system : 4;
-      uint8_t type : 2;
-    } sound_system;
-
-    struct {
-      uint8_t reserved : 6;
-      uint8_t type : 2;
-    } binaural;
-
-    struct {
-      uint8_t reserved : 6;
-      uint8_t type : 2;
-    };
-  };
-} IAMF_Layout;
-
-/**
- *
- *  Loudness Info Syntax:
- *
- *  class loudness_info() {
- *    unsigned int (8) info_type;
- *    signed int (16) integrated_loudness;
- *    signed int (16) digital_peak;
- *
- *    if (info_type & 1) {
- *      signed int (16) true_peak;
- *    }
- *
- *    if (info_type & 2) {
- *      unsigned int (8) num_anchored_loudness;
- *      for (i = 0; i < num_anchored_loudness; i++) {
- *        unsigned int (8) anchor_element;
- *        signed int (16) anchored_loudness;
- *      }
- *    }
- *
- *    if (info_type & 0b11111100 > 0) {
- *      leb128() info_type_size;
- *      unsigned int (8 x info_type_size) info_type_bytes;
- *    }
- *
- *  }
- *
- * */
-
-typedef struct _anchor_loudness_t {
-  uint8_t anchor_element;
-  int16_t anchored_loudness;
-} anchor_loudness_t;
-
-typedef struct IAMF_LoudnessInfo {
-  uint8_t info_type;
-  int16_t integrated_loudness;
-  int16_t digital_peak;
-
-  int16_t true_peak;
-
-  uint8_t num_anchor_loudness;
-  anchor_loudness_t *anchor_loudness;
-
-  uint64_t info_type_size;
-  uint8_t *info_type_bytes;
-} IAMF_LoudnessInfo;
 
 /**
  * Codec ID
  * */
-typedef enum {
+typedef enum IAMF_CodecID {
   IAMF_CODEC_UNKNOWN = 0,
+  IAMF_CODEC_NONE = IAMF_CODEC_UNKNOWN,  // no codec
   IAMF_CODEC_OPUS,
   IAMF_CODEC_AAC,
   IAMF_CODEC_FLAC,
@@ -185,14 +97,16 @@ enum {
   IAMF_ERR_INVALID_STATE = -5,
   IAMF_ERR_UNIMPLEMENTED = -6,
   IAMF_ERR_ALLOC_FAIL = -7,
+  IAMF_ERR_PENDING = -8,
 };
 
 /**
  * IA channel layout type.
  * */
 
-typedef enum {
+typedef enum IAMF_LoudspeakerLayoutType {
   IA_CHANNEL_LAYOUT_INVALID = -1,
+  IA_CHANNEL_LAYOUT_NONE = IA_CHANNEL_LAYOUT_INVALID,
   IA_CHANNEL_LAYOUT_MONO = 0,  // 1.0.0
   IA_CHANNEL_LAYOUT_STEREO,    // 2.0.0
   IA_CHANNEL_LAYOUT_510,       // 5.1.0
@@ -233,7 +147,64 @@ typedef enum {
   IA_CHANNEL_LAYOUT_EXPANDED_STEREO_TPSI,
   /// @brief The top 6 channels (TpFL/TpFR/TpSiL/TpSiR/TpBL/TpBR) of 9.1.6ch
   IA_CHANNEL_LAYOUT_EXPANDED_TOP_6CH,
+  /// @brief Loudspeaker configuration for Sound System H (9+10+3) of
+  ///        [ITU-2051-3]
+  IA_CHANNEL_LAYOUT_EXPANDED_A293,
+  /// @brief The low-frequency effects subset (LFE1/LFE2) of 10.2.9.3ch
+  IA_CHANNEL_LAYOUT_EXPANDED_LFE_PAIR,
+  /// @brief The bottom 3 channels (BtFL/BtFC/BtFR) of 10.2.9.3ch
+  IA_CHANNEL_LAYOUT_EXPANDED_BOTTOM_3CH,
+  /// @brief Loudspeaker configuration with the top and the bottom speakers
+  ///        added to Loudspeaker configuration for Sound System J (4+7+0) of
+  ///        [ITU-2051-3]
+  IA_CHANNEL_LAYOUT_EXPANDED_7154,
+  /// @brief The bottom 4 channels (BtFL/BtFR/BtBL/BtBR) of 7.1.5.4ch
+  IA_CHANNEL_LAYOUT_EXPANDED_BOTTOM_4CH,
+  /// @brief The top subset (TpC) of 7.1.5.4ch
+  IA_CHANNEL_LAYOUT_EXPANDED_TOP_1CH,
+  /// @brief The top 5 channels (Ltf/Rtf/TpC/Ltb/Rtb) of 7.1.5.4ch
+  IA_CHANNEL_LAYOUT_EXPANDED_TOP_5CH,
   /// @brief The end of expanded loudspeaker layout
   IA_CHANNEL_LAYOUT_EXPANDED_END,
 } IAChannelLayoutType;
-#endif /* IAMF_DEFINES_H */
+
+typedef enum IAMF_SamplingRate {
+  SAMPLING_RATE_NONE = 0,
+  SAMPLING_RATE_7350 = 7350,
+  SAMPLING_RATE_8000 = 8000,
+  SAMPLING_RATE_11025 = 11025,
+  SAMPLING_RATE_16000 = 16000,
+  SAMPLING_RATE_22050 = 22050,
+  SAMPLING_RATE_24000 = 24000,
+  SAMPLING_RATE_32000 = 32000,
+  SAMPLING_RATE_44100 = 44100,
+  SAMPLING_RATE_48000 = 48000,
+  SAMPLING_RATE_64000 = 64000,
+  SAMPLING_RATE_88200 = 88200,
+  SAMPLING_RATE_96000 = 96000,
+  SAMPLING_RATE_176400 = 176400,
+  SAMPLING_RATE_192000 = 192000,
+} IAMF_SamplingRate;
+
+typedef enum IAMF_SampleBitDepth {
+  SAMPLE_BIT_DEPTH_NONE = 0,
+  SAMPLE_BIT_DEPTH_16 = 16,
+  SAMPLE_BIT_DEPTH_24 = 24,
+  SAMPLE_BIT_DEPTH_32 = 32,
+} IAMF_SampleBitDepth;
+
+typedef enum IAMF_HeadphonesRenderingMode {
+  HEADPHONES_RENDERING_MODE_WORLD_LOCKED_RESTRICTED = 0,
+  HEADPHONES_RENDERING_MODE_WORLD_LOCKED,
+  HEADPHONES_RENDERING_MODE_HEAD_LOCKED,
+  HEADPHONES_RENDERING_MODE_RESERVED,
+} IAMF_HeadphonesRenderingMode;
+
+typedef enum IAMF_BinauralFilterProfile {
+  BINAURAL_FILTER_PROFILE_AMBIENT = 0,
+  BINAURAL_FILTER_PROFILE_DIRECT,
+  BINAURAL_FILTER_PROFILE_REVERBERANT,
+  BINAURAL_FILTER_PROFILE_RESERVED,
+} IAMF_BinauralFilterProfile;
+
+#endif /* __IAMF_DEFINES_H__ */
