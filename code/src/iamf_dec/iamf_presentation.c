@@ -91,8 +91,10 @@ typedef struct IamfPresentation {
   iamf_synchronizer_t* synchronizer;
   iamf_renderer_t renderer;
 
-  float loudness_gain;
   int out_sampling_rate;
+
+  float loudnesses[def_max_sub_mixes];
+  int num_loudnesses;
 } iamf_presentation_t;
 
 /**
@@ -108,8 +110,9 @@ typedef struct IamfPresentation {
  * @param pid The parameter ID to test for conflicts
  * @return 1 if there is a conflict, 0 otherwise
  */
-static int iamf_presentation_pid_conflicts(iamf_presentation_t* self,
-                                           uint32_t element_id, uint32_t pid) {
+static int iamf_presentation_priv_pid_conflicts(iamf_presentation_t* self,
+                                                uint32_t element_id,
+                                                uint32_t pid) {
   // Check conflict with mix_gain_id for the same element
   value_wrap_t* val = hash_map_get(self->elements, element_id);
   if (val) {
@@ -157,11 +160,11 @@ static int iamf_presentation_pid_conflicts(iamf_presentation_t* self,
  * @param element_id The element ID
  * @return A unique parameter ID for gain offset
  */
-static uint32_t iamf_presentation_generate_unique_gain_offset_id(
+static uint32_t iamf_presentation_priv_generate_unique_gain_offset_id(
     iamf_presentation_t* self, uint32_t element_id) {
   // First, try using pid directly
   uint32_t candidate_id = self->id;
-  if (!iamf_presentation_pid_conflicts(self, element_id, candidate_id)) {
+  if (!iamf_presentation_priv_pid_conflicts(self, element_id, candidate_id)) {
     debug("Using direct id %u as gain offset parameter ID", candidate_id);
     return candidate_id;
   }
@@ -169,7 +172,7 @@ static uint32_t iamf_presentation_generate_unique_gain_offset_id(
   // If conflict, try different offsets
   for (uint32_t offset = 1; offset < 0xFFFF; offset++) {
     candidate_id += offset;
-    if (!iamf_presentation_pid_conflicts(self, element_id, candidate_id)) {
+    if (!iamf_presentation_priv_pid_conflicts(self, element_id, candidate_id)) {
       debug(
           "Generated unique gain offset ID: original_id=%u, unique_id=%u, "
           "offset=%u",
@@ -350,8 +353,9 @@ static iamf_presentation_element_t* iamf_presentation_priv_make_element(
       def_rendering_config_flag_element_gain_offset) {
     element->enable_gain_offset = 1;
     // Initialize gain offset PID when gain offset is enabled
-    element->gain_offset_pid = iamf_presentation_generate_unique_gain_offset_id(
-        self, element->element_id);
+    element->gain_offset_pid =
+        iamf_presentation_priv_generate_unique_gain_offset_id(
+            self, element->element_id);
     debug(
         "Initialized gain offset PID during element creation: element_id=%u, "
         "gain_offset_pid=%u",
@@ -1137,10 +1141,123 @@ static int iamf_presentation_priv_update_output_mix_gain(
   return IAMF_OK;
 }
 
-static int iamf_presentation_priv_loudness_process(iamf_presentation_t* self,
-                                                   iamf_audio_block_t* block) {
-  if (self->loudness_gain != def_default_loudness_gain)
-    iamf_audio_block_gain(block, self->loudness_gain);
+/**
+ * @brief Get best loudness for a specific sub_mix
+ *
+ * This function searches for the best loudness value in a specific sub_mix
+ * that matches the given audio layout.
+ *
+ * @param obj Pointer to mix presentation OBU
+ * @param layout Target audio layout
+ * @param sub_mix_index Index of sub_mix to search
+ * @return Loudness value in dB (LKFS), or default loudness if not found
+ */
+static float _sub_mix_get_best_loudness(iamf_mix_presentation_obu_t* obj,
+                                        iamf_layout_t* layout,
+                                        int sub_mix_index) {
+  obu_sub_mix_t* sub;
+  float loudness_lkfs = def_default_loudness_lkfs;
+  iamf_layout_t highest_layout =
+      def_sound_system_layout_instance(SOUND_SYSTEM_NONE);
+
+  sub = def_value_wrap_optional_ptr(array_at(obj->sub_mixes, sub_mix_index));
+  if (!sub) {
+    warning("Sub_mix at index %d is NULL", sub_mix_index);
+    return loudness_lkfs;
+  }
+
+  int n = array_size(sub->loudness_layouts);
+  if (n <= 0) {
+    debug("No loudness layouts in sub_mix %d", sub_mix_index);
+    return loudness_lkfs;
+  }
+
+  for (int i = 0; i < n; ++i) {
+    iamf_layout_t* loudness_layout =
+        def_value_wrap_optional_ptr(array_at(sub->loudness_layouts, i));
+    if (!loudness_layout) continue;
+
+    if (iamf_layout_is_equal(*layout, *loudness_layout)) {
+      obu_loudness_info_t* li =
+          def_value_wrap_optional_ptr(array_at(sub->loudness, i));
+      if (li) {
+        loudness_lkfs =
+            iamf_gain_q78_to_db(def_lsb_16bits(li->integrated_loudness));
+        info(
+            "selected loudness %f db from exact match layout in sub_mix[%d] "
+            "<- 0x%x",
+            loudness_lkfs, sub_mix_index,
+            def_lsb_16bits(li->integrated_loudness));
+        return loudness_lkfs;
+      }
+    }
+
+    if (iamf_layout_is_equal(highest_layout, def_sound_system_layout_instance(
+                                                 SOUND_SYSTEM_NONE)) ||
+        iamf_layout_higher_check(*loudness_layout, highest_layout, 1)) {
+      obu_loudness_info_t* li =
+          def_value_wrap_optional_ptr(array_at(sub->loudness, i));
+      if (li) {
+        highest_layout = *loudness_layout;
+        loudness_lkfs =
+            iamf_gain_q78_to_db(def_lsb_16bits(li->integrated_loudness));
+        debug(
+            "selected loudness %f db from highest layout in sub_mix[%d] <- "
+            "0x%x",
+            loudness_lkfs, sub_mix_index,
+            def_lsb_16bits(li->integrated_loudness));
+      }
+    }
+  }
+
+  debug("selected loudness %f db from highest layout %s in sub_mix[%d]",
+        loudness_lkfs, iamf_layout_string(highest_layout), sub_mix_index);
+
+  return loudness_lkfs;
+}
+
+/**
+ * @brief Initialize loudness for all sub-mixes (internal function) (MOD 5)
+ *
+ * This function is called during iamf_presentation_create() to
+ * pre-fetch loudness values for all sub-mixes and store them in the
+ * presentation. This optimizes performance by fetching loudness only once
+ * during creation.
+ *
+ * @param self Pointer to presentation instance
+ * @param layout Audio layout for loudness lookup
+ * @return IAMF_OK on success, error code on failure
+ *
+ * @note This function:
+ *       • Iterates through all sub-mixes in the mix presentation
+ *       • Retrieves loudness for each sub-mix matching the given layout
+ *       • Stores loudness values in self->loudnesses[] array
+ *       • No need to re-fetch during iamf_presentation_set_loudness()
+ */
+static int iamf_presentation_priv_init_loudness(iamf_presentation_t* self,
+                                                iamf_layout_t* layout) {
+  if (!self || !layout) return IAMF_ERR_BAD_ARG;
+
+  iamf_mix_presentation_obu_t* mpo =
+      self->database
+          ? iamf_database_get_mix_presentation_obu(self->database, self->id)
+          : NULL;
+  if (!mpo) {
+    debug("No mix presentation, skip loudness initialization");
+    return IAMF_OK;
+  }
+
+  int num_sub_mixes = array_size(mpo->sub_mixes);
+
+  for (int sub_idx = 0; sub_idx < num_sub_mixes; ++sub_idx) {
+    self->loudnesses[sub_idx] =
+        _sub_mix_get_best_loudness(mpo, layout, sub_idx);
+    debug("Sub_mix[%d] loudness: %f dB", sub_idx, self->loudnesses[sub_idx]);
+  }
+
+  self->num_loudnesses = num_sub_mixes;
+  info("Initialized loudness for %u sub-mixes", num_sub_mixes);
+
   return IAMF_OK;
 }
 
@@ -1164,7 +1281,6 @@ iamf_presentation_t* iamf_presentation_create(
   self->database = database;
   self->reconstructor = reconstructor;
   self->layout = layout;
-  self->loudness_gain = def_default_loudness_gain;
 
   self->elements = hash_map_new(def_hash_map_capacity_elements);
   if (!self->elements) {
@@ -1227,6 +1343,8 @@ iamf_presentation_t* iamf_presentation_create(
     iamf_presentation_destroy(self);
     return 0;
   }
+
+  iamf_presentation_priv_init_loudness(self, &self->layout);
 
   info("Successfully initialized IAMF OAR");
 
@@ -1332,9 +1450,54 @@ int iamf_presentation_get_element_gain_offset(iamf_presentation_t* self,
   return IAMF_OK;
 }
 
-int iamf_presentation_set_loudness_gain(iamf_presentation_t* self, float gain) {
-  if (!self || !gain) return IAMF_ERR_BAD_ARG;
-  if (self->loudness_gain != gain) self->loudness_gain = gain;
+int iamf_presentation_set_loudness(iamf_presentation_t* self,
+                                   float target_loudness_lkfs) {
+  if (!self) return IAMF_ERR_BAD_ARG;
+
+  debug("Set loudness normalization: target=%.2f dB", target_loudness_lkfs);
+
+  if (target_loudness_lkfs == def_default_loudness_lkfs) {
+    int ret = iamf_renderer_enable_loudness_processor(&self->renderer, 0);
+    if (ret != IAMF_OK) {
+      error("Failed to disable loudness processor");
+      return ret;
+    }
+    debug("Loudness normalization disabled (target=%.2f dB = default)",
+          target_loudness_lkfs);
+    return IAMF_OK;
+  }
+
+  for (int sub_idx = 0; sub_idx < self->num_loudnesses; ++sub_idx) {
+    if (self->loudnesses[sub_idx] != def_default_loudness_lkfs) {
+      float current_loudness = self->loudnesses[sub_idx];
+      int ret = iamf_renderer_set_loudness(
+          &self->renderer, sub_idx, current_loudness, target_loudness_lkfs);
+
+      if (ret != IAMF_OK) {
+        error(
+            "Failed to set loudness for sub_mix[%u]: current=%.2f dB, "
+            "target=%.2f dB",
+            sub_idx, current_loudness, target_loudness_lkfs);
+        return ret;
+      }
+
+      info("Set loudness for sub_mix[%u]: current=%.2f dB, target=%.2f dB",
+           sub_idx, current_loudness, target_loudness_lkfs);
+    } else {
+      debug("Sub_mix[%u] has default loudness, skipping loudness setting",
+            sub_idx);
+    }
+  }
+
+  int ret = iamf_renderer_enable_loudness_processor(&self->renderer, 1);
+  if (ret != IAMF_OK) {
+    error("Failed to enable loudness processor");
+    return ret;
+  }
+
+  info("Loudness normalization enabled with target=%.2f dB",
+       target_loudness_lkfs);
+
   return IAMF_OK;
 }
 
@@ -1474,8 +1637,6 @@ iamf_audio_block_t* iamf_presentation_process(iamf_presentation_t* self) {
     iamf_audio_block_delete(output_block);
     return 0;
   }
-
-  iamf_presentation_priv_loudness_process(self, output_block);
 
   debug("Successfully processed presentation %u.", self->id);
   return output_block;

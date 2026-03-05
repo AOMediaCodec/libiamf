@@ -41,7 +41,6 @@
 
 #define def_limiter_max_true_peak -1.0f
 #define def_default_loudness_lkfs 0.0f
-#define def_default_loudness_gain 1.0f
 
 #define def_i32_id_none (-1)
 #define def_i64_id_none (-1LL)

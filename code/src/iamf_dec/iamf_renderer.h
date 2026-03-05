@@ -121,7 +121,7 @@ int iamf_renderer_set_head_rotation(iamf_renderer_t* self,
  * experiences.
  *
  * @param     [in] self : Pointer to the renderer instance.
- * @param     [in] enable : 1 to enable head tracking, 0 to disable.
+ * @param     [in] enable : 1 to enable, 0 to disable.
  *
  * @return    0 on success, non-zero error code on failure.
  *
@@ -134,5 +134,37 @@ int iamf_renderer_set_head_rotation(iamf_renderer_t* self,
  * will be stored but will not affect the audio output.
  */
 int iamf_renderer_enable_head_tracking(iamf_renderer_t* self, uint32_t enable);
+
+/**
+ * @brief Enable or disable loudness processor.
+ *
+ * This function enables or disables the loudness normalization processor in
+ * OAR. When enabled, OAR will apply group-specific loudness gain during
+ * rendering to normalize the audio to a target loudness level.
+ *
+ * @param     [in] self : Pointer to the renderer instance.
+ * @param     [in] enable : 1 to enable, 0 to disable.
+ *
+ * @return    0 on success, non-zero error code on failure.
+ */
+int iamf_renderer_enable_loudness_processor(iamf_renderer_t* self,
+                                            uint32_t enable);
+
+/**
+ * @brief Set loudness parameters for a specific audio group.
+ *
+ * This function sets the current loudness and target loudness for a specific
+ * audio group in OAR. The loudness processor will use these parameters to
+ * calculate and apply the appropriate gain during rendering.
+ *
+ * @param     [in] self : Pointer to the renderer instance.
+ * @param     [in] group_index : Group index (0 or 1) to set loudness for.
+ * @param     [in] loudness : Current loudness in dB (LKFS).
+ * @param     [in] target_loudness : Target loudness in dB (LKFS).
+ *
+ * @return    0 on success, non-zero error code on failure.
+ */
+int iamf_renderer_set_loudness(iamf_renderer_t* self, uint32_t group_index,
+                               float loudness, float target_loudness);
 
 #endif  // __IAMF_RENDERER_H__

@@ -148,65 +148,6 @@ static sample_format_t _get_sample_format(uint32_t bit_depth, int interleaved) {
   return ck_sample_format_i16_interleaved;
 }
 
-static float iamf_mix_presentation_get_best_loudness(
-    iamf_mix_presentation_obu_t *obj, iamf_layout_t *layout) {
-  obu_sub_mix_t *sub;
-  float loudness_lkfs = def_default_loudness_lkfs;
-  iamf_layout_t highest_layout =
-      def_sound_system_layout_instance(SOUND_SYSTEM_NONE);
-
-  int num_sub_mixes = array_size(obj->sub_mixes);
-
-  for (int sub_idx = 0; sub_idx < num_sub_mixes; ++sub_idx) {
-    sub = def_value_wrap_optional_ptr(array_at(obj->sub_mixes, sub_idx));
-    if (!sub) continue;
-
-    int n = array_size(sub->loudness_layouts);
-    if (n <= 0) continue;
-
-    for (int i = 0; i < n; ++i) {
-      iamf_layout_t *loudness_layout =
-          def_value_wrap_optional_ptr(array_at(sub->loudness_layouts, i));
-      if (!loudness_layout) continue;
-
-      if (iamf_layout_is_equal(*layout, *loudness_layout)) {
-        obu_loudness_info_t *li =
-            def_value_wrap_optional_ptr(array_at(sub->loudness, i));
-        if (li) {
-          loudness_lkfs =
-              iamf_gain_q78_to_db(def_lsb_16bits(li->integrated_loudness));
-          info(
-              "selected loudness %f db from exact match layout in sub_mix[%d] "
-              "<- 0x%x",
-              loudness_lkfs, sub_idx, def_lsb_16bits(li->integrated_loudness));
-          return loudness_lkfs;
-        }
-      }
-
-      if (iamf_layout_is_equal(highest_layout, def_sound_system_layout_instance(
-                                                   SOUND_SYSTEM_NONE)) ||
-          iamf_layout_higher_check(*loudness_layout, highest_layout, 1)) {
-        obu_loudness_info_t *li =
-            def_value_wrap_optional_ptr(array_at(sub->loudness, i));
-        if (li) {
-          highest_layout = *loudness_layout;
-          loudness_lkfs =
-              iamf_gain_q78_to_db(def_lsb_16bits(li->integrated_loudness));
-          debug(
-              "selected loudness %f db from highest layout in sub_mix[%d] <- "
-              "0x%x",
-              loudness_lkfs, sub_idx, def_lsb_16bits(li->integrated_loudness));
-        }
-      }
-    }
-  }
-
-  debug("selected loudness %f db from highest layout %s", loudness_lkfs,
-        iamf_layout_string(highest_layout));
-
-  return loudness_lkfs;
-}
-
 static int iamf_decoder_priv_decode(iamf_decoder_t *self, const uint8_t *data,
                                     int32_t size, uint32_t *rsize, void *pcm) {
   iamf_decoder_context_t *ctx = &self->ctx;
@@ -538,7 +479,6 @@ int iamf_decoder_priv_configure(iamf_decoder_t *self, const uint8_t *data,
                                                  ctx->head_tracking_enabled);
         }
 
-        // Set element gain offset to presentation.
         if (ctx->element_gains && hash_map_size(ctx->element_gains) > 0) {
           hash_map_iterator_t *iter = hash_map_iterator_new(ctx->element_gains);
           if (iter) {
@@ -563,15 +503,12 @@ int iamf_decoder_priv_configure(iamf_decoder_t *self, const uint8_t *data,
             } while (!hash_map_iterator_next(iter));
             hash_map_iterator_delete(iter);
           }
-          // Clear element gains after applying to presentation
           hash_map_delete(ctx->element_gains, 0);
           ctx->element_gains = 0;
           info("Cleared element gains after applying to presentation %u",
                mpo->mix_presentation_id);
         }
 
-        // Check if the sampling rate of the stream in presentation matches the
-        // configured sampling rate
         int in_sampling_rate =
             iamf_presentation_get_sampling_rate(self->presentation);
         if (in_sampling_rate == ctx->sampling_rate) {
@@ -589,14 +526,8 @@ int iamf_decoder_priv_configure(iamf_decoder_t *self, const uint8_t *data,
         ret = iamf_decoder_priv_update_frame_info(self);
         if (ret == IAMF_OK) {
           self->ctx.status = ck_iamf_decoder_status_parse_2;
-          self->ctx.loudness_lkfs =
-              iamf_mix_presentation_get_best_loudness(mpo, &self->ctx.layout);
-          if (self->ctx.normalized_loudness_lkfs != def_default_loudness_lkfs) {
-            iamf_presentation_set_loudness_gain(
-                self->presentation,
-                f32_db_to_linear(self->ctx.normalized_loudness_lkfs -
-                                 self->ctx.loudness_lkfs));
-          }
+          iamf_presentation_set_loudness(self->presentation,
+                                         self->ctx.normalized_loudness_lkfs);
         }
       }
     } else {
@@ -818,7 +749,6 @@ IAMF_DecoderHandle IAMF_decoder_open(void) {
 
     ctx->sampling_rate = def_default_sampling_rate;
     ctx->mix_presentation_id = def_i64_id_none;
-    ctx->loudness_lkfs = def_default_loudness_lkfs;
     ctx->normalized_loudness_lkfs = def_default_loudness_lkfs;
     ctx->limiter_threshold_db = def_limiter_max_true_peak;
     ctx->enable_limiter = 1;
@@ -1046,13 +976,19 @@ int IAMF_decoder_set_normalization_loudness(IAMF_DecoderHandle handle,
                                             float loudness) {
   iamf_decoder_t *self = (iamf_decoder_t *)handle;
   if (!self) return IAMF_ERR_BAD_ARG;
+
+  if (loudness > 0) {
+    error("Invalid loudness value: %.2f dB. Loudness must be 0 or negative.",
+          loudness);
+    return IAMF_ERR_BAD_ARG;
+  }
+
   if (self->ctx.normalized_loudness_lkfs != loudness) {
     self->ctx.normalized_loudness_lkfs = loudness;
-    if (self->ctx.status > ck_iamf_decoder_status_configure) {
-      iamf_presentation_set_loudness_gain(
-          self->presentation,
-          f32_db_to_linear(self->ctx.normalized_loudness_lkfs -
-                           self->ctx.loudness_lkfs));
+
+    if (self->ctx.status > ck_iamf_decoder_status_configure &&
+        self->presentation) {
+      iamf_presentation_set_loudness(self->presentation, loudness);
     }
   }
   return IAMF_OK;

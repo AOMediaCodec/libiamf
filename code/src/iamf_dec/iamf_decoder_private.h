@@ -51,7 +51,6 @@ struct IAMF_DecoderContext {
 
   hash_map_t *element_gains;
 
-  float loudness_lkfs;
   float normalized_loudness_lkfs;
   float limiter_threshold_db;
   int enable_limiter;

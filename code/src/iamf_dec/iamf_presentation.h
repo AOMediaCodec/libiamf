@@ -42,7 +42,22 @@ int iamf_presentation_set_element_gain_offset(iamf_presentation_t* self,
                                               uint32_t eid, float offset);
 int iamf_presentation_get_element_gain_offset(iamf_presentation_t* self,
                                               uint32_t eid, float* offset);
-int iamf_presentation_set_loudness_gain(iamf_presentation_t* self, float gain);
+
+/**
+ * @brief Set loudness normalization parameters.
+ *
+ * This function sets the target loudness for normalization and automatically
+ * enables/disables the loudness processor based on the target loudness value.
+ * When target_loudness differs from the default, OAR will automatically
+ * normalize the output audio to the target loudness level during rendering.
+ *
+ * @param     [in] self : Pointer to the presentation instance.
+ * @param     [in] target_loudness_lkfs : Target loudness in dB (LKFS).
+ *
+ * @return    0 on success, non-zero error code on failure.
+ */
+int iamf_presentation_set_loudness(iamf_presentation_t* self,
+                                   float target_loudness_lkfs);
 
 uint32_t iamf_presentation_get_id(iamf_presentation_t* self);
 int iamf_presentation_get_sampling_rate(iamf_presentation_t* self);
