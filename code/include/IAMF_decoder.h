@@ -253,13 +253,29 @@ int IAMF_layout_binaural_channels_count(void);
 char *IAMF_decoder_get_codec_capability(void);
 
 /**
- * @brief     Set target normalization loudness value, then loudness will be
- *            adjusted to the setting target.
- * @param     [in] handle : iamf decoder handle.
- * @param     [in] loundness : target normalization loudness in LKFS.
- *                             0 dose not do normalization,
- *                             others(<0) target value of normalization.
- * @return    @ref IAErrCode.
+ * @brief Set loudness normalization target for IAMF decoder
+ *
+ * This function configures the target loudness for loudness normalization
+ * according to EBU R128 standard. Normalization ensures consistent loudness
+ * across different audio sources.
+ *
+ * @param     [in] handle : IAMF decoder handle
+ * @param     [in] loudness : Target loudness in dB (LKFS):
+ *   - loudness = 0.0f: DISABLE loudness normalization (use original loudness)
+ *   - loudness < 0: Enable normalization to target loudness
+ *     * Common values: -23.0 (EBU R128), -24.0 (ATSC A/85)
+ *     * Example: -16.0 (YouTube), -14.0 (Spotify)
+ *   - loudness > 0: INVALID (returns IAMF_ERR_BAD_ARG)
+ *
+ * @return    @ref IAErrCode. IAMF_OK on success, error code on failure.
+ *
+ * @note IMPORTANT: loudness = 0.0f is a SPECIAL FLAG to disable normalization.
+ *       It does NOT mean normalize to 0 dB (which would be digital full scale).
+ *       To disable normalization, explicitly set loudness = 0.0f.
+ *
+ * @note Normalization is only applied if the presentation is active.
+ *
+ * @see EBU R128 Technical Recommendation EBU - TECH 3344
  */
 int IAMF_decoder_set_normalization_loudness(IAMF_DecoderHandle handle,
                                             float loudness);

@@ -71,7 +71,6 @@ int iamf_audio_block_partial_copy_data(iamf_audio_block_t* dst,
 iamf_audio_block_t* iamf_audio_block_samples_concat(
     iamf_audio_block_t* blocks[], uint32_t n);
 int iamf_audio_block_trim(iamf_audio_block_t* block);
-int iamf_audio_block_gain(iamf_audio_block_t* block, float gain);
 uint32_t iamf_audio_block_available_samples(iamf_audio_block_t* block);
 
 #endif  //__IAMF_AUDIO_BLOCK_H__

@@ -358,15 +358,6 @@ int iamf_audio_block_trim(iamf_audio_block_t* block) {
   return 0;
 }
 
-int iamf_audio_block_gain(iamf_audio_block_t* block, float gain) {
-  if (!block) return -22;
-  if (gain == def_default_loudness_gain) return 0;
-  int num_samples = block->num_channels * block->num_samples_per_channel;
-
-  for (int i = 0; i < num_samples; ++i) block->data[i] *= gain;
-  return 0;
-}
-
 uint32_t iamf_audio_block_available_samples(iamf_audio_block_t* block) {
   if (!block) return 0;
   return block->num_samples_per_channel - block->skip - block->padding -

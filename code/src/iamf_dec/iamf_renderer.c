@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include "iamf_private_definitions.h"
+#include "iamf_utils.h"
 
 static const struct {
   iamf_sound_system_t sound_system;
@@ -436,6 +437,34 @@ int iamf_renderer_enable_head_tracking(iamf_renderer_t* self, uint32_t enable) {
 
   debug("Head tracking %s in renderer", enable ? "enabled" : "disabled");
   return oar_enable_head_tracking(self->oar, enable) == ck_oar_ok
+             ? IAMF_OK
+             : IAMF_ERR_INTERNAL;
+}
+
+int iamf_renderer_enable_loudness_processor(iamf_renderer_t* self,
+                                            uint32_t enable) {
+  if (!self) return IAMF_ERR_BAD_ARG;
+
+  debug("Loudness processor %s in renderer", enable ? "enabled" : "disabled");
+  return oar_enable_loudness_processor(self->oar, enable) == ck_oar_ok
+             ? IAMF_OK
+             : IAMF_ERR_INTERNAL;
+}
+
+int iamf_renderer_set_loudness(iamf_renderer_t* self, uint32_t group_index,
+                               float loudness, float target_loudness) {
+  if (!self || !self->oar) return IAMF_ERR_BAD_ARG;
+  if (group_index >= def_max_sub_mixes ||
+      self->gids[group_index] == def_i32_id_none) {
+    error("Invalid group index %u for loudness setting", group_index);
+    return IAMF_ERR_BAD_ARG;
+  }
+
+  debug("Set loudness for group %u (id=%u): current=%.2f dB, target=%.2f dB",
+        group_index, self->gids[group_index], loudness, target_loudness);
+
+  return oar_set_loudness(self->oar, self->gids[group_index], loudness,
+                          target_loudness) == ck_oar_ok
              ? IAMF_OK
              : IAMF_ERR_INTERNAL;
 }
