@@ -8,7 +8,7 @@
 # source code in the PATENTS file, you can obtain it at
 # www.aomedia.org/license/patent.
 
-# proto-file: third_party/iamf_tools/iamf/cli/proto/user_metadata.proto
+# proto-file: iamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
 test_vector_metadata {
@@ -38,7 +38,11 @@ test_vector_metadata {
     "4.3/Cumulative channel limit"
   ]
   base_test: "test_000118"
-  output_wav_file_bit_depth_override: 16
+}
+
+encoder_control_metadata {
+  add_build_information_tag: false
+  output_rendered_file_format: OUTPUT_FORMAT_WAV_BIT_DEPTH_SIXTEEN
 }
 
 ia_sequence_header_metadata {
@@ -71,11 +75,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 7
     audio_substream_ids: [0, 1, 2, 3, 4, 5, 6]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -94,9 +95,7 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_SCENE_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 16
     audio_substream_ids: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
-    num_parameters: 0
     ambisonics_config {
       ambisonics_mode: AMBISONICS_MODE_MONO
       ambisonics_mono_config {
@@ -110,12 +109,9 @@ audio_element_metadata: [
 
 mix_presentation_metadata {
   mix_presentation_id: 42
-  count_label: 1
   annotations_language: ["en-us"]
   localized_presentation_annotations: ["test_mix_pres_0_with_twenty_eight_channels"]
-  num_sub_mixes: 1
   sub_mixes {
-    num_audio_elements: 2
     audio_elements: [
       {
         audio_element_id: 300
@@ -159,7 +155,6 @@ mix_presentation_metadata {
       }
       default_mix_gain: 0
     }
-    num_layouts: 2
     layouts {
       loudness_layout {
         layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
@@ -171,7 +166,7 @@ mix_presentation_metadata {
       loudness {
         info_type_bit_masks: []
         integrated_loudness: -3519
-        digital_peak: 0
+        digital_peak: 215
       }
     }
     layouts {
@@ -184,8 +179,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type_bit_masks: []
-        integrated_loudness: -4937
-        digital_peak: -1771
+        integrated_loudness: -3904
+        digital_peak: -1700
       }
     }
   }
@@ -193,12 +188,9 @@ mix_presentation_metadata {
 
 mix_presentation_metadata {
   mix_presentation_id: 43
-  count_label: 1
   annotations_language: ["en-us"]
   localized_presentation_annotations: ["test_mix_pres_with_sixteen_channels"]
-  num_sub_mixes: 1
   sub_mixes {
-    num_audio_elements: 1
     audio_elements: [
       {
         audio_element_id: 301
@@ -226,7 +218,6 @@ mix_presentation_metadata {
       }
       default_mix_gain: 0
     }
-    num_layouts: 2
     layouts {
       loudness_layout {
         layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
@@ -251,8 +242,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type_bit_masks: []
-        integrated_loudness: -5656
-        digital_peak: -3293
+        integrated_loudness: -4428
+        digital_peak: -1719
       }
     }
   }
@@ -264,16 +255,44 @@ audio_frame_metadata: [
     samples_to_trim_at_end: 648
     samples_to_trim_at_start: 312
     audio_element_id: 300
-    channel_ids: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-    channel_labels: ["L7", "R7", "C", "LFE", "Lss7", "Rss7", "Lrs7", "Rrs7", "Ltf4", "Rtf4", "Ltb4", "Rtb4"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_L_7 },
+      { channel_id: 1 channel_label: CHANNEL_LABEL_R_7 },
+      { channel_id: 2 channel_label: CHANNEL_LABEL_CENTRE },
+      { channel_id: 3 channel_label: CHANNEL_LABEL_LFE },
+      { channel_id: 4 channel_label: CHANNEL_LABEL_LSS_7 },
+      { channel_id: 5 channel_label: CHANNEL_LABEL_RSS_7 },
+      { channel_id: 6 channel_label: CHANNEL_LABEL_LRS_7 },
+      { channel_id: 7 channel_label: CHANNEL_LABEL_RRS_7 },
+      { channel_id: 8 channel_label: CHANNEL_LABEL_LTF_4 },
+      { channel_id: 9 channel_label: CHANNEL_LABEL_RTF_4 },
+      { channel_id: 10 channel_label: CHANNEL_LABEL_LTB_4 },
+      { channel_id: 11 channel_label: CHANNEL_LABEL_RTB_4 }
+    ]
   },
   {
     wav_filename: "Transport_TOA_5s.wav"
     samples_to_trim_at_end: 648
     samples_to_trim_at_start: 312
     audio_element_id: 301
-    channel_ids: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    channel_labels: ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12", "A13", "A14", "A15"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_A_0 },
+      { channel_id: 1 channel_label: CHANNEL_LABEL_A_1 },
+      { channel_id: 2 channel_label: CHANNEL_LABEL_A_2 },
+      { channel_id: 3 channel_label: CHANNEL_LABEL_A_3 },
+      { channel_id: 4 channel_label: CHANNEL_LABEL_A_4 },
+      { channel_id: 5 channel_label: CHANNEL_LABEL_A_5 },
+      { channel_id: 6 channel_label: CHANNEL_LABEL_A_6 },
+      { channel_id: 7 channel_label: CHANNEL_LABEL_A_7 },
+      { channel_id: 8 channel_label: CHANNEL_LABEL_A_8 },
+      { channel_id: 9 channel_label: CHANNEL_LABEL_A_9 },
+      { channel_id: 10 channel_label: CHANNEL_LABEL_A_10 },
+      { channel_id: 11 channel_label: CHANNEL_LABEL_A_11 },
+      { channel_id: 12 channel_label: CHANNEL_LABEL_A_12 },
+      { channel_id: 13 channel_label: CHANNEL_LABEL_A_13 },
+      { channel_id: 14 channel_label: CHANNEL_LABEL_A_14 },
+      { channel_id: 15 channel_label: CHANNEL_LABEL_A_15 }
+    ]
   }
 ]
 
