@@ -1037,7 +1037,7 @@ float IAMF_decoder_peak_limiter_get_threshold(IAMF_DecoderHandle handle) {
 
 int IAMF_decoder_set_sampling_rate(IAMF_DecoderHandle handle, uint32_t rate) {
   iamf_decoder_t *self = (iamf_decoder_t *)handle;
-  IAMF_SampleBitDepth valid_sampling_rates[] = {
+  IAMF_SamplingRate valid_sampling_rates[] = {
       SAMPLING_RATE_8000,  SAMPLING_RATE_11025, SAMPLING_RATE_16000,
       SAMPLING_RATE_22050, SAMPLING_RATE_24000, SAMPLING_RATE_32000,
       SAMPLING_RATE_44100, SAMPLING_RATE_48000, SAMPLING_RATE_64000,
@@ -1048,7 +1048,7 @@ int IAMF_decoder_set_sampling_rate(IAMF_DecoderHandle handle, uint32_t rate) {
   if (!self) return IAMF_ERR_BAD_ARG;
 
   for (int i = 0;
-       i < sizeof(valid_sampling_rates) / sizeof(IAMF_SampleBitDepth); ++i) {
+       i < sizeof(valid_sampling_rates) / sizeof(IAMF_SamplingRate); ++i) {
     if (rate == valid_sampling_rates[i]) {
       if (rate != self->ctx.sampling_rate) self->ctx.sampling_rate = rate;
       ret = IAMF_OK;
