@@ -96,7 +96,7 @@ typedef struct IAMF_StreamInfo {
     IA_Profile additional_profile; /**< Additional IAMF profile */
 
     IAMF_CodecID codec_ids[IAMF_MAX_CODECS];
-    IAMF_SampleBitDepth sampling_rate; /**< Output sampling rate */
+    IAMF_SamplingRate sampling_rate; /**< Output sampling rate */
     /**< Number of samples per channel per frame */
     uint32_t samples_per_channel_in_frame;
 
@@ -284,7 +284,7 @@ int IAMF_decoder_set_normalization_loudness(IAMF_DecoderHandle handle,
  * @brief     Set pcm output bitdepth.
  * @param     [in] handle : iamf decoder handle.
  * @param     [in] bit_depth : target bit depth in bit. Must be one of the
- *                             values defined in @ref iamf_sample_bit_depth_t
+ *                             values defined in @ref IAMF_SampleBitDepth
  *                             (16, 24, or 32 bits).
  * @return    @ref IAErrCode.
  */
@@ -320,7 +320,7 @@ float IAMF_decoder_peak_limiter_get_threshold(IAMF_DecoderHandle handle);
  * @brief     Set pcm output sampling rate.
  * @param     [in] handle : iamf decoder handle.
  * @param     [in] rate : sampling rate. Must be one of the values defined in
- *                        @ref IAMF_SampleBitDepth (7350, 8000, 11025, 16000,
+ *                        @ref IAMF_SamplingRate (7350, 8000, 11025, 16000,
  *                        22050, 24000, 32000, 44100, 48000, 64000, 88200,
  *                        96000, 176400, or 192000 Hz).
  * @return    @ref IAErrCode.
