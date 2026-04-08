@@ -16,6 +16,7 @@ ExternalProject_Add(
     dep_aac
     GIT_REPOSITORY https://github.com/mstorsjo/fdk-aac.git
     GIT_TAG 716f4394641d53f0d79c9ddac3fa93b03a49f278
+    PATCH_COMMAND ${CMAKE_COMMAND} -E make_directory <SOURCE_DIR>/libSBRdec/include/log && ${CMAKE_COMMAND} -E echo "void android_errorWriteLog(int i, const char *string){}" > <SOURCE_DIR>/libSBRdec/include/log/log.h
     CMAKE_ARGS -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=${DEP_CODECS_DIR} -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
 )
 
