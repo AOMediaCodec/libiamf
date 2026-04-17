@@ -72,7 +72,7 @@ else()
     set(OAR_ENABLE_BINAURALIZER OFF)
 endif()
 set(OAR_BUILD_SHARED_LIBRARY OFF)
-add_subdirectory(dep_external/src/oar-private/liboar)
+add_subdirectory(dep_external/src/oar-private/liboar EXCLUDE_FROM_ALL)
 
 file(GLOB_RECURSE sources  CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
