@@ -746,7 +746,7 @@ static int iamf_presentation_priv_update_element_downmix_info(
         &self->renderer, element->element_id, downmix_mode,
         element->block->num_samples_per_channel);
     if (ret != IAMF_OK) {
-      error("Failed to update downmix mode for element_id: %u",
+      debug("Failed to update downmix mode for element_id: %u",
             element->element_id);
       return ret;
     }
