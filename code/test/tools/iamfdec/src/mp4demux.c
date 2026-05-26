@@ -1251,9 +1251,8 @@ int parse(mp4r_t *mp4r, uint32_t *sizemax) {
     }
     return ERR_FAIL;
   }
-  /* fprintf(stderr, "looking for '%s', size %u\n", (char *)mp4r->atom->opaque,
-   */
-  /* *sizemax); */
+  // fprintf(stderr, "looking for '%s', size %u\n", (char *)mp4r->atom->opaque,
+  // *sizemax);
 
   // search for atom in the file
   while (1) {
@@ -1266,26 +1265,55 @@ int parse(mp4r_t *mp4r, uint32_t *sizemax) {
       /* (char *)mp4r->atom->opaque, apos); */
       return ERR_FAIL;
     }
-    if ((tmp = avio_rb32()) < 8) {
+    tmp = avio_rb32();
+    if (tmp == 1) {
+      // 64-bit extended size (ISO/IEC 14496-12)
+      // Read atom name first
+      if (avio_rdata(mp4r->fin, name, 4) != 4) {
+        return ERR_FAIL;
+      }
+      // Read the 8-byte extended size
+      size = (uint32_t)avio_rb64();
+      if (size < 16) {
+        fprintf(stderr, "invalid 64-bit extended atom size %" PRIu64 " @%lx\n",
+                (uint64_t)size, ftell(mp4r->fin));
+        return ERR_FAIL;
+      }
+    } else if (tmp == 0) {
+      // Atom extends to end of file (ISO/IEC 14496-12)
+      if (avio_rdata(mp4r->fin, name, 4) != 4) {
+        return ERR_FAIL;
+      }
+      fseek(mp4r->fin, 0, SEEK_END);
+      long end_pos = ftell(mp4r->fin);
+      size = end_pos - apos;
+      if (size < 8) {
+        fprintf(stderr, "invalid atom extends-to-eof size %u @%lx\n", size,
+                ftell(mp4r->fin));
+        return ERR_FAIL;
+      }
+    } else if (tmp < 8) {
       fprintf(stderr, "invalid atom size %x @%lx\n", tmp, ftell(mp4r->fin));
       return ERR_FAIL;
-    }
-
-    size = tmp;
-    if (avio_rdata(mp4r->fin, name, 4) != 4) {
-      /* EOF */
-      //      fprintf(stderr, "can't read atom name @%lx\n", ftell(mp4r->fin));
-      return ERR_FAIL;
+    } else {
+      size = tmp;
+      if (avio_rdata(mp4r->fin, name, 4) != 4) {
+        /* EOF */
+        // fprintf(stderr, "can't read atom name @%lx\n", ftell(mp4r->fin));
+        return ERR_FAIL;
+      }
     }
 
     //    fprintf(stderr, "atom: '%.4s'(%x)\n", name, size);
 
     if (!memcmp(name, mp4r->atom->opaque, 4)) {
       // fprintf(stderr, "OK\n");
+      int offset = 8;
+      if (tmp == 1) offset += 8;
 #if 0
       atom_dump(mp4r->fin, apos, tmp);
 #endif
-      fseek(mp4r->fin, apos + 8, SEEK_SET);
+      fseek(mp4r->fin, apos + offset, SEEK_SET);
       break;
     }
     // fprintf(stderr, "\n");
@@ -1499,7 +1527,7 @@ int mp4demux_audio(mp4r_t *mp4r, int trakn, int *delta) {
 
 int mp4demux_parse(mp4r_t *mp4r, int trak) {
   if (mp4r->moof_flag) {
-    int atomsize = INT_MAX;
+    uint32_t atomsize = UINT32_MAX;
     int ret;
     uint64_t pos = ftell(mp4r->fin);
     uint64_t size;
@@ -1524,13 +1552,13 @@ int mp4demux_parse(mp4r_t *mp4r, int trak) {
       mp4r->atom = g_moov;
       mp4demux_clean_tracks(mp4r);
 
-      atomsize = INT_MAX;
+      atomsize = UINT32_MAX;
       if ((ret = parse(mp4r, &atomsize)) < 0) {
         fprintf(stderr, "parse:%d\n", ret);
       }
     }
     mp4r->atom = g_moof;
-    atomsize = INT_MAX;
+    atomsize = UINT32_MAX;
     if ((ret = parse(mp4r, &atomsize)) < 0) {
       fprintf(stderr, "parse:%d\n", ret);
     }
@@ -1552,7 +1580,7 @@ int mp4demux_parse(mp4r_t *mp4r, int trak) {
       }
     }
 
-    if (atomsize == INT_MAX) return ERR_FAIL;
+    if (atomsize == UINT32_MAX) return ERR_FAIL;
     /* fseek(mp4r->fin, mp4r->moof_position + atomsize, SEEK_SET); */
     return ERR_OK;
   }
@@ -1637,18 +1665,18 @@ mp4r_t *mp4demux_open(const char *name, FILE *logger) {
     fprintf(mp4r->logger, "**** MP4 header ****\n");
   }
   mp4r->atom = g_head;  // ftyp
-  atomsize = INT_MAX;
+  atomsize = UINT32_MAX;
   if (parse(mp4r, &atomsize) < 0) {
     goto err;
   }
 
   //////////////////////////
   mp4r->atom = g_moov;
-  atomsize = INT_MAX;
+  atomsize = UINT32_MAX;
   rewind(mp4r->fin);
   if ((ret = parse(mp4r, &atomsize)) < 0) {
     fprintf(stderr, "parse:%d\n", ret);
-    if (atomsize == INT_MAX) goto err;
+    if (atomsize == UINT32_MAX) goto err;
   }
 
   /* fprintf(stderr, "parse end.\n"); */
@@ -1663,7 +1691,7 @@ mp4r_t *mp4demux_open(const char *name, FILE *logger) {
 
   if (mp4r->moof_flag) {
     mp4r->atom = g_moof;
-    atomsize = INT_MAX;
+    atomsize = UINT32_MAX;
     if ((ret = parse(mp4r, &atomsize)) < 0) {
       fprintf(stderr, "parse:%d\n", ret);
     }
