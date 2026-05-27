@@ -865,6 +865,7 @@ static int mp4_input_wav_output2(decoder_args_t *das) {
     goto end;
   }
   if (block) free(block);
+  block = 0;
   if (ret != IAMF_OK) {
     fprintf(stderr, "errno: %d, fail to configure decoder.\n", ret);
     goto end;

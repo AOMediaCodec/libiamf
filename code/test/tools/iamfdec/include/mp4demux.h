@@ -70,7 +70,7 @@ typedef struct {
     chunkinfo *chunks;
     uint32_t chunk_count;
 
-    uint32_t *offs;       // sample offs array(stco)
+    uint64_t *offs;       // sample offs array(stco)
     uint32_t *sizes;      // sample size array(stsz)
     uint32_t *deltas;     // sample count array(stts)
     uint32_t *syncs;      // sync sample array(stss)
