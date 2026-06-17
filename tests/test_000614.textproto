@@ -8,7 +8,7 @@
 # source code in the PATENTS file, you can obtain it at
 # www.aomedia.org/license/patent.
 
-# proto-file: third_party/iamf_tools/iamf/cli/proto/user_metadata.proto
+# proto-file: iamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
 test_vector_metadata {
@@ -31,6 +31,11 @@ test_vector_metadata {
     "8.5.1/Loudness Information"
   ]
   base_test: "test_000400"
+}
+
+encoder_control_metadata {
+  add_build_information_tag: false
+  output_rendered_file_format: OUTPUT_FORMAT_WAV_BIT_DEPTH_AUTOMATIC
 }
 
 ia_sequence_header_metadata {
@@ -58,9 +63,7 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_SCENE_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 25
     audio_substream_ids: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
-    num_parameters: 0
     ambisonics_config {
       ambisonics_mode: AMBISONICS_MODE_MONO
       ambisonics_mono_config {
@@ -75,11 +78,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 2
     audio_substream_ids: [25, 26]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -98,12 +98,9 @@ audio_element_metadata: [
 
 mix_presentation_metadata {
   mix_presentation_id: 42
-  count_label: 1
   annotations_language: ["en-us"]
   localized_presentation_annotations: ["test_mix_pres"]
-  num_sub_mixes: 1
   sub_mixes {
-    num_audio_elements: 2
     audio_elements: [
       {
         audio_element_id: 300
@@ -147,7 +144,6 @@ mix_presentation_metadata {
       }
       default_mix_gain: 0
     }
-    num_layouts: 2
     layouts {
       loudness_layout {
         layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
@@ -185,16 +181,44 @@ audio_frame_metadata: [
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 300
-    channel_ids: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
-    channel_labels: ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12", "A13", "A14", "A15", "A16", "A17", "A18", "A19", "A20", "A21", "A22", "A23", "A24"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_A_0 },
+      { channel_id: 1 channel_label: CHANNEL_LABEL_A_1 },
+      { channel_id: 2 channel_label: CHANNEL_LABEL_A_2 },
+      { channel_id: 3 channel_label: CHANNEL_LABEL_A_3 },
+      { channel_id: 4 channel_label: CHANNEL_LABEL_A_4 },
+      { channel_id: 5 channel_label: CHANNEL_LABEL_A_5 },
+      { channel_id: 6 channel_label: CHANNEL_LABEL_A_6 },
+      { channel_id: 7 channel_label: CHANNEL_LABEL_A_7 },
+      { channel_id: 8 channel_label: CHANNEL_LABEL_A_8 },
+      { channel_id: 9 channel_label: CHANNEL_LABEL_A_9 },
+      { channel_id: 10 channel_label: CHANNEL_LABEL_A_10 },
+      { channel_id: 11 channel_label: CHANNEL_LABEL_A_11 },
+      { channel_id: 12 channel_label: CHANNEL_LABEL_A_12 },
+      { channel_id: 13 channel_label: CHANNEL_LABEL_A_13 },
+      { channel_id: 14 channel_label: CHANNEL_LABEL_A_14 },
+      { channel_id: 15 channel_label: CHANNEL_LABEL_A_15 },
+      { channel_id: 16 channel_label: CHANNEL_LABEL_A_16 },
+      { channel_id: 17 channel_label: CHANNEL_LABEL_A_17 },
+      { channel_id: 18 channel_label: CHANNEL_LABEL_A_18 },
+      { channel_id: 19 channel_label: CHANNEL_LABEL_A_19 },
+      { channel_id: 20 channel_label: CHANNEL_LABEL_A_20 },
+      { channel_id: 21 channel_label: CHANNEL_LABEL_A_21 },
+      { channel_id: 22 channel_label: CHANNEL_LABEL_A_22 },
+      { channel_id: 23 channel_label: CHANNEL_LABEL_A_23 },
+      { channel_id: 24 channel_label: CHANNEL_LABEL_A_24 }
+    ]
   },
   {
     wav_filename: "Mechanism_5s.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 301
-    channel_ids: [0, 1, 2]
-    channel_labels: ["L7", "R7", "C"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_L_7 },
+      { channel_id: 1 channel_label: CHANNEL_LABEL_R_7 },
+      { channel_id: 2 channel_label: CHANNEL_LABEL_CENTRE }
+    ]
   }
 ]
 

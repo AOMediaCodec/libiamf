@@ -8,7 +8,7 @@
 # source code in the PATENTS file, you can obtain it at
 # www.aomedia.org/license/patent.
 
-# proto-file: third_party/iamf_tools/iamf/cli/proto/user_metadata.proto
+# proto-file: iamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
 test_vector_metadata {
@@ -45,8 +45,12 @@ test_vector_metadata {
     "9.1.2.4/Annex A2.4: Channel Group Generation Rule"
   ]
   base_test: "test_000225"
-  output_wav_file_bit_depth_override: 16
   override_computed_recon_gains: true
+}
+
+encoder_control_metadata {
+  add_build_information_tag: false
+  output_rendered_file_format: OUTPUT_FORMAT_WAV_BIT_DEPTH_SIXTEEN
 }
 
 ia_sequence_header_metadata {
@@ -78,9 +82,7 @@ audio_element_metadata {
   audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
   reserved: 0
   codec_config_id: 200
-  num_substreams: 7
   audio_substream_ids: [0, 1, 2, 3, 4, 5, 6]
-  num_parameters: 2
   audio_element_params {
     param_definition_type: PARAM_DEFINITION_TYPE_DEMIXING
     demixing_param: {
@@ -90,7 +92,6 @@ audio_element_metadata {
         param_definition_mode: 0
         reserved: 0
         duration: 960
-        num_subblocks: 1
         constant_subblock_duration: 960
       }
       default_demixing_info_parameter_data: {
@@ -108,13 +109,11 @@ audio_element_metadata {
         param_definition_mode: 0
         reserved: 0
         duration: 960
-        num_subblocks: 1
         constant_subblock_duration: 960
       }
     }
   }
   scalable_channel_layout_config {
-    num_layers: 3
     reserved: 0
     channel_audio_layer_configs: [
       {
@@ -153,12 +152,9 @@ audio_element_metadata {
 
 mix_presentation_metadata {
   mix_presentation_id: 42
-  count_label: 1
   annotations_language: ["en-us"]
   localized_presentation_annotations: ["test_mix_pres"]
-  num_sub_mixes: 1
   sub_mixes {
-    num_audio_elements: 1
     audio_elements {
       audio_element_id: 300
       localized_element_annotations: ["test_sub_mix_0_audio_element_0"]
@@ -184,7 +180,6 @@ mix_presentation_metadata {
       }
       default_mix_gain: 0
     }
-    num_layouts: 4
     layouts {
       loudness_layout {
         layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
@@ -196,7 +191,7 @@ mix_presentation_metadata {
       loudness {
         info_type_bit_masks: []
         integrated_loudness: -4013
-        digital_peak: 0
+        digital_peak: 198
       }
     }
     layouts {
@@ -209,8 +204,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type_bit_masks: []
-        integrated_loudness: -4021
-        digital_peak: 0
+        integrated_loudness: -4139
+        digital_peak: 98
       }
     }
     layouts {
@@ -223,8 +218,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type_bit_masks: []
-        integrated_loudness: -4018
-        digital_peak: -694
+        integrated_loudness: -3775
+        digital_peak: 98
       }
     }
     layouts {
@@ -237,8 +232,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type_bit_masks: []
-        integrated_loudness: -4637
-        digital_peak: -1009
+        integrated_loudness: -4112
+        digital_peak: -998
       }
     }
   }
@@ -250,14 +245,25 @@ audio_frame_metadata {
   samples_to_trim_at_end: 648
   samples_to_trim_at_start: 312
   audio_element_id: 300
-  channel_ids: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-  channel_labels: ["L7", "R7", "C", "LFE", "Lss7", "Rss7", "Lrs7", "Rrs7", "Ltf4", "Rtf4", "Ltb4", "Rtb4"]
+  channel_metadatas: [
+    { channel_id: 0 channel_label: CHANNEL_LABEL_L_7 },
+    { channel_id: 1 channel_label: CHANNEL_LABEL_R_7 },
+    { channel_id: 2 channel_label: CHANNEL_LABEL_CENTRE },
+    { channel_id: 3 channel_label: CHANNEL_LABEL_LFE },
+    { channel_id: 4 channel_label: CHANNEL_LABEL_LSS_7 },
+    { channel_id: 5 channel_label: CHANNEL_LABEL_RSS_7 },
+    { channel_id: 6 channel_label: CHANNEL_LABEL_LRS_7 },
+    { channel_id: 7 channel_label: CHANNEL_LABEL_RRS_7 },
+    { channel_id: 8 channel_label: CHANNEL_LABEL_LTF_4 },
+    { channel_id: 9 channel_label: CHANNEL_LABEL_RTF_4 },
+    { channel_id: 10 channel_label: CHANNEL_LABEL_LTB_4 },
+    { channel_id: 11 channel_label: CHANNEL_LABEL_RTB_4 }
+  ]
 }
 
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -306,7 +312,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -355,7 +360,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -404,7 +408,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -453,7 +456,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -502,7 +504,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -551,7 +552,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -600,7 +600,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -649,7 +648,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -698,7 +696,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -747,7 +744,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -796,7 +792,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -845,7 +840,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -894,7 +888,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -943,7 +936,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -992,7 +984,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1041,7 +1032,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1090,7 +1080,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1139,7 +1128,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1188,7 +1176,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1237,7 +1224,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1286,7 +1272,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1335,7 +1320,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1384,7 +1368,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1433,7 +1416,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1482,7 +1464,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1531,7 +1512,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1580,7 +1560,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1629,7 +1608,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1678,7 +1656,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1727,7 +1704,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1776,7 +1752,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1825,7 +1800,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1874,7 +1848,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1923,7 +1896,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -1972,7 +1944,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2021,7 +1992,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2070,7 +2040,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2119,7 +2088,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2168,7 +2136,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2217,7 +2184,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2266,7 +2232,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2315,7 +2280,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2364,7 +2328,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2413,7 +2376,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2462,7 +2424,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2511,7 +2472,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2560,7 +2520,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2609,7 +2568,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2658,7 +2616,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2707,7 +2664,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2756,7 +2712,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2805,7 +2760,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2854,7 +2808,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2903,7 +2856,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -2952,7 +2904,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3001,7 +2952,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3050,7 +3000,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3099,7 +3048,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3148,7 +3096,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3197,7 +3144,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3246,7 +3192,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3295,7 +3240,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3344,7 +3288,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3393,7 +3336,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3442,7 +3384,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3491,7 +3432,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3540,7 +3480,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3589,7 +3528,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3638,7 +3576,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3687,7 +3624,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3736,7 +3672,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3785,7 +3720,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3834,7 +3768,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3883,7 +3816,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3932,7 +3864,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -3981,7 +3912,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4030,7 +3960,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4079,7 +4008,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4128,7 +4056,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4177,7 +4104,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4226,7 +4152,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4275,7 +4200,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4324,7 +4248,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4373,7 +4296,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4422,7 +4344,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4471,7 +4392,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4520,7 +4440,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4569,7 +4488,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4618,7 +4536,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4667,7 +4584,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4716,7 +4632,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4765,7 +4680,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4814,7 +4728,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4863,7 +4776,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4912,7 +4824,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -4961,7 +4872,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5010,7 +4920,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5059,7 +4968,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5108,7 +5016,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5157,7 +5064,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5206,7 +5112,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5255,7 +5160,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5304,7 +5208,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5353,7 +5256,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5402,7 +5304,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5451,7 +5352,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5500,7 +5400,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5549,7 +5448,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5598,7 +5496,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5647,7 +5544,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5696,7 +5592,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5745,7 +5640,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5794,7 +5688,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5843,7 +5736,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5892,7 +5784,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5941,7 +5832,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -5990,7 +5880,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6039,7 +5928,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6088,7 +5976,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6137,7 +6024,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6186,7 +6072,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6235,7 +6120,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6284,7 +6168,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6333,7 +6216,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6382,7 +6264,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6431,7 +6312,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6480,7 +6360,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6529,7 +6408,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6578,7 +6456,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6627,7 +6504,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6676,7 +6552,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6725,7 +6600,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6774,7 +6648,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6823,7 +6696,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6872,7 +6744,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6921,7 +6792,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -6970,7 +6840,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7019,7 +6888,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7068,7 +6936,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7117,7 +6984,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7166,7 +7032,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7215,7 +7080,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7264,7 +7128,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7313,7 +7176,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7362,7 +7224,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7411,7 +7272,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7460,7 +7320,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7509,7 +7368,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7558,7 +7416,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7607,7 +7464,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7656,7 +7512,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7705,7 +7560,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7754,7 +7608,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7803,7 +7656,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7852,7 +7704,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7901,7 +7752,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7950,7 +7800,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -7999,7 +7848,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8048,7 +7896,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8097,7 +7944,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8146,7 +7992,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8195,7 +8040,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8244,7 +8088,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8293,7 +8136,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8342,7 +8184,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8391,7 +8232,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8440,7 +8280,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8489,7 +8328,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8538,7 +8376,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8587,7 +8424,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8636,7 +8472,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8685,7 +8520,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8734,7 +8568,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8783,7 +8616,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8832,7 +8664,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8881,7 +8712,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8930,7 +8760,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -8979,7 +8808,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9028,7 +8856,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9077,7 +8904,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9126,7 +8952,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9175,7 +9000,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9224,7 +9048,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9273,7 +9096,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9322,7 +9144,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9371,7 +9192,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9420,7 +9240,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9469,7 +9288,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9518,7 +9336,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9567,7 +9384,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9616,7 +9432,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9665,7 +9480,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9714,7 +9528,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9763,7 +9576,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9812,7 +9624,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9861,7 +9672,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9910,7 +9720,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -9959,7 +9768,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10008,7 +9816,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10057,7 +9864,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10106,7 +9912,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10155,7 +9960,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10204,7 +10008,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10253,7 +10056,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10302,7 +10104,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10351,7 +10152,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10400,7 +10200,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10449,7 +10248,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10498,7 +10296,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10547,7 +10344,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10596,7 +10392,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10645,7 +10440,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10694,7 +10488,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10743,7 +10536,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10792,7 +10584,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10841,7 +10632,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10890,7 +10680,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10939,7 +10728,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -10988,7 +10776,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11037,7 +10824,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11086,7 +10872,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11135,7 +10920,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11184,7 +10968,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11233,7 +11016,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11282,7 +11064,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11331,7 +11112,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11380,7 +11160,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11429,7 +11208,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11478,7 +11256,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11527,7 +11304,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11576,7 +11352,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11625,7 +11400,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11674,7 +11448,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11723,7 +11496,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11772,7 +11544,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11821,7 +11592,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11870,7 +11640,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11919,7 +11688,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -11968,7 +11736,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -12017,7 +11784,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -12066,7 +11832,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -12115,7 +11880,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -12164,7 +11928,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -12213,7 +11976,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -12262,7 +12024,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -12311,7 +12072,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -12360,7 +12120,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -12409,7 +12168,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -12458,7 +12216,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {
@@ -12507,7 +12264,6 @@ parameter_block_metadata {
 parameter_block_metadata {
   parameter_id: 100
   duration: 960
-  num_subblocks: 1
   constant_subblock_duration: 960
   subblocks {
     recon_gain_info_parameter_data {

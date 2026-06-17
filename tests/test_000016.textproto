@@ -8,20 +8,20 @@
 # source code in the PATENTS file, you can obtain it at
 # www.aomedia.org/license/patent.
 
-# proto-file: third_party/iamf_tools/iamf/cli/proto/user_metadata.proto
+# proto-file: iamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
 test_vector_metadata {
   human_readable_description:
     "A stereo IAMF stream. It has a parameter block not aligned with the audio "
-    "frames, ending 100 samples earlier. This is invalid because parameter "
+    "frames, ending one frame earlier. This is invalid because parameter "
     "blocks should cover the whole duration of the audio frames that use the "
     "parameter."
   file_name_prefix: "test_000016"
   is_valid: false
   is_valid_to_decode: false
   validate_user_loudness: true
-  mp4_fixed_timestamp: "2023-04-19 00:00:00"
+  mp4_fixed_timestamp: "2024-12-17 00:00:00"
   test_repository_tags: [
     "github/aomediacodec/libiamf/main",
     "github/aomediacodec/libiamf/v1.0.0-errata"
@@ -36,6 +36,11 @@ test_vector_metadata {
   base_test: "test_000005"
 }
 
+encoder_control_metadata {
+  add_build_information_tag: false
+  output_rendered_file_format: OUTPUT_FORMAT_WAV_BIT_DEPTH_AUTOMATIC
+}
+
 ia_sequence_header_metadata {
   primary_profile: PROFILE_VERSION_SIMPLE
   additional_profile: PROFILE_VERSION_SIMPLE
@@ -45,12 +50,12 @@ codec_config_metadata {
   codec_config_id: 200
   codec_config {
     codec_id: CODEC_ID_LPCM
-    num_samples_per_frame: 64
+    num_samples_per_frame: 4
     audio_roll_distance: 0
     decoder_config_lpcm {
       sample_format_flags: LPCM_LITTLE_ENDIAN
       sample_size: 16
-      sample_rate: 16000
+      sample_rate: 48000
     }
   }
 }
@@ -60,11 +65,8 @@ audio_element_metadata {
   audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
   reserved: 0
   codec_config_id: 200
-  num_substreams: 1
   audio_substream_ids: [0]
-  num_parameters: 0
   scalable_channel_layout_config {
-    num_layers: 1
     reserved: 0
     channel_audio_layer_configs: [
       {
@@ -81,12 +83,9 @@ audio_element_metadata {
 
 mix_presentation_metadata {
   mix_presentation_id: 42
-  count_label: 1
   annotations_language: ["en-us"]
   localized_presentation_annotations: ["test_mix_pres"]
-  num_sub_mixes: 1
   sub_mixes {
-    num_audio_elements: 1
     audio_elements {
       audio_element_id: 300
       localized_element_annotations: ["test_sub_mix_0_audio_element_0"]
@@ -95,10 +94,12 @@ mix_presentation_metadata {
       }
       element_mix_gain {
         param_definition {
-          parameter_id: 100
-          parameter_rate: 16000
-          param_definition_mode: 1
+          parameter_id: 127
+          parameter_rate: 48000
+          param_definition_mode: 0
           reserved: 0
+          duration: 4
+          constant_subblock_duration: 4
         }
         default_mix_gain: 0
       }
@@ -106,13 +107,12 @@ mix_presentation_metadata {
     output_mix_gain {
       param_definition {
         parameter_id: 100
-        parameter_rate: 16000
+        parameter_rate: 48000
         param_definition_mode: 1
         reserved: 0
       }
       default_mix_gain: 0
     }
-    num_layouts: 1
     layouts {
       loudness_layout {
         layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
@@ -123,40 +123,45 @@ mix_presentation_metadata {
       }
       loudness {
         info_type_bit_masks: []
-        integrated_loudness: -13733
-        digital_peak: -12879
+        integrated_loudness: -32768
+        digital_peak: -32768
       }
     }
   }
 }
 
 audio_frame_metadata {
-  wav_filename: "sawtooth_100_stereo.wav"
+  wav_filename: "stereo_8_samples_48khz_s16le.wav"
   samples_to_trim_at_end: 0
   samples_to_trim_at_start: 0
   audio_element_id: 300
-  channel_ids: [0, 1]
-  channel_labels: ["L2", "R2"]
+  channel_metadatas: [
+    { channel_id: 0 channel_label: CHANNEL_LABEL_L_2 },
+    { channel_id: 1 channel_label: CHANNEL_LABEL_R_2 }
+  ]
 }
 
-parameter_block_metadata {
-  parameter_id: 100
-  start_timestamp: 0
-  duration: 7900
-  num_subblocks: 1
-  constant_subblock_duration: 7900
-  subblocks: [
-    {
-      mix_gain_parameter_data {
-        animation_type: ANIMATE_STEP
-        param_data {
-          step {
-            start_point_value: 0
-          }
-        }
-      }
-    }
-  ]
+arbitrary_obu_metadata {
+  # There are two frames of audio, but only one parameter block. Normally,
+  # a given `parameter_id` cover the whole duration of the audio frames or be
+  # entirely absent.
+  invalidates_bitstream: true
+  insertion_hook: INSERTION_HOOK_AFTER_PARAMETER_BLOCKS_AT_TICK
+  insertion_tick: 0
+  obu_type: OBU_IA_PARAMETER_BLOCK
+  obu_header {
+    obu_redundant_copy: false
+    obu_trimming_status_flag: false
+    obu_extension_flag: false
+  }
+
+  payload:
+    # `parameter_id` (127)`.
+    "\x7f"
+    # `animation_type` = `ANIMATE_STEP`.
+    "\x00"
+    # `start_point_value`
+    "\xbb\xcc"
 }
 
 temporal_delimiter_metadata {

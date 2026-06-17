@@ -8,9 +8,8 @@
 # source code in the PATENTS file, you can obtain it at
 # www.aomedia.org/license/patent.
 
-# proto-file: third_party/iamf_tools/iamf/cli/proto/user_metadata.proto
+# proto-file: iamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
-# txtpbfmt: disable
 
 test_vector_metadata {
   human_readable_description:
@@ -32,6 +31,11 @@ test_vector_metadata {
     "7.5.2/Limiter"
   ]
   base_test: "test_000042"
+}
+
+encoder_control_metadata {
+  add_build_information_tag: false
+  output_rendered_file_format: OUTPUT_FORMAT_WAV_BIT_DEPTH_AUTOMATIC
 }
 
 ia_sequence_header_metadata {
@@ -58,15 +62,14 @@ audio_element_metadata {
   audio_element_type: AUDIO_ELEMENT_SCENE_BASED
   reserved: 0
   codec_config_id: 200
-  num_substreams: 9
-  audio_substream_ids: [0, 1, 2, 3, 4, 5, 6, 7, 8 ]
-  num_parameters: 0
+  audio_substream_ids: [0, 1, 2, 3, 4, 5, 6, 7, 8]
   ambisonics_config {
     ambisonics_mode: AMBISONICS_MODE_PROJECTION
     ambisonics_projection_config {
       output_channel_count: 9
       substream_count: 9
       coupled_substream_count: 0
+# txtpbfmt: off
       demixing_matrix: [
         32767, 0, 0, 0, 0, 0, 0, 0, 0,  # col 0
         0, 32767, 0, 0, 0, 0, 0, 0, 0,  # col 1
@@ -78,18 +81,16 @@ audio_element_metadata {
         0, 0, 0, 0, 0, 0, 0, 32767, 0,  # col 7
         0, 0, 0, 0, 0, 0, 0, 0, 32767  # col 8
       ]
+# txtpbfmt: on
     }
   }
 }
 
 mix_presentation_metadata {
   mix_presentation_id: 42
-  count_label: 1
   annotations_language: ["en-us"]
   localized_presentation_annotations: ["test_mix_pres"]
-  num_sub_mixes: 1
   sub_mixes {
-    num_audio_elements: 1
     audio_elements {
       audio_element_id: 300
       localized_element_annotations: ["test_sub_mix_0_audio_element_0"]
@@ -98,7 +99,7 @@ mix_presentation_metadata {
       }
       element_mix_gain {
         param_definition {
-          parameter_id: 999 # Non-existent; default will be used
+          parameter_id: 999  # Non-existent; default will be used
           parameter_rate: 48000
           param_definition_mode: 1
           reserved: 0
@@ -108,14 +109,13 @@ mix_presentation_metadata {
     }
     output_mix_gain {
       param_definition {
-        parameter_id: 998 # Non-existent; default will be used
+        parameter_id: 998  # Non-existent; default will be used
         parameter_rate: 48000
         param_definition_mode: 1
         reserved: 0
       }
       default_mix_gain: 0
     }
-    num_layouts: 1
     layouts {
       loudness_layout {
         layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
@@ -127,7 +127,7 @@ mix_presentation_metadata {
       loudness {
         info_type_bit_masks: []
         integrated_loudness: -2853
-        digital_peak: 0
+        digital_peak: 14
       }
     }
   }
@@ -138,8 +138,17 @@ audio_frame_metadata {
   samples_to_trim_at_end: 640
   samples_to_trim_at_start: 0
   audio_element_id: 300
-  channel_ids: [0, 1, 2, 3, 4, 5, 6, 7, 8]
-  channel_labels: ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"]
+  channel_metadatas: [
+    { channel_id: 0 channel_label: CHANNEL_LABEL_A_0 },
+    { channel_id: 1 channel_label: CHANNEL_LABEL_A_1 },
+    { channel_id: 2 channel_label: CHANNEL_LABEL_A_2 },
+    { channel_id: 3 channel_label: CHANNEL_LABEL_A_3 },
+    { channel_id: 4 channel_label: CHANNEL_LABEL_A_4 },
+    { channel_id: 5 channel_label: CHANNEL_LABEL_A_5 },
+    { channel_id: 6 channel_label: CHANNEL_LABEL_A_6 },
+    { channel_id: 7 channel_label: CHANNEL_LABEL_A_7 },
+    { channel_id: 8 channel_label: CHANNEL_LABEL_A_8 }
+  ]
 }
 
 temporal_delimiter_metadata {

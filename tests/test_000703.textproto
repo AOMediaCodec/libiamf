@@ -8,7 +8,7 @@
 # source code in the PATENTS file, you can obtain it at
 # www.aomedia.org/license/patent.
 
-# proto-file: third_party/iamf_tools/iamf/cli/proto/user_metadata.proto
+# proto-file: iamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
 test_vector_metadata {
@@ -41,6 +41,11 @@ test_vector_metadata {
   base_test: "test_000600"
 }
 
+encoder_control_metadata {
+  add_build_information_tag: false
+  output_rendered_file_format: OUTPUT_FORMAT_WAV_BIT_DEPTH_AUTOMATIC
+}
+
 ia_sequence_header_metadata {
   primary_profile: PROFILE_VERSION_BASE_ENHANCED
   additional_profile: PROFILE_VERSION_BASE_ENHANCED
@@ -66,11 +71,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [0]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -89,11 +91,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [1]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -112,11 +111,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [2]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -136,11 +132,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [3]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -160,11 +153,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [4]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -184,11 +174,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [5]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -208,11 +195,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [6]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -232,11 +216,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [7]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -256,11 +237,8 @@ audio_element_metadata: [
     audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
     reserved: 0
     codec_config_id: 200
-    num_substreams: 1
     audio_substream_ids: [8]
-    num_parameters: 0
     scalable_channel_layout_config {
-      num_layers: 1
       reserved: 0
       channel_audio_layer_configs: [
         {
@@ -279,12 +257,9 @@ audio_element_metadata: [
 
 mix_presentation_metadata {
   mix_presentation_id: 42
-  count_label: 1
   annotations_language: ["en-us"]
   localized_presentation_annotations: ["test_mix_pres"]
-  num_sub_mixes: 1
   sub_mixes {
-    num_audio_elements: 9
     audio_elements: [
       {
         audio_element_id: 300
@@ -440,7 +415,6 @@ mix_presentation_metadata {
       }
       default_mix_gain: 0
     }
-    num_layouts: 1
     layouts {
       loudness_layout {
         layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
@@ -451,8 +425,8 @@ mix_presentation_metadata {
       }
       loudness {
         info_type_bit_masks: []
-        integrated_loudness: -2247
-        digital_peak: 0
+        integrated_loudness: -2245
+        digital_peak: 705
       }
     }
   }
@@ -464,72 +438,88 @@ audio_frame_metadata: [
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 300
-    channel_ids: [2]
-    channel_labels: ["M"]  # "FC" in the origial file.
+    channel_metadatas: [
+      { channel_id: 2 channel_label: CHANNEL_LABEL_MONO }  # FC in the original file.
+    ]
   },
   {
     wav_filename: "Transport_9.1.6_5s.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 301
-    channel_ids: [6, 7]
-    channel_labels: ["L2", "R2"]  #"FLc" and "FRc" in the original file.
+    channel_metadatas: [
+      { channel_id: 6 channel_label: CHANNEL_LABEL_L_2 },  # FLc in the original file.
+      { channel_id: 7 channel_label: CHANNEL_LABEL_R_2 }  # FRc in the original file.
+    ]
   },
   {
     wav_filename: "Transport_9.1.6_5s.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 302
-    channel_ids: [3]
-    channel_labels: ["LFE"]
+    channel_metadatas: [
+      { channel_id: 3 channel_label: CHANNEL_LABEL_LFE }
+    ]
   },
   {
     wav_filename: "Transport_9.1.6_5s.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 303
-    channel_ids: [4, 5]
-    channel_labels: ["Lrs7", "Rrs7"]  # "BL" and "BR" in the original file.
+    channel_metadatas: [
+      { channel_id: 4 channel_label: CHANNEL_LABEL_LRS_7 },  # BL in the original file.
+      { channel_id: 5 channel_label: CHANNEL_LABEL_RRS_7 }  # BR in the original file.
+    ]
   },
   {
     wav_filename: "Transport_9.1.6_5s.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 304
-    channel_ids: [10, 11]
-    channel_labels: ["Ltf4", "Rtf4"]  # "TpFL" and "TpFR" in the original file.
+    channel_metadatas: [
+      { channel_id: 10 channel_label: CHANNEL_LABEL_LTF_4 },  # TpFL in the original file.
+      { channel_id: 11 channel_label: CHANNEL_LABEL_RTF_4 }  # TpFR in the original file.
+    ]
   },
   {
     wav_filename: "Transport_9.1.6_5s.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 305
-    channel_ids: [12, 13]
-    channel_labels: ["Ltb4", "Rtb4"]  # "TpBL" and "TpBR" in the original file.
+    channel_metadatas: [
+      { channel_id: 12 channel_label: CHANNEL_LABEL_LTB_4 },  # TpBL in the original file.
+      { channel_id: 13 channel_label: CHANNEL_LABEL_RTB_4 }  # TpBR in the original file.
+    ]
   },
   {
     wav_filename: "Transport_9.1.6_5s.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 306
-    channel_ids: [0, 1]
-    channel_labels: ["FL", "FR"]
+    channel_metadatas: [
+      { channel_id: 0 channel_label: CHANNEL_LABEL_FL },
+      { channel_id: 1 channel_label: CHANNEL_LABEL_FR }
+    ]
   },
   {
     wav_filename: "Transport_9.1.6_5s.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 307
-    channel_ids: [8, 9]
-    channel_labels: ["SiL", "SiR"]
+    channel_metadatas: [
+      { channel_id: 8 channel_label: CHANNEL_LABEL_SI_L },
+      { channel_id: 9 channel_label: CHANNEL_LABEL_SI_R }
+    ]
   },
   {
     wav_filename: "Transport_9.1.6_5s.wav"
     samples_to_trim_at_end: 640
     samples_to_trim_at_start: 0
     audio_element_id: 308
-    channel_ids: [14, 15]
-    channel_labels: ["TpSiL", "TpSiR"]
+    channel_metadatas: [
+      { channel_id: 14 channel_label: CHANNEL_LABEL_TP_SI_L },
+      { channel_id: 15 channel_label: CHANNEL_LABEL_TP_SI_R }
+    ]
   }
 ]
 

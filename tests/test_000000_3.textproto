@@ -8,7 +8,7 @@
 # source code in the PATENTS file, you can obtain it at
 # www.aomedia.org/license/patent.
 
-# proto-file: third_party/iamf_tools/iamf/cli/proto/user_metadata.proto
+# proto-file: iamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
 test_vector_metadata {
@@ -17,7 +17,11 @@ test_vector_metadata {
     "frame incorrectly has fewer samples than all other frames because it does "
     "not have sufficient `num_samples_to_trim_at_end`."
   file_name_prefix: "test_000000_3"
+  # Typically the encoder would not produce partial frames. The correct way to
+  # signal an incomplete frame is to produce a full Audio Frame OBU, but with
+  # `num_samples_to_trim_at_end` signalled.
   is_valid: false
+  # The decoder can reject the bitstream because the final frame is invalid.
   is_valid_to_decode: false
   validate_user_loudness: true
   mp4_fixed_timestamp: "2023-04-06 00:00:00"
@@ -34,6 +38,11 @@ test_vector_metadata {
   base_test: "None"
 }
 
+encoder_control_metadata {
+  add_build_information_tag: false
+  output_rendered_file_format: OUTPUT_FORMAT_WAV_BIT_DEPTH_AUTOMATIC
+}
+
 ia_sequence_header_metadata {
   primary_profile: PROFILE_VERSION_SIMPLE
   additional_profile: PROFILE_VERSION_SIMPLE
@@ -43,7 +52,7 @@ codec_config_metadata {
   codec_config_id: 200
   codec_config {
     codec_id: CODEC_ID_LPCM
-    num_samples_per_frame: 128
+    num_samples_per_frame: 64
     audio_roll_distance: 0
     decoder_config_lpcm {
       sample_format_flags: LPCM_LITTLE_ENDIAN
@@ -58,11 +67,8 @@ audio_element_metadata {
   audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
   reserved: 0
   codec_config_id: 200
-  num_substreams: 1
   audio_substream_ids: [0]
-  num_parameters: 0
   scalable_channel_layout_config {
-    num_layers: 1
     reserved: 0
     channel_audio_layer_configs: [
       {
@@ -79,12 +85,9 @@ audio_element_metadata {
 
 mix_presentation_metadata {
   mix_presentation_id: 42
-  count_label: 1
   annotations_language: ["en-us"]
   localized_presentation_annotations: ["test_mix_pres"]
-  num_sub_mixes: 1
   sub_mixes {
-    num_audio_elements: 1
     audio_elements {
       audio_element_id: 300
       localized_element_annotations: ["test_sub_mix_0_audio_element_0"]
@@ -110,7 +113,6 @@ mix_presentation_metadata {
       }
       default_mix_gain: 0
     }
-    num_layouts: 1
     layouts {
       loudness_layout {
         layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
@@ -128,13 +130,36 @@ mix_presentation_metadata {
   }
 }
 
+# There are 8000 samples, with 64 samples per frame. The last frame does not
+# need padding.
 audio_frame_metadata {
   wav_filename: "sawtooth_100_stereo.wav"
   samples_to_trim_at_end: 0
   samples_to_trim_at_start: 0
   audio_element_id: 300
-  channel_ids: [0, 1]
-  channel_labels: ["L2", "R2"]
+  channel_metadatas: [
+    { channel_id: 0 channel_label: CHANNEL_LABEL_L_2 },
+    { channel_id: 1 channel_label: CHANNEL_LABEL_R_2 }
+  ]
+}
+
+arbitrary_obu_metadata {
+  invalidates_bitstream: true
+  insertion_hook: INSERTION_HOOK_AFTER_AUDIO_FRAMES_AT_TICK
+  # Insert a buggy audio frame after all of the real audio frames.
+  insertion_tick: 8000
+  obu_type: OBU_IA_AUDIO_FRAME_ID_0
+  # `CodecConfigObu::num_samples_per_frame` signals a real audio frame must have
+  # 64 samples (for each channel).
+  payload:
+    "in"  # 0th left sample.
+    "co"  # 0th right sample.
+    "mp"  # 1st left sample.
+    "le"  # 1st right sample.
+    "te"  # 2nd left sample.
+    "fr"  # 2nd right sample.
+    "am"  # 3rd left sample.
+    "e "  # 3rd right sample.
 }
 
 temporal_delimiter_metadata {

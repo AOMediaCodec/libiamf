@@ -8,7 +8,7 @@
 # source code in the PATENTS file, you can obtain it at
 # www.aomedia.org/license/patent.
 
-# proto-file: third_party/iamf_tools/iamf/cli/proto/user_metadata.proto
+# proto-file: iamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
 test_vector_metadata {
@@ -31,6 +31,11 @@ test_vector_metadata {
     "7.3.3/Mixing Audio Elements"
   ]
   base_test: "test_000005"
+}
+
+encoder_control_metadata {
+  add_build_information_tag: false
+  output_rendered_file_format: OUTPUT_FORMAT_WAV_BIT_DEPTH_AUTOMATIC
 }
 
 ia_sequence_header_metadata {
@@ -57,11 +62,8 @@ audio_element_metadata {
   audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
   reserved: 0
   codec_config_id: 200
-  num_substreams: 1
   audio_substream_ids: [0]
-  num_parameters: 0
   scalable_channel_layout_config {
-    num_layers: 1
     reserved: 0
     channel_audio_layer_configs: [
       {
@@ -81,11 +83,8 @@ audio_element_metadata {
   audio_element_type: AUDIO_ELEMENT_CHANNEL_BASED
   reserved: 0
   codec_config_id: 200
-  num_substreams: 1
   audio_substream_ids: [1]
-  num_parameters: 0
   scalable_channel_layout_config {
-    num_layers: 1
     reserved: 0
     channel_audio_layer_configs: [
       {
@@ -102,12 +101,9 @@ audio_element_metadata {
 
 mix_presentation_metadata {
   mix_presentation_id: 42
-  count_label: 1
   annotations_language: ["en-us"]
   localized_presentation_annotations: ["test_mix_pres"]
-  num_sub_mixes: 1
   sub_mixes {
-    num_audio_elements: 2
     audio_elements {
       audio_element_id: 300
       localized_element_annotations: ["test_sub_mix_0_audio_element_0"]
@@ -149,7 +145,6 @@ mix_presentation_metadata {
       }
       default_mix_gain: 0
     }
-    num_layouts: 1
     layouts {
       loudness_layout {
         layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
@@ -172,8 +167,10 @@ audio_frame_metadata {
   samples_to_trim_at_end: 0
   samples_to_trim_at_start: 0
   audio_element_id: 300
-  channel_ids: [0, 1]
-  channel_labels: ["L2", "R2"]
+  channel_metadatas: [
+    { channel_id: 0 channel_label: CHANNEL_LABEL_L_2 },
+    { channel_id: 1 channel_label: CHANNEL_LABEL_R_2 }
+  ]
 }
 
 audio_frame_metadata {
@@ -181,15 +178,16 @@ audio_frame_metadata {
   samples_to_trim_at_end: 0
   samples_to_trim_at_start: 0
   audio_element_id: 301
-  channel_ids: [0, 1]
-  channel_labels: ["L2", "R2"]
+  channel_metadatas: [
+    { channel_id: 0 channel_label: CHANNEL_LABEL_L_2 },
+    { channel_id: 1 channel_label: CHANNEL_LABEL_R_2 }
+  ]
 }
 
 parameter_block_metadata {
   parameter_id: 100
   start_timestamp: 0
   duration: 8000
-  num_subblocks: 1
   constant_subblock_duration: 8000
   subblocks: [
     {

@@ -8,7 +8,7 @@
 # source code in the PATENTS file, you can obtain it at
 # www.aomedia.org/license/patent.
 
-# proto-file: third_party/iamf_tools/iamf/cli/proto/user_metadata.proto
+# proto-file: iamf/cli/proto/user_metadata.proto
 # proto-message: UserMetadata
 
 test_vector_metadata {
@@ -33,6 +33,11 @@ test_vector_metadata {
     "7.3.2.2/Rendering a Scene-Based Audio Element to Loudspeakers"
   ]
   base_test: "test_000039"
+}
+
+encoder_control_metadata {
+  add_build_information_tag: false
+  output_rendered_file_format: OUTPUT_FORMAT_WAV_BIT_DEPTH_AUTOMATIC
 }
 
 ia_sequence_header_metadata {
@@ -67,9 +72,7 @@ audio_element_metadata {
   audio_element_type: AUDIO_ELEMENT_SCENE_BASED
   reserved: 0
   codec_config_id: 200
-  num_substreams: 16
   audio_substream_ids: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-  num_parameters: 0
   ambisonics_config {
     ambisonics_mode: AMBISONICS_MODE_MONO
     ambisonics_mono_config {
@@ -82,12 +85,9 @@ audio_element_metadata {
 
 mix_presentation_metadata {
   mix_presentation_id: 42
-  count_label: 1
   annotations_language: ["en-us"]
   localized_presentation_annotations: ["test_mix_pres"]
-  num_sub_mixes: 1
   sub_mixes {
-    num_audio_elements: 1
     audio_elements {
       audio_element_id: 300
       localized_element_annotations: ["test_sub_mix_0_audio_element_0"]
@@ -113,7 +113,6 @@ mix_presentation_metadata {
       }
       default_mix_gain: 0
     }
-    num_layouts: 1
     layouts {
       loudness_layout {
         layout_type: LAYOUT_TYPE_LOUDSPEAKERS_SS_CONVENTION
@@ -136,15 +135,30 @@ audio_frame_metadata {
   samples_to_trim_at_end: 576
   samples_to_trim_at_start: 2048
   audio_element_id: 300
-  channel_ids: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-  channel_labels: ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12", "A13", "A14", "A15"]
+  channel_metadatas: [
+    { channel_id: 0 channel_label: CHANNEL_LABEL_A_0 },
+    { channel_id: 1 channel_label: CHANNEL_LABEL_A_1 },
+    { channel_id: 2 channel_label: CHANNEL_LABEL_A_2 },
+    { channel_id: 3 channel_label: CHANNEL_LABEL_A_3 },
+    { channel_id: 4 channel_label: CHANNEL_LABEL_A_4 },
+    { channel_id: 5 channel_label: CHANNEL_LABEL_A_5 },
+    { channel_id: 6 channel_label: CHANNEL_LABEL_A_6 },
+    { channel_id: 7 channel_label: CHANNEL_LABEL_A_7 },
+    { channel_id: 8 channel_label: CHANNEL_LABEL_A_8 },
+    { channel_id: 9 channel_label: CHANNEL_LABEL_A_9 },
+    { channel_id: 10 channel_label: CHANNEL_LABEL_A_10 },
+    { channel_id: 11 channel_label: CHANNEL_LABEL_A_11 },
+    { channel_id: 12 channel_label: CHANNEL_LABEL_A_12 },
+    { channel_id: 13 channel_label: CHANNEL_LABEL_A_13 },
+    { channel_id: 14 channel_label: CHANNEL_LABEL_A_14 },
+    { channel_id: 15 channel_label: CHANNEL_LABEL_A_15 }
+  ]
 }
 
 parameter_block_metadata {
   parameter_id: 100
   start_timestamp: 0
   duration: 26624
-  num_subblocks: 1
   constant_subblock_duration: 26624
   subblocks: [
     {
