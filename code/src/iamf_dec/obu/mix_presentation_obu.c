@@ -305,6 +305,13 @@ static int _obu_mp_rendering_config_init(obu_rendering_config_t *config,
     config->flags |= def_rendering_config_flag_element_gain_offset;
   config->binaural_filter_profile = val >> 3 & 0x03;
   config->rendering_config_extension_size = ior_leb128_u32(r);
+
+  info("%s: headphones rendering mode(%u), binaural filter profile(%u)",
+       def_mp_str, config->headphones_rendering_mode,
+       config->binaural_filter_profile);
+  info("%s: rendering config extension size(%u)", def_mp_str,
+       config->rendering_config_extension_size);
+
   if (config->rendering_config_extension_size > 0) {
     uint32_t pos = ioc_tell(ior);
     uint32_t num_parameters = ior_leb128_u32(r);
@@ -332,71 +339,74 @@ static int _obu_mp_rendering_config_init(obu_rendering_config_t *config,
           } else {
             uint32_t rendering_config_params_extension_size = ior_leb128_u32(r);
             ior_skip(r, rendering_config_params_extension_size);
+            info("%s: rendering config params extension size(%u)", def_mp_str,
+                 rendering_config_params_extension_size);
           }
         }
       }
     }
-    if (config->flags & def_rendering_config_flag_element_gain_offset) {
-      config->element_gain_offset_type = ior_8(r);
-      if (config->element_gain_offset_type ==
-          ck_element_gain_offset_type_value) {
-        config->element_gain_offset.value = (int16_t)ior_b16(r);
 
-        debug("encoded element gain offset value 0x%04x",
-              config->element_gain_offset.value);
+    if (ret == IAMF_OK) {
+      if (config->flags & def_rendering_config_flag_element_gain_offset) {
+        config->element_gain_offset_type = ior_8(r);
+        if (config->element_gain_offset_type ==
+            ck_element_gain_offset_type_value) {
+          config->element_gain_offset.value = (int16_t)ior_b16(r);
 
-        config->element_gain_offset_db.value =
-            config->element_gain_offset_db.min =
-                config->element_gain_offset_db.max =
-                    iamf_gain_q78_to_db(config->element_gain_offset.value);
+          debug("encoded element gain offset value 0x%04x",
+                config->element_gain_offset.value);
 
-        info("element gain offset value %f dB",
-             config->element_gain_offset_db.value);
-      } else if (config->element_gain_offset_type ==
-                 ck_element_gain_offset_type_range) {
-        float min, max;
-        config->element_gain_offset.value = (int16_t)ior_b16(r);
-        config->element_gain_offset.min = (int16_t)ior_b16(r);
-        config->element_gain_offset.max = (int16_t)ior_b16(r);
+          config->element_gain_offset_db.value =
+              config->element_gain_offset_db.min =
+                  config->element_gain_offset_db.max =
+                      iamf_gain_q78_to_db(config->element_gain_offset.value);
 
-        debug(
-            "encoded element gain offset value 0x%04x, min 0x%04x, max 0x%04x",
-            def_lsb_16bits(config->element_gain_offset.value),
-            def_lsb_16bits(config->element_gain_offset.min),
-            def_lsb_16bits(config->element_gain_offset.max));
+          info("element gain offset value %f dB",
+               config->element_gain_offset_db.value);
+        } else if (config->element_gain_offset_type ==
+                   ck_element_gain_offset_type_range) {
+          float min, max;
+          config->element_gain_offset.value = (int16_t)ior_b16(r);
+          config->element_gain_offset.min = (int16_t)ior_b16(r);
+          config->element_gain_offset.max = (int16_t)ior_b16(r);
 
-        min = iamf_gain_q78_to_db(config->element_gain_offset.min);
-        if (min > 0.f) min = 0.f;
-        max = iamf_gain_q78_to_db(config->element_gain_offset.max);
-        if (max < 0.f) max = 0.f;
+          debug(
+              "encoded element gain offset value 0x%04x, min 0x%04x, max "
+              "0x%04x",
+              def_lsb_16bits(config->element_gain_offset.value),
+              def_lsb_16bits(config->element_gain_offset.min),
+              def_lsb_16bits(config->element_gain_offset.max));
 
-        config->element_gain_offset_db.value =
-            iamf_gain_q78_to_db(config->element_gain_offset.value);
-        config->element_gain_offset_db.min =
-            min + config->element_gain_offset_db.value;
-        config->element_gain_offset_db.max =
-            max + config->element_gain_offset_db.value;
+          min = iamf_gain_q78_to_db(config->element_gain_offset.min);
+          if (min > 0.f) min = 0.f;
+          max = iamf_gain_q78_to_db(config->element_gain_offset.max);
+          if (max < 0.f) max = 0.f;
 
-        info("element gain offset value %f dB, min %f dB, max %f dB",
-             config->element_gain_offset_db.value,
-             config->element_gain_offset_db.min,
-             config->element_gain_offset_db.max);
-      } else {
-        config->rendering_config_extension_size = ior_leb128_u32(r);
-        ior_skip(r, config->rendering_config_extension_size);
+          config->element_gain_offset_db.value =
+              iamf_gain_q78_to_db(config->element_gain_offset.value);
+          config->element_gain_offset_db.min =
+              min + config->element_gain_offset_db.value;
+          config->element_gain_offset_db.max =
+              max + config->element_gain_offset_db.value;
+
+          info("element gain offset value %f dB, min %f dB, max %f dB",
+               config->element_gain_offset_db.value,
+               config->element_gain_offset_db.min,
+               config->element_gain_offset_db.max);
+        } else {
+          config->element_gain_offset_size = ior_leb128_u32(r);
+          ior_skip(r, config->element_gain_offset_size);
+          info("%s: element gain offset size(%u)", def_mp_str,
+               config->element_gain_offset_size);
+        }
       }
     }
+
     ior_skip(r,
              config->rendering_config_extension_size - (ioc_tell(ior) - pos));
   }
 
-  info("%s: headphones rendering mode(%u), binaural filter profile(%u)",
-       def_mp_str, config->headphones_rendering_mode,
-       config->binaural_filter_profile);
-  info("%s: skip extension size(%u)", def_mp_str,
-       config->rendering_config_extension_size);
-
-  return IAMF_OK;
+  return ret;
 }
 
 static void _obu_mp_audio_element_config_free(
@@ -442,7 +452,12 @@ static obu_audio_element_config_t *_obu_mp_audio_element_config_new(
     }
   }
 
-  _obu_mp_rendering_config_init(&config->rendering_config, r);
+  if (_obu_mp_rendering_config_init(&config->rendering_config, r) != IAMF_OK) {
+    error("fail to rendering config init.");
+    _obu_mp_audio_element_config_free(config);
+    return 0;
+  }
+
   info("%s: element mix gain:", def_mp_str);
   mix_gain_parameter_base_init(&config->element_mix_gain, r);
 
