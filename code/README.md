@@ -128,7 +128,7 @@ The `iamf-tools` reference encoder and its documentation are available at https:
 ### Channel ordering
 
 The ordering of channel from IAMF decoder is based on the related [ITU-2051-3](https://www.itu.int/rec/R-REC-BS.2051) layout.  
-Please refer to the [Output WAV files](https://github.com/AOMediaCodec/libiamf/blob/main/tests/README.md#output-wav-files) in `test` directory, or liboar's [loudspeaker ordering](https://github.com/AOMediaCodec/oar-private/blob/main/liboar/doc/loudspeaker_layout_channel_order.md) documentation
+Please refer to the [Output WAV files](https://github.com/AOMediaCodec/libiamf/blob/main/tests/README.md#output-wav-files) in `test` directory, or liboar's [loudspeaker ordering](https://github.com/AOMediaCodec/oar/blob/main/doc/loudspeaker_layout_channel_order.md) documentation
 
 ## Coding style
 
