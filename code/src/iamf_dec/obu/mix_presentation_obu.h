@@ -108,6 +108,7 @@ typedef struct RenderingConfig {
     float min;
     float max;
   } element_gain_offset_db;
+  uint32_t element_gain_offset_size;
 
   uint32_t rendering_config_extension_size;
 } obu_rendering_config_t;

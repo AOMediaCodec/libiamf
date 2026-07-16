@@ -382,8 +382,8 @@ static int _obu_mp_rendering_config_init(obu_rendering_config_t *config,
              config->element_gain_offset_db.min,
              config->element_gain_offset_db.max);
       } else {
-        config->rendering_config_extension_size = ior_leb128_u32(r);
-        ior_skip(r, config->rendering_config_extension_size);
+        config->element_gain_offset_size = ior_leb128_u32(r);
+        ior_skip(r, config->element_gain_offset_size);
       }
     }
     ior_skip(r,
