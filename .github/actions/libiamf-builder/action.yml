@@ -13,7 +13,8 @@ runs:
   steps:
     - shell: bash
       run: |
+        git submodule update --init --recursive
         cd code
-        cmake ${{ inputs.build-options }} .
-        make
+        cmake -B build ${{ inputs.build-options }} .
+        cmake --build build
 
