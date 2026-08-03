@@ -570,6 +570,92 @@ static const char *binaural_filter_profile_string(
   }
 }
 
+static const char *element_type_string(IAMF_AudioElementType element_type) {
+  switch (element_type) {
+    case AUDIO_ELEMENT_CHANNEL_BASED:
+      return "CHANNEL_BASED";
+    case AUDIO_ELEMENT_SCENE_BASED:
+      return "SCENE_BASED";
+    case AUDIO_ELEMENT_OBJECT_BASED:
+      return "OBJECT_BASED";
+    default:
+      return "UNKNOWN";
+  }
+}
+
+static const char *channel_layout_string(IAChannelLayoutType channel_layout) {
+  switch (channel_layout) {
+    // Basic layouts
+    case IA_CHANNEL_LAYOUT_MONO:
+      return "MONO (1.0.0)";
+    case IA_CHANNEL_LAYOUT_STEREO:
+      return "STEREO (2.0.0)";
+    case IA_CHANNEL_LAYOUT_510:
+      return "5.1.0";
+    case IA_CHANNEL_LAYOUT_512:
+      return "5.1.2";
+    case IA_CHANNEL_LAYOUT_514:
+      return "5.1.4";
+    case IA_CHANNEL_LAYOUT_710:
+      return "7.1.0";
+    case IA_CHANNEL_LAYOUT_712:
+      return "7.1.2";
+    case IA_CHANNEL_LAYOUT_714:
+      return "7.1.4";
+    case IA_CHANNEL_LAYOUT_312:
+      return "3.1.2";
+    case IA_CHANNEL_LAYOUT_BINAURAL:
+      return "BINAURAL";
+    case IA_CHANNEL_LAYOUT_NONE:
+      return "NONE";
+
+    // Expanded layouts
+    case IA_CHANNEL_LAYOUT_EXPANDED_LFE:
+      return "EXPANDED_LFE";
+    case IA_CHANNEL_LAYOUT_EXPANDED_STEREO_S:
+      return "EXPANDED_STEREO_S";
+    case IA_CHANNEL_LAYOUT_EXPANDED_STEREO_SS:
+      return "EXPANDED_STEREO_SS";
+    case IA_CHANNEL_LAYOUT_EXPANDED_STEREO_RS:
+      return "EXPANDED_STEREO_RS";
+    case IA_CHANNEL_LAYOUT_EXPANDED_STEREO_TF:
+      return "EXPANDED_STEREO_TF";
+    case IA_CHANNEL_LAYOUT_EXPANDED_STEREO_TB:
+      return "EXPANDED_STEREO_TB";
+    case IA_CHANNEL_LAYOUT_EXPANDED_TOP_4CH:
+      return "EXPANDED_TOP_4CH";
+    case IA_CHANNEL_LAYOUT_EXPANDED_3CH:
+      return "EXPANDED_3CH";
+    case IA_CHANNEL_LAYOUT_EXPANDED_916:
+      return "EXPANDED_916 (9.1.6)";
+    case IA_CHANNEL_LAYOUT_EXPANDED_STEREO_F:
+      return "EXPANDED_STEREO_F";
+    case IA_CHANNEL_LAYOUT_EXPANDED_STEREO_SI:
+      return "EXPANDED_STEREO_SI";
+    case IA_CHANNEL_LAYOUT_EXPANDED_STEREO_TPSI:
+      return "EXPANDED_STEREO_TPSI";
+    case IA_CHANNEL_LAYOUT_EXPANDED_TOP_6CH:
+      return "EXPANDED_TOP_6CH";
+    case IA_CHANNEL_LAYOUT_EXPANDED_A293:
+      return "EXPANDED_A293";
+    case IA_CHANNEL_LAYOUT_EXPANDED_LFE_PAIR:
+      return "EXPANDED_LFE_PAIR";
+    case IA_CHANNEL_LAYOUT_EXPANDED_BOTTOM_3CH:
+      return "EXPANDED_BOTTOM_3CH";
+    case IA_CHANNEL_LAYOUT_EXPANDED_7154:
+      return "EXPANDED_7154";
+    case IA_CHANNEL_LAYOUT_EXPANDED_BOTTOM_4CH:
+      return "EXPANDED_BOTTOM_4CH";
+    case IA_CHANNEL_LAYOUT_EXPANDED_TOP_1CH:
+      return "EXPANDED_TOP_1CH";
+    case IA_CHANNEL_LAYOUT_EXPANDED_TOP_5CH:
+      return "EXPANDED_TOP_5CH";
+
+    default:
+      return "UNKNOWN";
+  }
+}
+
 void iamf_decoder_output_info(IAMF_DecoderHandle handle, decoder_args_t *das,
                               IAMF_StreamInfo *stream_info) {
   if (!handle) {
@@ -645,19 +731,32 @@ static void print_complete_stream_info(IAMF_StreamInfo *info) {
           info->iamf_stream_info.additional_profile,
           profile_string(info->iamf_stream_info.additional_profile));
 
-  fprintf(stdout, "\n--- Codec Information ---\n");
-  for (int i = 0;
-       i < IAMF_MAX_CODECS && info->iamf_stream_info.codec_ids[i] != 0; i++) {
-    fprintf(stdout, "Codec %d: %d (%s)\n", i,
-            info->iamf_stream_info.codec_ids[i],
-            codec_string(info->iamf_stream_info.codec_ids[i]));
-  }
-
   fprintf(stdout, "\n--- Audio Parameters ---\n");
   fprintf(stdout, "Sampling rate: %u Hz\n",
           info->iamf_stream_info.sampling_rate);
   fprintf(stdout, "Samples per channel per frame: %u\n",
           info->iamf_stream_info.samples_per_channel_in_frame);
+
+  // Display new audio elements information
+  fprintf(stdout, "\n--- Audio Elements Information ---\n");
+  fprintf(stdout, "Number of audio elements: %u\n",
+          info->iamf_stream_info.audio_element_count);
+
+  if (info->iamf_stream_info.audio_elements) {
+    for (uint32_t i = 0; i < info->iamf_stream_info.audio_element_count; i++) {
+      iamf_audio_element_info_t *elem =
+          &info->iamf_stream_info.audio_elements[i];
+      fprintf(stdout, "\n  Audio Element %u:\n", i);
+      fprintf(stdout, "    Element ID: %u\n", elem->element_id);
+      fprintf(stdout, "    Codec ID: %d (%s)\n", elem->codec_id,
+              codec_string(elem->codec_id));
+      fprintf(stdout, "    Element Type: %d (%s)\n", elem->element_type,
+              element_type_string(elem->element_type));
+      fprintf(stdout, "    Channel Layout: %d (%s)\n", elem->channel_layout,
+              channel_layout_string(elem->channel_layout));
+      fprintf(stdout, "    Number of Channels: %u\n", elem->num_channels);
+    }
+  }
 
   fprintf(stdout, "\n--- Mix Presentations ---\n");
   fprintf(stdout, "Number of mix presentations: %u\n",

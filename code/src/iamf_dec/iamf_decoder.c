@@ -1047,8 +1047,8 @@ int IAMF_decoder_set_sampling_rate(IAMF_DecoderHandle handle, uint32_t rate) {
 
   if (!self) return IAMF_ERR_BAD_ARG;
 
-  for (int i = 0;
-       i < sizeof(valid_sampling_rates) / sizeof(IAMF_SamplingRate); ++i) {
+  for (int i = 0; i < sizeof(valid_sampling_rates) / sizeof(IAMF_SamplingRate);
+       ++i) {
     if (rate == valid_sampling_rates[i]) {
       if (rate != self->ctx.sampling_rate) self->ctx.sampling_rate = rate;
       ret = IAMF_OK;
@@ -1209,27 +1209,152 @@ IAMF_StreamInfo *IAMF_decoder_get_stream_info(IAMF_DecoderHandle handle) {
   codec_config_t *db_codec_config = def_value_wrap_type_ptr(
       codec_config_t, vector_at(database->codec_configs, 0));
 
-  info->iamf_stream_info.codec_ids[0] =
-      def_iamf_codec_id_cast(db_codec_config->codec_param.type);
-  info->iamf_stream_info.codec_ids[1] =
-      def_iamf_codec_id_cast(ck_iamf_codec_type_none);
   info->iamf_stream_info.sampling_rate =
       db_codec_config->codec_param.sample_rate;
   info->iamf_stream_info.samples_per_channel_in_frame =
       db_codec_config->codec_param.frame_size;
 
+  // Check if any audio element uses Opus codec to set the sampling rate
   int num_codec_configs = vector_size(database->codec_configs);
-  if (num_codec_configs > 1) {
+  for (int i = 0; i < num_codec_configs; i++) {
     db_codec_config = def_value_wrap_type_ptr(
-        codec_config_t, vector_at(database->codec_configs, 1));
-    info->iamf_stream_info.codec_ids[1] = db_codec_config->codec_param.type;
+        codec_config_t, vector_at(database->codec_configs, i));
+    if (db_codec_config &&
+        def_iamf_codec_id_cast(db_codec_config->codec_param.type) ==
+            IAMF_CODEC_OPUS) {
+      info->iamf_stream_info.sampling_rate = SAMPLING_RATE_48000;
+      break;
+    }
   }
 
-  if (info->iamf_stream_info.codec_ids[0] ==
-          def_iamf_codec_id_cast(ck_iamf_codec_type_opus) ||
-      info->iamf_stream_info.codec_ids[1] ==
-          def_iamf_codec_id_cast(ck_iamf_codec_type_opus))
-    info->iamf_stream_info.sampling_rate = SAMPLING_RATE_48000;
+  // Get the total number of audio elements directly from the database
+  info->iamf_stream_info.audio_element_count =
+      vector_size(database->audio_elements);
+
+  // Allocate and fill audio element information array directly from database
+  if (info->iamf_stream_info.audio_element_count > 0) {
+    info->iamf_stream_info.audio_elements = def_mallocz(
+        iamf_audio_element_info_t, info->iamf_stream_info.audio_element_count);
+
+    if (info->iamf_stream_info.audio_elements) {
+      // Fill audio element information directly from database
+      for (int i = 0; i < info->iamf_stream_info.audio_element_count; ++i) {
+        audio_element_t *audio_element = def_value_wrap_type_ptr(
+            audio_element_t, vector_at(database->audio_elements, i));
+
+        if (audio_element && audio_element->audio_element_obu) {
+          // Fill basic information
+          info->iamf_stream_info.audio_elements[i].element_id =
+              audio_element->id;
+          info->iamf_stream_info.audio_elements[i].element_type =
+              (IAMF_AudioElementType)
+                  audio_element->audio_element_obu->audio_element_type;
+
+          // Set codec ID
+          if (audio_element->codec_config) {
+            info->iamf_stream_info.audio_elements[i].codec_id =
+                def_iamf_codec_id_cast(
+                    audio_element->codec_config->codec_param.type);
+          } else {
+            info->iamf_stream_info.audio_elements[i].codec_id =
+                IAMF_CODEC_UNKNOWN;
+          }
+
+          // Fill channel layout based on element type
+          switch (audio_element->audio_element_obu->audio_element_type) {
+            case ck_audio_element_type_channel_based: {
+              channel_based_audio_element_obu_t *channel_element =
+                  def_channel_based_audio_element_obu_ptr(
+                      audio_element->audio_element_obu);
+
+              if (channel_element &&
+                  array_size(channel_element->channel_audio_layer_configs) >
+                      0) {
+                obu_channel_layer_config_t *layer_config =
+                    def_value_wrap_optional_ptr(
+                        array_at(channel_element->channel_audio_layer_configs,
+                                 channel_element->max_valid_layers - 1));
+
+                if (layer_config) {
+                  iamf_loudspeaker_layout_t correct_layout =
+                      iamf_audio_layer_layout_get(
+                          layer_config->loudspeaker_layout,
+                          layer_config->expanded_loudspeaker_layout);
+
+                  // Set channel layout directly using type conversion
+                  info->iamf_stream_info.audio_elements[i].channel_layout =
+                      (IAChannelLayoutType)correct_layout;
+
+                  // Try to get channel count from layout info
+                  const iamf_layout_info_t *layout_info =
+                      iamf_loudspeaker_layout_get_info(correct_layout);
+
+                  if (layout_info) {
+                    // Use the exact channel count from layout info
+                    info->iamf_stream_info.audio_elements[i].num_channels =
+                        layout_info->channels;
+                  } else {
+                    // Fallback: accumulate channels from all valid layers
+                    info->iamf_stream_info.audio_elements[i].num_channels = 0;
+
+                    for (int layer_idx = 0;
+                         layer_idx < channel_element->max_valid_layers;
+                         ++layer_idx) {
+                      obu_channel_layer_config_t *current_layer =
+                          def_value_wrap_optional_ptr(array_at(
+                              channel_element->channel_audio_layer_configs,
+                              layer_idx));
+
+                      if (current_layer) {
+                        info->iamf_stream_info.audio_elements[i].num_channels +=
+                            current_layer->substream_count +
+                            current_layer->coupled_substream_count;
+                      }
+                    }
+                  }
+                }
+              }
+              break;
+            }
+
+            case ck_audio_element_type_scene_based: {
+              scene_based_audio_element_obu_t *scene_element =
+                  def_scene_based_audio_element_obu_ptr(
+                      audio_element->audio_element_obu);
+
+              if (scene_element) {
+                // Set default channel layout
+                info->iamf_stream_info.audio_elements[i].channel_layout =
+                    IA_CHANNEL_LAYOUT_NONE;
+
+                // Set number of channels
+                info->iamf_stream_info.audio_elements[i].num_channels =
+                    scene_element->output_channel_count;
+              }
+              break;
+            }
+
+            case ck_audio_element_type_object_based: {
+              object_based_audio_element_obu_t *object_element =
+                  def_object_based_audio_element_obu_ptr(
+                      audio_element->audio_element_obu);
+
+              if (object_element) {
+                // Set default channel layout
+                info->iamf_stream_info.audio_elements[i].channel_layout =
+                    IA_CHANNEL_LAYOUT_NONE;
+
+                // Set number of objects as channel count
+                info->iamf_stream_info.audio_elements[i].num_channels =
+                    object_element->num_objects;
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
 
   info->iamf_stream_info.mix_presentation_count =
       vector_size(database->descriptors.mix_presentation_obus);
@@ -1345,6 +1470,12 @@ IAMF_StreamInfo *IAMF_decoder_get_stream_info(IAMF_DecoderHandle handle) {
 void IAMF_decoder_free_stream_info(iamf_stream_info_t *info) {
   if (!info) return;
 
+  // Free audio element array
+  if (info->iamf_stream_info.audio_elements) {
+    def_free(info->iamf_stream_info.audio_elements);
+  }
+
+  // Free mix presentation information
   if (info->iamf_stream_info.mix_presentations) {
     for (uint32_t i = 0; i < info->iamf_stream_info.mix_presentation_count;
          ++i) {
