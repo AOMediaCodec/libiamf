@@ -36,8 +36,6 @@ int iamf_codec_id_check(iamf_codec_id_t cid);
 int iamf_audio_layer_base_layout_check(iamf_loudspeaker_layout_t type);
 int iamf_audio_layer_expanded_layout_check(
     iamf_expanded_loudspeaker_layout_t type);
-iamf_expanded_loudspeaker_layout_t iamf_audio_layer_expanded_layout_get(
-    iamf_loudspeaker_layout_t type);
 iamf_loudspeaker_layout_t iamf_audio_layer_layout_get(
     iamf_loudspeaker_layout_t base,
     iamf_expanded_loudspeaker_layout_t expanded);

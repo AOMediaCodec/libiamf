@@ -119,7 +119,6 @@ typedef enum IAMF_LoudspeakerLayoutType {
   IA_CHANNEL_LAYOUT_BINAURAL,  // binaural
   IA_CHANNEL_LAYOUT_COUNT,
 
-  // expanded layout for version 1.1.
   /// @brief The low-frequency effects subset (LFE) of 7.1.4ch
   IA_CHANNEL_LAYOUT_EXPANDED_LFE = 0x10,
   /// @brief The surround subset (Ls/Rs) of 5.1.4ch

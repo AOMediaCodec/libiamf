@@ -78,7 +78,22 @@ typedef struct IamfMixPresentationInfo {
   iamf_element_presentation_info_t *elements;
 } iamf_mix_presentation_info_t;
 
-#define IAMF_MAX_CODECS 2
+/**
+ * @brief Audio element detailed information structure
+ *
+ * This structure contains detailed information for each audio element,
+ * including element type, codec ID, layout information and channel count.
+ */
+typedef struct IamfAudioElementInfo {
+  uint32_t element_id;                /**< Audio element ID */
+  IAMF_CodecID codec_id;              /**< Codec ID */
+  IAMF_AudioElementType element_type; /**< Audio element type */
+
+  // Layout information - unified field
+  IAChannelLayoutType channel_layout; /**< Channel layout type */
+
+  uint32_t num_channels; /**< Number of channels */
+} iamf_audio_element_info_t;
 
 /**
  * @brief IAMF stream information structure.
@@ -95,10 +110,14 @@ typedef struct IAMF_StreamInfo {
     IA_Profile primary_profile;    /**< Primary IAMF profile */
     IA_Profile additional_profile; /**< Additional IAMF profile */
 
-    IAMF_CodecID codec_ids[IAMF_MAX_CODECS];
     IAMF_SamplingRate sampling_rate; /**< Output sampling rate */
     /**< Number of samples per channel per frame */
     uint32_t samples_per_channel_in_frame;
+
+    /**< Number of audio elements */
+    uint32_t audio_element_count;
+    /**< Array of audio element detailed information */
+    iamf_audio_element_info_t *audio_elements;
 
     /**< Number of available mix presentations */
     uint32_t mix_presentation_count;
