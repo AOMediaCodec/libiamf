@@ -188,7 +188,7 @@ static int _obu_pb_animated_parameter_gain_db(animated_float32_t *dst,
   dst->data.control =
       iamf_gain_q78_to_db(iamf_u32_to_i16(src->data.control, def_q78_num_bits));
   dst->data.control_relative_time =
-      iamf_divide_128f(src->data.control_relative_time);
+      iamf_divide_256f(src->data.control_relative_time);
 
   return IAMF_OK;
 }

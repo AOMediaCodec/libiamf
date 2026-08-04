@@ -13,7 +13,7 @@
 /**
  * @file IAMF_flac_decoder.c
  * @brief flac codec.
- * @version 0.1
+ * @version 2.0.0
  * @date Created 03/03/2023
  **/
 
@@ -64,11 +64,11 @@ static int iamf_flac_init(iamf_codec_context_t *ths) {
     return IAMF_ERR_INTERNAL;
   }
 
-  ctx->scale_i2f = 1 << (bits - 1);
+  ctx->scale_i2f = (float)(1u << (bits - 1));
   debug("the scale of i%d to float : %f", bits, ctx->scale_i2f);
 
   ctx->out = def_malloc(
-      int, def_max_flac_frame_size *(ths->streams + ths->coupled_streams));
+      int, (def_max_flac_frame_size) * (ths->streams + ths->coupled_streams));
   if (!ctx->out) {
     iamf_flac_close(ths);
     return IAMF_ERR_ALLOC_FAIL;
@@ -108,9 +108,9 @@ int iamf_flac_close(iamf_codec_context_t *ths) {
     flac_multistream_decoder_close(dec);
     ctx->dec = 0;
   }
-  if (ctx->out) {
-    free(ctx->out);
-  }
+
+  def_free(ctx->out);
+  ctx->out = 0;
 
   return IAMF_OK;
 }

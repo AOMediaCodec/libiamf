@@ -19,8 +19,6 @@
 
 #include "animated_parameter.h"
 
-#include <math.h>
-
 #include "iamf_private_definitions.h"
 #include "iamf_utils.h"
 

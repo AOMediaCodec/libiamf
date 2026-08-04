@@ -13,7 +13,7 @@
 /**
  * @file demixer.c
  * @brief Demixer.
- * @version 0.1
+ * @version 2.0.0
  * @date Created 03/03/2023
  **/
 
@@ -68,7 +68,6 @@ struct Demixer {
   float *start_window;
   float *stop_window;
   float *large_buffer;
-  float ch_last_sf[ck_iamf_channel_count];
   float ch_last_sfavg[ck_iamf_channel_count];
 
   iamf_loudspeaker_layout_t layout;
@@ -469,7 +468,7 @@ static int dmx_demix(Demixer *ths) {
 }
 
 static void dmx_rms(Demixer *ths) {
-  float N = 7;  // 7 frame
+  float N = 7.0f;  // 7 frame
   float sf, sfavg;
   float filtBuf;
   float *out;
@@ -483,7 +482,8 @@ static void dmx_rms(Demixer *ths) {
     out = ths->ch_data[ch];
 
     if (N > 0) {
-      sfavg = (2 / (N + 1)) * sf + (1 - 2 / (N + 1)) * ths->ch_last_sfavg[ch];
+      sfavg = (2.0f / (N + 1.0f)) * sf +
+              (1.0f - 2.0f / (N + 1.0f)) * ths->ch_last_sfavg[ch];
     } else {
       sfavg = sf;
     }
@@ -497,7 +497,6 @@ static void dmx_rms(Demixer *ths) {
       out[i] *= filtBuf;
     }
 
-    ths->ch_last_sf[ch] = sf;
     ths->ch_last_sfavg[ch] = sfavg;
   }
 }
@@ -538,7 +537,6 @@ Demixer *demixer_open(uint32_t frame_size) {
     }
 
     for (int i = 0; i < ck_iamf_channel_count; ++i) {
-      ths->ch_last_sf[i] = 1.0;
       ths->ch_last_sfavg[i] = 1.0;
     }
   }
@@ -558,7 +556,7 @@ void demixer_close(Demixer *ths) {
     def_free(ths->start_window);
     def_free(ths->stop_window);
     def_free(ths->large_buffer);
-    free(ths);
+    def_free(ths);
   }
 }
 
@@ -648,7 +646,7 @@ int demixer_set_demixing_info(Demixer *ths, int mode, int w_idx) {
 
 int demixer_set_recon_gain(Demixer *ths, int count, iamf_channel_t *chs,
                            float *recon_gain, uint32_t flags) {
-  if (flags && flags ^ ths->chs_recon_gain_list.flags) {
+  if (flags != ths->chs_recon_gain_list.flags) {
     for (int i = 0; i < count; ++i) {
       ths->chs_recon_gain_list.ch_recon_gain[i].ch = chs[i];
     }

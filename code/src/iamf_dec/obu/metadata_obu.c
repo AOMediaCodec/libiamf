@@ -170,7 +170,7 @@ iamf_metadata_obu_t *iamf_metadata_obu_new(io_context_t *ior) {
   }
 
 #if SUPPORT_VERIFIER
-  vlog_obu(ck_iamf_obu_metadata, obu, 0, 0);
+  if (obu) vlog_obu(ck_iamf_obu_metadata, obu, 0, 0);
 #endif
 
   return obu;

@@ -183,12 +183,13 @@ int _obu_ae_common_init(iamf_audio_element_obu_t *obu, uint32_t id,
     type = ior_leb128_u32(r);
     if (type != ck_iamf_parameter_type_demixing &&
         type != ck_iamf_parameter_type_recon_gain) {
-      uint32_t size = ior_leb128_u32(r);
-      ior_skip(r, size);
-      warning(
-          "Don't support parameter type(%u) in Audio Element OBU(%u), "
-          "parameter definition bytes %u.",
-          type, obu->audio_element_id, size);
+      warning("Don't support parameter type(%u) in Audio Element OBU(%u), ",
+              type, obu->audio_element_id);
+      if (type >= (uint32_t)ck_iamf_parameter_type_count) {
+        uint32_t size = ior_leb128_u32(r);
+        ior_skip(r, size);
+        debug("Skip parameter(%u) definition bytes %u.", type, size);
+      }
       continue;
     }
 
@@ -456,6 +457,12 @@ static int _obu_ae_channel_based_check(channel_based_audio_element_obu_t *cae) {
       obu_channel_layer_config_t *layer_config = def_value_wrap_optional_ptr(
           array_at(cae->channel_audio_layer_configs, i));
 
+      if (!layer_config) {
+        warning("Element (%u) Layer %d: layer config is NULL, skip.",
+                cae->base.audio_element_id, i);
+        continue;
+      }
+
       if (cae->max_valid_layers == i) {
         channels += (layer_config->substream_count +
                      layer_config->coupled_substream_count);
@@ -514,7 +521,7 @@ static int _obu_ae_scene_based_check(scene_based_audio_element_obu_t *sae) {
     warning("Scene based audio element(%u) has parameter.",
             sae->base.audio_element_id);
 
-  if (iamf_ambisionisc_get_order(sae->output_channel_count) < 0 ||
+  if (iamf_ambisonics_get_order(sae->output_channel_count) < 0 ||
       sae->output_channel_count < channels) {
     warning(
         "Invalid output channel count %d or invalid input channels %d in "

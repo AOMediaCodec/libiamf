@@ -76,15 +76,13 @@ iamf_audio_block_t* iamf_audio_block_new(uint32_t id,
 int iamf_audio_block_resize(iamf_audio_block_t* block,
                             uint32_t capacity_per_channel,
                             uint32_t num_channels) {
-  if (!block) return IAMF_ERR_BAD_ARG;
+  if (!block || block->num_samples_per_channel > 0 || !num_channels ||
+      !capacity_per_channel)
+    return -22;
 
-  if (block->num_samples_per_channel > 0) return IAMF_ERR_INVALID_STATE;
-
-  if (!num_channels || !capacity_per_channel) return IAMF_ERR_BAD_ARG;
-
-  if (block->capacity_per_channel * block->num_samples_per_channel >
+  if (block->capacity_per_channel * block->num_channels >=
       capacity_per_channel * num_channels)
-    return IAMF_OK;
+    return 0;
 
   float* new_data = def_mallocz(float, (num_channels * capacity_per_channel));
   if (!new_data) return -12;
@@ -99,7 +97,7 @@ int iamf_audio_block_resize(iamf_audio_block_t* block,
   block->num_channels = num_channels;
   block->capacity_per_channel = capacity_per_channel;
 
-  return IAMF_OK;
+  return 0;
 }
 
 void iamf_audio_block_delete(iamf_audio_block_t* block) {
@@ -174,10 +172,16 @@ int iamf_audio_block_channels_concat(iamf_audio_block_t* dst,
 
   // if (dst->interleaved) return -38;
 
+  if (!src[0]) return -22;
   num_samples = src[0]->num_samples_per_channel;
-  for (int i = 0; i < n; ++i) {
-    if (!src[i] || num_samples > dst->capacity_per_channel ||
-        src[i]->num_samples_per_channel != num_samples
+
+  if (num_samples > dst->capacity_per_channel) {
+    warning("iamf_audio_block_channels_concat: capacity exceeded!");
+    return -22;
+  }
+
+  for (int i = 1; i < n; ++i) {
+    if (!src[i] || src[i]->num_samples_per_channel != num_samples
         // || dst->interleaved != src[i]->interleaved
     ) {
       warning("iamf_audio_block_channels_concat error!");
@@ -308,8 +312,9 @@ iamf_audio_block_t* iamf_audio_block_samples_concat(
 
   for (int i = 0; i < n; ++i) {
     ablock = blocks[i];
-    num_samples +=
-        (ablock->num_samples_per_channel - ablock->skip - ablock->padding);
+    uint32_t trim_sum = ablock->skip + ablock->padding;
+    if (trim_sum < ablock->num_samples_per_channel)
+      num_samples += ablock->num_samples_per_channel - trim_sum;
   }
 
   ablock = iamf_audio_block_new(0, num_samples, num_channels);
@@ -317,8 +322,10 @@ iamf_audio_block_t* iamf_audio_block_samples_concat(
     for (int c = 0; c < num_channels; ++c) {
       uint32_t off = 0;
       for (int i = 0; i < n; ++i) {
-        uint32_t samples = blocks[i]->num_samples_per_channel -
-                           blocks[i]->skip - blocks[i]->padding;
+        uint32_t trim_sum = blocks[i]->skip + blocks[i]->padding;
+        uint32_t samples = (trim_sum < blocks[i]->num_samples_per_channel)
+                               ? (blocks[i]->num_samples_per_channel - trim_sum)
+                               : 0;
         memcpy(ablock->data + c * num_samples + off,
                blocks[i]->data + c * blocks[i]->num_samples_per_channel +
                    blocks[i]->skip,
@@ -360,8 +367,11 @@ int iamf_audio_block_trim(iamf_audio_block_t* block) {
 
 uint32_t iamf_audio_block_available_samples(iamf_audio_block_t* block) {
   if (!block) return 0;
-  return block->num_samples_per_channel - block->skip - block->padding -
-         block->second_skip - block->second_padding;
+  uint32_t trim_total =
+      block->skip + block->padding + block->second_skip + block->second_padding;
+  return block->num_samples_per_channel > trim_total
+             ? block->num_samples_per_channel - trim_total
+             : 0;
 }
 
 int iamf_audio_block_partial_copy_data(iamf_audio_block_t* dst,

@@ -245,7 +245,7 @@ int iamf_renderer_update_element_animated_gain(iamf_renderer_t* self,
                                                uint32_t id, uint32_t pid,
                                                animated_float32_t animated_gain,
                                                uint32_t number) {
-  oar_metadata_t gain;
+  oar_metadata_t gain = {0};
 
   if (!self || !self->oar) return IAMF_ERR_BAD_ARG;
 
@@ -258,8 +258,8 @@ int iamf_renderer_update_element_animated_gain(iamf_renderer_t* self,
   gain.duration = number;
 
   debug(
-      "display pid %d: gain %d: animation type %d: start %f, end %f, control "
-      "%f, control_relative_time %f, duration %d",
+      "display pid %u: gain %u: animation type %d: start %f, end %f, control "
+      "%f, control_relative_time %f, duration %u",
       pid, pid, animated_gain.animation_type, animated_gain.data.start,
       animated_gain.data.end, animated_gain.data.control,
       animated_gain.data.control_relative_time, number);
@@ -272,7 +272,7 @@ int iamf_renderer_update_element_animated_gain(iamf_renderer_t* self,
 int iamf_renderer_update_element_downmix_mode(iamf_renderer_t* self,
                                               uint32_t id, int mode,
                                               int period) {
-  oar_metadata_t dmx;
+  oar_metadata_t dmx = {0};
   dmx.type = ck_metadata_iamf_downmix_mode;
   dmx.iamf_downmix_mode.mode = mode;
   dmx.duration = period;
@@ -285,7 +285,7 @@ int iamf_renderer_update_animated_gain(iamf_renderer_t* self, uint32_t pid,
                                        uint32_t group_index,
                                        animated_float32_t animated_gain,
                                        uint32_t number) {
-  oar_metadata_t gain;
+  oar_metadata_t gain = {0};
 
   if (!self || !self->oar || group_index >= def_max_sub_mixes ||
       self->gids[group_index] == def_i32_id_none)
@@ -300,8 +300,8 @@ int iamf_renderer_update_animated_gain(iamf_renderer_t* self, uint32_t pid,
   gain.duration = number;
 
   debug(
-      "display gid %d: gain %d: animation type %d: start %f, end %f, control "
-      "%f, control_relative_time %f, duration %d",
+      "display gid %d: gain %u: animation type %d: start %f, end %f, control "
+      "%f, control_relative_time %f, duration %u",
       self->gids[group_index], pid, animated_gain.animation_type,
       animated_gain.data.start, animated_gain.data.end,
       animated_gain.data.control, animated_gain.data.control_relative_time,
@@ -316,7 +316,7 @@ int iamf_renderer_update_animated_gain(iamf_renderer_t* self, uint32_t pid,
 int iamf_renderer_update_element_animated_polar_positions(
     iamf_renderer_t* self, uint32_t id, uint32_t pid,
     animated_polar_t* positions, uint32_t number, uint32_t duration) {
-  oar_metadata_t metadata;
+  oar_metadata_t metadata = {0};
 
   if (!self || !self->oar || !positions) return IAMF_ERR_BAD_ARG;
   if (number == 0) return IAMF_ERR_BAD_ARG;
@@ -324,21 +324,24 @@ int iamf_renderer_update_element_animated_polar_positions(
   metadata.type = ck_metadata_object_positions;
   metadata.object_positions.param_type = ck_param_animated;
   metadata.object_positions.position_type = ck_polar;
+  metadata.object_positions.num_objects =
+      number < def_max_number_of_objects ? number : def_max_number_of_objects;
+  metadata.duration = duration;
 
   // Count valid positions and copy animated polar positions
-  uint32_t i = 0;
-  for (; i < number && i < def_max_number_of_objects; i++) {
+  for (uint32_t i = 0; i < metadata.object_positions.num_objects; i++) {
     metadata.object_positions.animated_polar_positions[i] = positions[i];
     debug(
-        "Update animated polar positions for element %u-%u: num_objects=%u, "
-        "duration=%u, index=%u, azimuth=%f, elevation=%f, distance=%f",
-        id, pid, metadata.object_positions.num_objects, duration, i,
-        positions[i].azimuth.start, positions[i].elevation.start,
+        "Update animated polar positions for element %u-%u: index=%u, "
+        "azimuth=%f, elevation=%f, distance=%f",
+        id, pid, i, positions[i].azimuth.start, positions[i].elevation.start,
         positions[i].distance.start);
   }
-  metadata.object_positions.num_objects = i;
 
-  metadata.duration = duration;
+  debug(
+      "Update animated polar positions for element %u-%u: num_objects=%u, "
+      "duration=%u",
+      id, pid, metadata.object_positions.num_objects, metadata.duration);
 
   return oar_update_audio_element_metadata(self->oar, id, &metadata) ==
                  ck_oar_ok
@@ -349,7 +352,7 @@ int iamf_renderer_update_element_animated_polar_positions(
 int iamf_renderer_update_element_animated_cartesian_positions(
     iamf_renderer_t* self, uint32_t id, animated_cartesian_t* positions,
     uint32_t number, uint32_t duration) {
-  oar_metadata_t metadata;
+  oar_metadata_t metadata = {0};
 
   if (!self || !self->oar || !positions) return IAMF_ERR_BAD_ARG;
   if (number == 0) return IAMF_ERR_BAD_ARG;
@@ -357,25 +360,24 @@ int iamf_renderer_update_element_animated_cartesian_positions(
   metadata.type = ck_metadata_object_positions;
   metadata.object_positions.param_type = ck_param_animated;
   metadata.object_positions.position_type = ck_cartesian;
+  metadata.object_positions.num_objects =
+      number < def_max_number_of_objects ? number : def_max_number_of_objects;
+  metadata.duration = duration;
 
   // Count valid positions and copy animated cartesian positions
-  uint32_t i = 0;
-  for (; i < number && i < def_max_number_of_objects; i++) {
+  for (uint32_t i = 0; i < metadata.object_positions.num_objects; i++) {
     metadata.object_positions.animated_cartesian_positions[i] = positions[i];
     debug(
-        "Update animated cartesian positions for element %u: index=%u, x=%f,"
+        "Update animated cartesian positions for element %u: index=%u, x=%f, "
         "y=%f, z=%f",
         id, i, positions[i].x.start, positions[i].y.start,
         positions[i].z.start);
   }
-  metadata.object_positions.num_objects = i;
-
-  metadata.duration = duration;
 
   debug(
       "Update animated cartesian positions for element %u: num_objects=%u, "
       "duration=%u",
-      id, metadata.object_positions.num_objects, duration);
+      id, metadata.object_positions.num_objects, metadata.duration);
 
   return oar_update_audio_element_metadata(self->oar, id, &metadata) ==
                  ck_oar_ok
@@ -415,7 +417,7 @@ int iamf_renderer_set_head_rotation(iamf_renderer_t* self,
   if (!self || !quaternion) return IAMF_ERR_BAD_ARG;
   if (!self->oar) return IAMF_ERR_INTERNAL;
 
-  oar_metadata_t metadata;
+  oar_metadata_t metadata = {0};
   metadata.type = ck_metadata_head_rotation;
   metadata.head_rotation = *quaternion;
   metadata.duration = 0;

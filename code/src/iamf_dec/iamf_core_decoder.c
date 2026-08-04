@@ -171,22 +171,23 @@ termination:
 void iamf_core_decoder_close(iamf_core_decoder_t *ths) {
   if (ths) {
     if (ths->ctx) {
-      if (ths->cdec) ths->cdec->close(ths->ctx);
-      if (ths->ctx->priv) free(ths->ctx->priv);
-      free(ths->ctx);
+      if (ths->ctx->priv) {
+        if (ths->cdec) ths->cdec->close(ths->ctx);
+        def_free(ths->ctx->priv);
+      }
+      def_free(ths->ctx);
     }
 
     if (ths->matrix) {
       if (ths->ambisonics == ck_stream_mode_ambisonics_projection) {
         FloatMatrix *fm = ths->matrix;
-        if (fm->matrix) free(fm->matrix);
+        def_free(fm->matrix);
       }
-      free(ths->matrix);
+      def_free(ths->matrix);
     }
 
-    if (ths->buffer) free(ths->buffer);
-
-    free(ths);
+    def_free(ths->buffer);
+    def_free(ths);
   }
 }
 
@@ -230,7 +231,7 @@ int iamf_core_decoder_set_streams_info(iamf_core_decoder_t *ths, uint32_t mode,
       count = matrix->row * matrix->column;
       factors = def_mallocz(float, count);
       if (!factors) {
-        free(matrix);
+        def_free(matrix);
         return IAMF_ERR_ALLOC_FAIL;
       }
       matrix->matrix = factors;
@@ -245,7 +246,7 @@ int iamf_core_decoder_set_streams_info(iamf_core_decoder_t *ths, uint32_t mode,
       if (!matrix) return IAMF_ERR_ALLOC_FAIL;
 
       if (channels != mapping_size) {
-        free(matrix);
+        def_free(matrix);
         error("Invalid ambisonics mono info.");
         return IAMF_ERR_BAD_ARG;
       }

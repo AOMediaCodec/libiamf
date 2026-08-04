@@ -76,7 +76,6 @@
 #define def_default_recon_gain 1.0f
 
 #define def_ccs_str_size 1024
-#define def_cc_str_size 128
 #define def_q78_num_bits 16
 #define def_azimuth_num_bits 9
 #define def_elevation_num_bits 8
@@ -88,7 +87,7 @@
 
 #define def_max_audio_objects 2
 
-#define def_max_opus_frame_size 960 * 6
+#define def_max_opus_frame_size (960 * 6)
 #define def_max_aac_frame_size 2048
 #define def_max_flac_frame_size 32768
 

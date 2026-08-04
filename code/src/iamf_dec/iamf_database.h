@@ -98,10 +98,11 @@ typedef struct DBCartesiansParameterBlock {
 typedef struct DBParameterBlockManager {
   vector_t *parameter_blocks;  // vector<parameter_block_t>
 
-  vector_t *demixing_infos;  // vector<parameter_block_t>
-  vector_t *recon_gains;     // vector<parameter_block_t>
-  vector_t *mix_gains;       // vector<parameter_block_t>
-  vector_t *coordinates;     // vector<parameter_block_t>
+  vector_t *demixing_infos;   // vector<parameter_block_t>
+  vector_t *recon_gains;      // vector<parameter_block_t>
+  vector_t *mix_gains;        // vector<parameter_block_t>
+  vector_t *coordinates;      // vector<parameter_block_t> (polar/cartesian)
+  vector_t *loudness_params;  // vector<parameter_block_t> (momentary_loudness)
 } parameter_block_manager_t;
 
 typedef struct IamfDescriptors {

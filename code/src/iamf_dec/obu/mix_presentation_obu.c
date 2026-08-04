@@ -713,9 +713,9 @@ int _obu_mp_check(iamf_mix_presentation_obu_t *obu) {
       return def_error;
     }
 
-    for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
       obu_audio_element_config_t *aelem_config =
-          def_value_wrap_optional_ptr(array_at(sub->audio_element_configs, i));
+          def_value_wrap_optional_ptr(array_at(sub->audio_element_configs, j));
 
       if (aelem_config->rendering_config.headphones_rendering_mode >
           HEADPHONES_RENDERING_MODE_HEAD_LOCKED) {
@@ -729,9 +729,9 @@ int _obu_mp_check(iamf_mix_presentation_obu_t *obu) {
     }
 
     n = array_size(sub->loudness_layouts);
-    for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
       iamf_layout_t *layout =
-          def_value_wrap_optional_ptr(array_at(sub->loudness_layouts, i));
+          def_value_wrap_optional_ptr(array_at(sub->loudness_layouts, j));
       if (layout->type == ck_iamf_layout_type_loudspeakers_ss_convention &&
           !iamf_sound_system_check(layout->sound_system)) {
         warning("Find unsupported sound system %d in mix presentation %u.",

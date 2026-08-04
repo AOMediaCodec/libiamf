@@ -23,13 +23,13 @@
 #include "iamf_utils.h"
 
 static const char* _g_error_code_strings[] = {"Ok",
-                                              "Bad argments",
+                                              "Bad arguments",
                                               "Buffer too small",
                                               "Internal error",
                                               "Invalid packet",
                                               "Invalid state",
                                               "Unimplemented",
-                                              "Memory allocation failure"
+                                              "Memory allocation failure",
                                               "Pending"};
 
 const char* iamf_error_code_string(int errno_) {
@@ -75,10 +75,8 @@ const char* iamf_obu_header_flag2_string(iamf_obu_type_t type) {
     return "optional_fields_flag";
   } else if (type == ck_iamf_obu_temporal_delimiter) {
     return "is_not_key_frame";
-  } else if ((type > ck_iamf_obu_temporal_delimiter &&
-              type < ck_iamf_obu_metadata) ||
-             (type >= ck_iamf_obu_audio_frame &&
-              type <= ck_iamf_obu_audio_frame_id17)) {
+  } else if (type >= ck_iamf_obu_audio_frame &&
+             type <= ck_iamf_obu_audio_frame_id17) {
     return "obu_trimming_status_flag";
   } else {
     return "reserved";
@@ -178,7 +176,9 @@ static const char* _g_channel_strings[] = {
     "sr5",    "hl",      "hr",      "wl",  "wr",  "hsl",    "hsr"};
 
 const char* iamf_channel_name(iamf_channel_t ch) {
-  return ch < ck_iamf_channel_count ? _g_channel_strings[ch] : "none";
+  return ch > ck_iamf_channel_none && ch < ck_iamf_channel_count
+             ? _g_channel_strings[ch]
+             : "none";
 }
 
 const char* iamf_layout_string(iamf_layout_t layout) {

@@ -63,11 +63,11 @@ iamf_sequence_header_obu_t *iamf_sequence_header_obu_new(io_context_t *ioc) {
 }
 
 void iamf_sequence_header_obu_free(iamf_sequence_header_obu_t *obu) {
-  free(obu);
+  def_free(obu);
 }
 
-static int _obu_sh_valid_profile(uint8_t primary, uint8_t addional) {
-  return primary < def_iamf_profile_count && primary <= addional;
+static int _obu_sh_valid_profile(uint8_t primary, uint8_t additional) {
+  return primary < def_iamf_profile_count && primary <= additional;
 }
 
 int _obu_sh_check(iamf_sequence_header_obu_t *obu) {

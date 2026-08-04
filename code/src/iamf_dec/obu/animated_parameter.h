@@ -80,7 +80,7 @@ int animated_parameter_data_read_bits(bits_io_context_t *bits_r,
     (dst)->end = convert_func((src)->end, (num_bits));                        \
     (dst)->control = convert_func((src)->control, (num_bits));                \
     (dst)->control_relative_time =                                            \
-        iamf_divide_128f((src)->control_relative_time);                       \
+        iamf_divide_256f((src)->control_relative_time);                       \
   } while (0)
 
 #endif  // __ANIMATED_PARAMETER_H__

@@ -17,8 +17,8 @@
  * @date Created 03/03/2023
  **/
 
-#ifndef __IAMF_UITLS_H__
-#define __IAMF_UITLS_H__
+#ifndef __IAMF_UTILS_H__
+#define __IAMF_UTILS_H__
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -29,7 +29,7 @@
 #include "iamf_types.h"
 #include "oar_base.h"
 
-iamf_codec_type_t iamf_codec_type_get(uint32_t codec_id);
+iamf_codec_type_t iamf_codec_type_get(iamf_codec_id_t codec_id);
 int iamf_codec_type_check(iamf_codec_type_t cid);
 int iamf_codec_id_check(iamf_codec_id_t cid);
 
@@ -45,11 +45,11 @@ int bit1_count(uint32_t value);
 float iamf_q15_to_float(int16_t q);
 float iamf_gain_q78_to_db(int16_t q78);
 float iamf_gain_q78_to_linear(int16_t q78);
-float iamf_recon_gain_linear(int8_t gain);
-float iamf_divide_128f(uint8_t val);
+float iamf_recon_gain_linear(uint8_t gain);
+float iamf_divide_256f(uint8_t val);
 float f32_db_to_linear(float db);
 
-int iamf_ambisionisc_get_order(uint32_t channels);
+int iamf_ambisonics_get_order(uint32_t channels);
 int iamf_sound_system_check(iamf_sound_system_t ss);
 
 // int iamf_layout_is_equal(iamf_layout_t a, iamf_layout_t b);
@@ -60,4 +60,4 @@ int16_t iamf_u32_to_i16(uint32_t v, uint32_t bits);
 float iamf_u32_to_f32(uint32_t v, uint32_t bits);
 float iamf_i16_to_f32(int16_t v, uint32_t bits);
 
-#endif /* __IAMF_UITLS_H__ */
+#endif /* __IAMF_UTILS_H__ */

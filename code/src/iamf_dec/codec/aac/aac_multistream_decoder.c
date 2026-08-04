@@ -49,7 +49,7 @@ struct AacMsDecoder {
 };
 
 typedef void (*func_aac_copy_channel_out_t)(void *dst, const void *src,
-                                            int frame_size, int channes);
+                                            int frame_size, int channels);
 
 void aac_copy_channel_out_short_plane(void *dst, const void *src,
                                       int frame_size, int channels) {

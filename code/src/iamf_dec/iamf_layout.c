@@ -419,7 +419,7 @@ static const iamf_layout_info_t iamf_layouts[] = {
                  ck_iamf_layout_flag_expanded,
         .channels = 17,
         .surround = 7,
-        .height = 9,
+        .height = 5,
         .bottom = 4,
         .lfe1 = 3,
         .lfe2 = def_lfe_none,
@@ -500,6 +500,8 @@ const iamf_layout_info_t *iamf_loudspeaker_layout_get_info(
 int iamf_loudspeaker_layout_get_decoding_channels(
     iamf_loudspeaker_layout_t type, iamf_channel_t *channels, uint32_t count) {
   const iamf_layout_info_t *info = iamf_loudspeaker_layout_get_info(type);
+  if (!info) return IAMF_ERR_BAD_ARG;
+  if (count < info->channels) return IAMF_ERR_BUFFER_TOO_SMALL;
   for (uint32_t i = 0; i < info->channels; ++i)
     channels[i] = info->channel_layout[info->decoding_map[i]];
   return info->channels;
