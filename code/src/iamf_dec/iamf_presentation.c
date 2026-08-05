@@ -171,7 +171,7 @@ static uint32_t iamf_presentation_priv_generate_unique_gain_offset_id(
 
   // If conflict, try different offsets
   for (uint32_t offset = 1; offset < 0xFFFF; offset++) {
-    candidate_id += offset;
+    candidate_id = self->id + offset;
     if (!iamf_presentation_priv_pid_conflicts(self, element_id, candidate_id)) {
       debug(
           "Generated unique gain offset ID: original_id=%u, unique_id=%u, "
@@ -927,13 +927,13 @@ static int iamf_presentation_priv_update_element_positions(
       float durations = 0.0f;
       uint32_t rate =
           iamf_database_get_parameter_rate(self->database, position_param_id);
-      polars_parameter_subblock_t* polars_subblocks =
-          def_polars_parameter_subblock_ptr(*subblock);
 
       for (int j = 0; j < n; j++) {
+        polars_parameter_subblock_t* polars_subblock =
+            def_polars_parameter_subblock_ptr(subblock[j]);
         uint32_t approximate_durations = durations + 0.5f;
         float duration = iamf_fraction_transform_float(
-            def_fraction_instance(polars_subblocks[j].base.subblock_duration,
+            def_fraction_instance(polars_subblock->base.subblock_duration,
                                   rate),
             element->sampling_rate);
         durations += duration;
@@ -941,7 +941,7 @@ static int iamf_presentation_priv_update_element_positions(
 
         iamf_renderer_update_element_animated_polar_positions(
             &self->renderer, element->element_id, position_param_id,
-            polars_subblocks->polars, polars_subblocks->num_polars, duration);
+            polars_subblock->polars, polars_subblock->num_polars, duration);
 
         durations += duration;
       }
@@ -1007,25 +1007,25 @@ static int iamf_presentation_priv_update_element_positions(
     }
 
     if (n > 0) {
-      cartesians_parameter_subblock_t* cartesians_subblocks =
-          def_cartesians_parameter_subblock_ptr(*subblock);
       float durations = 0.0f;
       uint32_t rate =
           iamf_database_get_parameter_rate(self->database, position_param_id);
 
       for (int j = 0; j < n; j++) {
+        cartesians_parameter_subblock_t* cartesians_subblock =
+            def_cartesians_parameter_subblock_ptr(subblock[j]);
         uint32_t approximate_durations = durations + 0.5f;
         float duration = iamf_fraction_transform_float(
-            def_fraction_instance(
-                cartesians_subblocks[j].base.subblock_duration, rate),
+            def_fraction_instance(cartesians_subblock->base.subblock_duration,
+                                  rate),
             element->sampling_rate);
         durations += duration;
         duration = durations + 0.5f - approximate_durations;
 
         iamf_renderer_update_element_animated_cartesian_positions(
             &self->renderer, element->element_id,
-            cartesians_subblocks->cartesians,
-            cartesians_subblocks->num_cartesians, duration);
+            cartesians_subblock->cartesians,
+            cartesians_subblock->num_cartesians, duration);
 
         durations += duration;
       }
@@ -1073,8 +1073,9 @@ static int iamf_presentation_priv_update_element_positions(
 static int iamf_presentation_priv_update_output_mix_gain(
     iamf_presentation_t* self, iamf_audio_block_t* block,
     fraction_t num_samples_frac) {
-  int num_gains = vector_size(self->output_mix_gain_ids);
   if (!self || !block) return IAMF_ERR_BAD_ARG;
+
+  int num_gains = vector_size(self->output_mix_gain_ids);
   if (num_gains <= 0) return IAMF_ERR_INTERNAL;
 
   for (int g = 0; g < num_gains; g++) {

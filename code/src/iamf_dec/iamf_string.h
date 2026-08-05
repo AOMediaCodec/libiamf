@@ -34,7 +34,6 @@ const char *iamf_sound_system_string(iamf_sound_system_t sound_system);
 const char *iamf_loudspeaker_layout_string(iamf_loudspeaker_layout_t layout);
 const char *iamf_expanded_loudspeaker_layout_string(
     iamf_expanded_loudspeaker_layout_t layout);
-const char *iamf_layout_type_string(iamf_layout_type_t type);
 const char *iamf_layout_string(iamf_layout_t layout);
 const char *iamf_channel_name(iamf_channel_t ch);
 

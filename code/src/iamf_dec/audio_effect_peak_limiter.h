@@ -30,9 +30,6 @@ This software module is out of scope and not part of the IAMF Final Deliverable.
 
 #define USE_TRUEPEAK 0
 
-#define MAX_OUTPUT_CHANNELS 24
-#define MAX_DELAYSIZE 4096
-
 #if USE_TRUEPEAK
 #include "audio_true_peak_meter.h"
 #endif
@@ -76,15 +73,15 @@ AudioEffectPeakLimiter* audio_effect_peak_limiter_create(void);
 /**
  * @brief     Initialize the peak limiter.
  * @param     [in] ths : the peak limiter handle
- * @param     [in] threashold_db : peak threshold in dB
+ * @param     [in] threshold_db : peak threshold in dB
  * @param     [in] sample_rate : sample rate of audio signal
  * @param     [in] num_channels : number of channels in frame
  * @param     [in] atk_sec : attack duration in seconds
- * @param     [in] atk_sec : release duration in seconds
+ * @param     [in] rel_sec : release duration in seconds
  * @param     [in] delay_size : number of samples in delay buffer
  */
 void audio_effect_peak_limiter_init(AudioEffectPeakLimiter* ths,
-                                    float threashold_db, int sample_rate,
+                                    float threshold_db, int sample_rate,
                                     int num_channels, float atk_sec,
                                     float rel_sec, int delay_size);
 

@@ -13,7 +13,7 @@
 /**
  * @file flac_multistream_decoder.c
  * @brief FLAC decoder.
- * @version 0.1
+ * @version 2.0.0
  * @date Created 03/03/2023
  **/
 
@@ -47,7 +47,7 @@ typedef struct FlacDecoderHandle {
   uint8_t *packet;
   uint32_t packet_size;
   uint32_t fs;
-  int buffer[def_max_flac_frame_size];
+  int buffer[def_max_flac_frame_size * 2];
 } flac_decoder_handle_t;
 
 typedef struct FlacMsDecoder {
@@ -146,17 +146,28 @@ static int flac_header_set_channels(uint8_t *h, uint32_t size, int n) {
 static int flac_multistream_decode_native(flac_ms_decoder_t *st,
                                           uint8_t *buffer[], uint32_t size[],
                                           void *pcm, int frame_size) {
-  flac_decoder_handle_t *handle = NULL;
   char *out = (char *)pcm;
   int ss = 0;
 
+  if (st->streams < 1) {
+    error("invalid streams count: %d", st->streams);
+    return IAMF_ERR_BAD_ARG;
+  }
+
   for (int i = 0; i < st->streams; ++i) {
+    flac_decoder_handle_t *handle = &st->handles[i];
     trace("stream %d", i);
-    handle = &st->handles[i];
     handle->packet = buffer[i];
     handle->packet_size = size[i];
+    handle->fs = 0;
 
     if (!FLAC__stream_decoder_process_single(handle->dec)) {
+      error("flac decode failed at stream %d", i);
+      return IAMF_ERR_INTERNAL;
+    }
+
+    if (handle->fs == 0) {
+      error("no output from stream %d (write callback not invoked)", i);
       return IAMF_ERR_INTERNAL;
     }
 
@@ -167,11 +178,8 @@ static int flac_multistream_decode_native(flac_ms_decoder_t *st,
     memcpy(out, handle->buffer, ss);
     out += ss;
   }
-  if (!handle) {
-    return IAMF_ERR_BAD_ARG;
-  } else {
-    return handle->fs;
-  }
+
+  return st->handles[st->streams - 1].fs;
 }
 
 flac_ms_decoder_t *flac_multistream_decoder_open(uint8_t *config, uint32_t size,

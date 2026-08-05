@@ -13,7 +13,7 @@
 /**
  * @file iamf_post_processor.c
  * @brief IAMF post processor implementation.
- * @version 0.1
+ * @version 2.0.0
  * @date Created 12/11/2025
  **/
 
@@ -33,7 +33,6 @@
 #define def_limiter_attack_sec 0.001f
 #define def_limiter_release_sec 0.200f
 #define def_limiter_look_ahead_sec 0.005f
-#define def_limiter_look_ahead 240
 
 typedef enum EStatus {
   ck_status_none,
@@ -247,7 +246,7 @@ int iamf_post_processor_process(iamf_post_processor_t *self,
                                 iamf_audio_block_t **out) {
   iamf_audio_block_t *last = in;
 
-  if (self->status != ck_status_process) return 0;
+  if (self->status != ck_status_process) return IAMF_ERR_INVALID_STATE;
 
   if (self->resampler) {
     iamf_audio_block_t *next = iamf_post_processor_priv_resample(self, last);

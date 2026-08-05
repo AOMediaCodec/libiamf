@@ -88,8 +88,8 @@ static int iamf_aac_init(iamf_codec_context_t *ths) {
                                           ck_audio_frame_planar, &ret);
   if (!ctx->dec) return IAMF_ERR_INVALID_STATE;
 
-  ctx->out = (short *)malloc(sizeof(short) * def_max_aac_frame_size *
-                             (ths->streams + ths->coupled_streams));
+  ctx->out = def_malloc(
+      short, (def_max_aac_frame_size) * (ths->streams + ths->coupled_streams));
   if (!ctx->out) {
     iamf_aac_close(ths);
     return IAMF_ERR_ALLOC_FAIL;
@@ -136,9 +136,8 @@ int iamf_aac_close(iamf_codec_context_t *ths) {
     aac_multistream_decoder_close(dec);
     ctx->dec = 0;
   }
-  if (ctx->out) {
-    free(ctx->out);
-  }
+  def_free(ctx->out);
+  ctx->out = 0;
 
   return IAMF_OK;
 }

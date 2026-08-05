@@ -50,8 +50,9 @@ void audio_effect_peak_limiter_uninit(AudioEffectPeakLimiter* ths) {
 }
 
 void audio_effect_peak_limiter_destroy(AudioEffectPeakLimiter* ths) {
+  if (!ths) return;
   audio_effect_peak_limiter_uninit(ths);
-  if (ths) free(ths);
+  free(ths);
 }
 
 // threshold_db: Peak threshold in dB
@@ -90,7 +91,6 @@ int audio_effect_peak_limiter_process_block(AudioEffectPeakLimiter* ths,
   float peak;
   float channel_peak = 0.0f;
   float gain;
-  int k;
   float peakMax = 0.0f;
   float* audioBlock = outblock;
   float out;
@@ -103,7 +103,7 @@ int audio_effect_peak_limiter_process_block(AudioEffectPeakLimiter* ths,
 
 #define DB_IDX(i) ((i) % ths->delayBufferSize)
 
-  for (k = 0; k < frame_size; k++) {
+  for (int k = 0; k < frame_size; k++) {
     peak = 0.0f;
     idx = k + ths->entryIndex;
 #ifndef OLD_CODE

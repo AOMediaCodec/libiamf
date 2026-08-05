@@ -34,7 +34,6 @@
 typedef struct AudioBlocksCache {
   uint32_t id;
   queue_t* audio_blocks;
-  uint32_t delay;
   uint32_t skip;
 } audio_blocks_cache_t;
 
@@ -72,7 +71,6 @@ static audio_blocks_cache_t* audio_blocks_cache_new(uint32_t id) {
 
   // Initialize the cache
   new_cache->id = id;
-  new_cache->delay = 0;  // Default delay
 
   // Create queue for audio blocks
   new_cache->audio_blocks = queue_new();
@@ -109,6 +107,9 @@ static int audio_block_cache_required_data(audio_blocks_cache_t* cache,
     if (!cblock) {
       warning("Failed to get audio block from cache for ID %u", cache->id);
       ret = IAMF_ERR_INTERNAL;
+      value_wrap_t v;
+      queue_pop(cache->audio_blocks, &v);
+      continue;
     }
 
     _offset = cache->skip + cblock->skip + cblock->second_skip;
@@ -136,13 +137,8 @@ static int audio_block_cache_required_data(audio_blocks_cache_t* cache,
 
   } while (!queue_is_empty(cache->audio_blocks) && needed_samples > 0);
 
-  if (ret == IAMF_OK && !needed_samples) {
-    if (block->skip) cache->delay += block->skip;
-    if (block->second_skip) cache->delay += block->second_skip;
-  }
-
-  debug("cache info: ID %u, delay %u, skip %u, blocks %d", cache->id,
-        cache->delay, cache->skip, queue_length(cache->audio_blocks));
+  debug("cache info: ID %u, skip %u, blocks %d", cache->id, cache->skip,
+        queue_length(cache->audio_blocks));
 
   return ret;
 }
@@ -344,6 +340,7 @@ int iamf_synchronizer_sync_audio_blocks(iamf_synchronizer_t* synchronizer,
 
     if (audio_block_cache_required_data(cache, &required_block) != IAMF_OK) {
       warning("Failed to get required data from cache for ID %u", block->id);
+      def_free(required_block.data);
       continue;
     }
 

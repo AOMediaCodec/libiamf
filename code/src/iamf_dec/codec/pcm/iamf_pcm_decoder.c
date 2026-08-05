@@ -13,7 +13,7 @@
 /**
  * @file IAMF_pcm_decoder.c
  * @brief pcm codec.
- * @version 0.1
+ * @version 2.0.0
  * @date Created 03/03/2023
  **/
 
@@ -55,7 +55,7 @@ static uint32_t readu24be(uint8_t *data, int offset) {
 }
 
 static int reads24be(uint8_t *data, int offset) {
-  uint32_t ret = readu16le(data, offset) << 8 | data[offset + 2];
+  uint32_t ret = readu16be(data, offset) << 8 | data[offset + 2];
   int iret = ret << 8;
   return (iret >> 8);
 }

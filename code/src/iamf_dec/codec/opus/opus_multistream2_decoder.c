@@ -13,7 +13,7 @@
 /**
  * @file opus_multistream2_decoder.c
  * @brief opus decoder.
- * @version 0.1
+ * @version 2.0.0
  * @date Created 03/03/2023
  **/
 
@@ -135,7 +135,8 @@ static int opus_multistream2_decoder_decode_native(
 
     trace("stream %d decoded result %d", s, ret);
     if (ret <= 0) {
-      return ret;
+      error("opus_decode failed for stream %d: %d", s, ret);
+      return IAMF_ERR_INVALID_PACKET;
     }
     frame_size = ret;
     if (s < st->coupled_streams) {
@@ -207,14 +208,12 @@ int opus_multistream2_decode(Opus_Ms2_Decoder_t *st, uint8_t *buffer[],
     return opus_multistream2_decoder_decode_native(
         st, buffer, (opus_int32 *)size, pcm, frame_size,
         opus_copy_channel_out_short_plane);
-  warning("flag is 0x%x, is not implmented.", st->flags);
+  warning("flag is 0x%x, is not implemented.", st->flags);
   return IAMF_ERR_UNIMPLEMENTED;
 }
 
 void opus_multistream2_decoder_destroy(Opus_Ms2_Decoder_t *st) {
-  if (st->buffer) {
-    free(st->buffer);
-  }
+  def_free(st->buffer);
   free(st);
 }
 #endif

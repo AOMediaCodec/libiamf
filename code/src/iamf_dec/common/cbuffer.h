@@ -33,11 +33,6 @@ typedef struct CBufferWrap {
   uint32_t size;
 } buffer_wrap_t;
 
-typedef struct CBufferIOWrap {
-  buffer_t* buf;
-  io_context_t ioctx;
-} buffer_io_wrap_t;
-
 buffer_wrap_t* buffer_wrap_default_new();
 buffer_wrap_t* buffer_wrap_new(uint32_t size);
 

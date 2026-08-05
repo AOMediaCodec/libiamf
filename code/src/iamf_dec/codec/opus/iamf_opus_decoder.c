@@ -72,7 +72,6 @@ static int iamf_opus_close(iamf_codec_context_t *ths);
  * */
 static int iamf_opus_init(iamf_codec_context_t *ths) {
   iamf_opus_context_t *ctx = (iamf_opus_context_t *)ths->priv;
-  int ec = IAMF_OK;
   int ret = 0;
 
   ths->sample_rate = 48000;
@@ -81,18 +80,18 @@ static int iamf_opus_init(iamf_codec_context_t *ths) {
                                               ths->coupled_streams,
                                               ck_audio_frame_planar, &ret);
   if (!ctx->dec) {
-    error("fail to open opus decoder.");
-    ec = IAMF_ERR_INVALID_STATE;
+    error("fail to open opus decoder, error=%d.", ret);
+    return IAMF_ERR_INVALID_STATE;
   }
 
-  ctx->out = (short *)malloc(sizeof(short) * def_max_opus_frame_size *
-                             (ths->streams + ths->coupled_streams));
+  ctx->out = def_malloc(
+      short, (def_max_opus_frame_size) * (ths->streams + ths->coupled_streams));
   if (!ctx->out) {
     iamf_opus_close(ths);
     return IAMF_ERR_ALLOC_FAIL;
   }
 
-  return ec;
+  return IAMF_OK;
 }
 
 static int iamf_opus_decode(iamf_codec_context_t *ths, uint8_t *buf[],
@@ -125,9 +124,9 @@ int iamf_opus_close(iamf_codec_context_t *ths) {
     ctx->dec = 0;
   }
 
-  if (ctx->out) {
-    free(ctx->out);
-  }
+  def_free(ctx->out);
+  ctx->out = 0;
+
   return IAMF_OK;
 }
 

@@ -116,7 +116,7 @@ static int _iadb_parameter_block_manager_add(parameter_block_manager_t *manager,
     } else if (base->type == ck_iamf_parameter_type_mix_gain) {
       vector_push(manager->mix_gains, def_value_wrap_instance_ptr(block));
     } else if (base->type == ck_iamf_parameter_type_momentary_loudness) {
-      vector_push(manager->coordinates, def_value_wrap_instance_ptr(block));
+      vector_push(manager->loudness_params, def_value_wrap_instance_ptr(block));
     } else if (iamf_parameter_type_is_coordinate(base->type)) {
       vector_push(manager->coordinates, def_value_wrap_instance_ptr(block));
     } else {
@@ -306,8 +306,10 @@ static int _iadb_parameter_block_manager_init(
   manager->recon_gains = vector_new();
   manager->mix_gains = vector_new();
   manager->coordinates = vector_new();
+  manager->loudness_params = vector_new();
   if (!manager->parameter_blocks || !manager->demixing_infos ||
-      !manager->recon_gains || !manager->mix_gains || !manager->coordinates) {
+      !manager->recon_gains || !manager->mix_gains || !manager->coordinates ||
+      !manager->loudness_params) {
     error("Failed to allocate memory for parameter blocks.");
     return IAMF_ERR_ALLOC_FAIL;
   }
@@ -323,6 +325,7 @@ static void _iadb_parameter_block_manager_uninit(
   if (manager->recon_gains) vector_free(manager->recon_gains, 0);
   if (manager->mix_gains) vector_free(manager->mix_gains, 0);
   if (manager->coordinates) vector_free(manager->coordinates, 0);
+  if (manager->loudness_params) vector_free(manager->loudness_params, 0);
   memset(manager, 0, sizeof(parameter_block_manager_t));
 }
 
@@ -479,15 +482,39 @@ static int _iadb_descriptors_codec_config_obu_check_profile(
           n, iamf_profile_type_string(profile), descriptors->num_lpcm_codec,
           iamf_codec_type_string(iamf_codec_type_get(cco->codec_id)),
           cco->codec_id);
-      if ((n > def_max_codec_configs) ||
+      if ((n >= def_max_codec_configs) ||
           (n && !descriptors->num_lpcm_codec &&
            cco->codec_id != ck_iamf_codec_id_lpcm)) {
         warning("Too many codec configs or no LPCM codec config.");
         ret = def_error;
       }
 
-      // TODO: The frame sizes and the sample rates identified (implicitly or
+      // The frame sizes and the sample rates identified (implicitly or
       // explicitly) by the two Codec Config OBUs SHALL be the same.
+      if (n >= 1) {
+        audio_codec_parameter_t new_param;
+        iamf_codec_config_obu_get_parameter(cco, &new_param);
+
+        for (int i = 0; i < n; ++i) {
+          iamf_codec_config_obu_t *existing = def_value_wrap_type_ptr(
+              iamf_codec_config_obu_t,
+              vector_at(descriptors->codec_config_obus, i));
+          audio_codec_parameter_t existing_param;
+          iamf_codec_config_obu_get_parameter(existing, &existing_param);
+
+          if (new_param.frame_size != existing_param.frame_size ||
+              new_param.sample_rate != existing_param.sample_rate) {
+            error(
+                "Codec Config OBU %u: frame_size (%u vs %u) or sample_rate "
+                "(%u vs %u) mismatch with Codec Config OBU %u.",
+                cco->codec_config_id, new_param.frame_size,
+                existing_param.frame_size, new_param.sample_rate,
+                existing_param.sample_rate, existing->codec_config_id);
+            ret = def_error;
+            break;
+          }
+        }
+      }
     } break;
     default:
       break;
@@ -500,59 +527,138 @@ static int _iadb_descriptors_mix_presentation_obu_check_profile(
     iamf_profile_t profile) {
   int ret = def_pass;
 
-  // TODO: If num_sub_mixes = 1 in all Mix Presentation OBUs, there SHALL be
-  // only one unique Codec Config OBU.
-  // TODO: Every Audio Substreams used in the first sub-mix of all Mix
-  // Presentation OBUs SHALL be coded using the same Codec Config OBU.
-
   switch (profile) {
-    case ck_iamf_profile_base_advanced: {
-      uint32_t element_flags = 0;
-      uint32_t k = array_size(mpo->sub_mixes);
-      uint32_t m = vector_size(descriptors->mix_presentation_obus);
-
-      for (int s = 0; s < k; ++s) {
-        obu_sub_mix_t *sub =
-            def_value_wrap_type_ptr(obu_sub_mix_t, array_at(mpo->sub_mixes, s));
-        int n = array_size(sub->audio_element_configs);
-
-        for (int i = 0; i < n; ++i) {
-          value_wrap_t v;
-          obu_audio_element_config_t *aec =
-              def_value_wrap_type_ptr(obu_audio_element_config_t,
-                                      array_at(sub->audio_element_configs, i));
-
-          int idx = vector_find(descriptors->audio_element_obus,
-                                def_value_wrap_instance_u32(aec->element_id),
-                                _iadb_audio_element_obu_find, &v);
-          iamf_audio_element_obu_t *aeo = def_value_wrap_type_ptr(
-              iamf_audio_element_obu_t,
-              vector_at(descriptors->audio_element_obus, idx));
-          if (aeo->audio_element_type == ck_audio_element_type_object_based)
-            element_flags |= 1;
-          else
-            element_flags |= 2;
+    case ck_iamf_profile_base_advanced:
+    case ck_iamf_profile_advanced_1:
+    case ck_iamf_profile_advanced_2: {
+      // Constraint 1 (§6.2): If num_sub_mixes = 1, there SHALL be only one
+      // unique Codec Config OBU.
+      {
+        uint32_t num_sub_mixes = array_size(mpo->sub_mixes);
+        uint32_t num_codec_configs =
+            vector_size(descriptors->codec_config_obus);
+        if (num_sub_mixes == 1 && num_codec_configs > 1) {
+          error(
+              "Mix Presentation OBU %u has num_sub_mixes=1 but %u Codec "
+              "Config OBUs exist.",
+              mpo->mix_presentation_id, num_codec_configs);
+          ret = def_error;
         }
       }
 
-      if (!m && element_flags == 3) {
-        error(
-            "Object-based can't with channel-based or secen-based elements in "
-            "Mix Presentation OBU %u.",
-            mpo->mix_presentation_id);
-        ret = def_error;
-      } else if (m && element_flags & 1) {
-        error("Mix Presentation OBU %u with object-based must be first.",
-              mpo->mix_presentation_id);
-        ret = def_error;
+      // Constraint 2 (§6.2): Every Audio Substream used in the first sub-mix
+      // of all Mix Presentation OBUs SHALL be coded using the same Codec
+      // Config OBU.
+      {
+        uint32_t num_sub_mixes = array_size(mpo->sub_mixes);
+        if (num_sub_mixes >= 1) {
+          obu_sub_mix_t *first_sub = def_value_wrap_type_ptr(
+              obu_sub_mix_t, array_at(mpo->sub_mixes, 0));
+          int num_configs = array_size(first_sub->audio_element_configs);
+
+          if (num_configs > 0) {
+            obu_audio_element_config_t *first_aec = def_value_wrap_type_ptr(
+                obu_audio_element_config_t,
+                array_at(first_sub->audio_element_configs, 0));
+
+            value_wrap_t v;
+            int idx =
+                vector_find(descriptors->audio_element_obus,
+                            def_value_wrap_instance_u32(first_aec->element_id),
+                            _iadb_audio_element_obu_find, &v);
+            if (idx < 0) {
+              warning("Audio element %u not found for Mix Presentation %u.",
+                      first_aec->element_id, mpo->mix_presentation_id);
+            } else {
+              iamf_audio_element_obu_t *first_aeo =
+                  def_value_wrap_type_ptr(iamf_audio_element_obu_t, &v);
+              uint32_t ref_codec_config_id = first_aeo->codec_config_id;
+
+              for (int i = 1; i < num_configs; ++i) {
+                obu_audio_element_config_t *aec = def_value_wrap_type_ptr(
+                    obu_audio_element_config_t,
+                    array_at(first_sub->audio_element_configs, i));
+
+                idx = vector_find(descriptors->audio_element_obus,
+                                  def_value_wrap_instance_u32(aec->element_id),
+                                  _iadb_audio_element_obu_find, &v);
+                if (idx < 0) {
+                  warning("Audio element %u not found for Mix Presentation %u.",
+                          aec->element_id, mpo->mix_presentation_id);
+                  continue;
+                }
+
+                iamf_audio_element_obu_t *aeo =
+                    def_value_wrap_type_ptr(iamf_audio_element_obu_t, &v);
+                if (aeo->codec_config_id != ref_codec_config_id) {
+                  error(
+                      "Mix Presentation OBU %u: audio element %u uses "
+                      "codec_config_id %u, but first audio element %u uses "
+                      "%u. All audio substreams in the first sub-mix SHALL "
+                      "use the same Codec Config OBU.",
+                      mpo->mix_presentation_id, aec->element_id,
+                      aeo->codec_config_id, first_aec->element_id,
+                      ref_codec_config_id);
+                  ret = def_error;
+                  break;
+                }
+              }
+            }
+          }
+        }
       }
 
-      if (ret != def_pass)
-        warning(
-            "Mix Presentation OBU %u, element flags 0x%x(b01-obj, b10-chn), "
-            "mix count %u",
-            mpo->mix_presentation_id, element_flags, m);
+      if (profile == ck_iamf_profile_base_advanced) {
+        uint32_t element_flags = 0;
+        uint32_t k = array_size(mpo->sub_mixes);
+        uint32_t m = vector_size(descriptors->mix_presentation_obus);
 
+        for (int s = 0; s < k; ++s) {
+          obu_sub_mix_t *sub = def_value_wrap_type_ptr(
+              obu_sub_mix_t, array_at(mpo->sub_mixes, s));
+          int n = array_size(sub->audio_element_configs);
+
+          for (int i = 0; i < n; ++i) {
+            value_wrap_t v;
+            obu_audio_element_config_t *aec = def_value_wrap_type_ptr(
+                obu_audio_element_config_t,
+                array_at(sub->audio_element_configs, i));
+
+            int idx = vector_find(descriptors->audio_element_obus,
+                                  def_value_wrap_instance_u32(aec->element_id),
+                                  _iadb_audio_element_obu_find, &v);
+            if (idx < 0) {
+              warning("Audio element %u not found for Mix Presentation %u.",
+                      aec->element_id, mpo->mix_presentation_id);
+              continue;
+            }
+            iamf_audio_element_obu_t *aeo =
+                def_value_wrap_type_ptr(iamf_audio_element_obu_t, &v);
+            if (aeo->audio_element_type == ck_audio_element_type_object_based)
+              element_flags |= 1;
+            else
+              element_flags |= 2;
+          }
+        }
+
+        if (!m && element_flags == 3) {
+          error(
+              "Object-based can't with channel-based or secen-based elements "
+              "in Mix Presentation OBU %u.",
+              mpo->mix_presentation_id);
+          ret = def_error;
+        } else if (m && element_flags & 1) {
+          error("Mix Presentation OBU %u with object-based must be first.",
+                mpo->mix_presentation_id);
+          ret = def_error;
+        }
+
+        if (ret != def_pass)
+          warning(
+              "Mix Presentation OBU %u, element flags 0x%x(b01-obj, "
+              "b10-chn), mix count %u",
+              mpo->mix_presentation_id, element_flags, m);
+      }
     } break;
     default:
       break;
@@ -1266,8 +1372,14 @@ int iamf_database_get_audio_element_demix_mode(iamf_database_t *database,
     return def_dmx_mode_none;
   }
 
-  // Convert fraction_t offset to uint32_t for the existing function
-  uint32_t offset_samples = iamf_fraction_transform(offset, 1);
+  // Convert fraction_t offset from audio sample rate domain to parameter_rate
+  // domain for correct subblock lookup
+  parameter_block_t *pbk =
+      iamf_database_get_parameter_block(database, ae->demixing_info_id);
+  if (!pbk) return def_dmx_mode_none;
+
+  uint32_t offset_samples =
+      iamf_fraction_transform(offset, pbk->base->parameter_rate);
 
   return iamf_database_get_demix_mode(database, ae->demixing_info_id,
                                       offset_samples);

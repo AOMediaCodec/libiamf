@@ -113,7 +113,7 @@ static int _obu_cc_codec_id_check(uint32_t codec_id) {
 #define def_opus_version_max 15
 static int _obu_cc_decoder_config_check(uint32_t codec, buffer_wrap_t *buffer) {
   if (iamf_codec_type_get(codec) == ck_iamf_codec_type_opus) {
-    if (buffer && buffer->data[0] > def_opus_version_max) {
+    if (buffer && buffer->data && buffer->data[0] > def_opus_version_max) {
       warning("Opus config invalid: version %u should less than %u.",
               buffer->data[0], def_opus_version_max);
       return def_error;

@@ -71,7 +71,7 @@ int bit1_count(uint32_t value) {
 }
 
 static float q16_1xy_float(int16_t q, int frac) {
-  return ((float)q) * powf(2.0f, (float)-frac);
+  return ((float)q) / (float)(1 << frac);
 }
 
 float iamf_q15_to_float(int16_t q) { return q16_1xy_float(q, 15); }
@@ -81,12 +81,12 @@ float iamf_gain_q78_to_linear(int16_t q78) {
 }
 
 static float iamf_divide_255f(uint8_t val) { return ((float)val / 255.0f); }
-float iamf_recon_gain_linear(int8_t gain) { return iamf_divide_255f(gain); }
-float iamf_divide_128f(uint8_t val) { return ((float)val / (powf(2.0f, 8.f))); }
+float iamf_recon_gain_linear(uint8_t gain) { return iamf_divide_255f(gain); }
+float iamf_divide_256f(uint8_t val) { return ((float)val / 256.0f); }
 
 float f32_db_to_linear(float db) { return powf(10.0f, 0.05f * db); }
 
-int iamf_ambisionisc_get_order(uint32_t channels) {
+int iamf_ambisonics_get_order(uint32_t channels) {
   if (channels == 1) return 0;
   if (channels == 4) return 1;
   if (channels == 9) return 2;
@@ -114,21 +114,19 @@ float iamf_fraction_transform_float(fraction_t f, uint32_t dem) {
 }
 
 int16_t iamf_u32_to_i16(uint32_t v, uint32_t num_bits) {
+  if (num_bits == 0 || num_bits >= 16) return (int16_t)v;
   int16_t val = (int16_t)v;
-  if (num_bits >= 16) return val;
   val <<= (16 - num_bits);
   val >>= (16 - num_bits);
   return val;
 }
 
 float iamf_u32_to_f32(uint32_t v, uint32_t bits) {
-  float val = (float)v;
-  if (bits) val /= ((1 << bits) - 1);
-  return val;
+  if (bits == 0 || bits > 31) return (float)v;
+  return (float)v / ((1u << bits) - 1);
 }
 
 float iamf_i16_to_f32(int16_t v, uint32_t bits) {
-  float val = (float)v;
-  if (bits) val /= ((1 << (bits - 1)) - 1);
-  return val;
+  if (bits <= 1 || bits > 31) return (float)v;
+  return (float)v / ((1 << (bits - 1)) - 1);
 }

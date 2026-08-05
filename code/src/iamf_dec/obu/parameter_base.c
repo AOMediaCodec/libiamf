@@ -409,5 +409,8 @@ momentary_loudness_parameter_base_t *_obu_pb_momentary_loudness_new(
 }
 
 void _obu_pb_clear(parameter_base_t *param) {
-  if (param->subblock_durations) array_free(param->subblock_durations, 0);
+  if (param->subblock_durations) {
+    array_free(param->subblock_durations, 0);
+    param->subblock_durations = 0;
+  }
 }

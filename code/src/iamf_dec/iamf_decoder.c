@@ -194,12 +194,21 @@ static int iamf_decoder_priv_decode(iamf_decoder_t *self, const uint8_t *data,
   }
 
   if (audio_block) {
-    uint32_t _2nd_skip = audio_block->second_skip;
-    frame_duration.numerator -= _2nd_skip;
-    frame_duration.numerator -= audio_block->second_padding;
+    if (frame_duration.numerator >=
+        audio_block->second_skip + audio_block->second_padding) {
+      frame_duration.numerator -= audio_block->second_skip;
+      frame_duration.numerator -= audio_block->second_padding;
+    } else {
+      warning(
+          "Trimming values exceed frame size: skip=%u, padding=%u, frame=%u",
+          audio_block->second_skip, audio_block->second_padding,
+          frame_duration.numerator);
+      frame_duration.numerator = 0;
+    }
     iamf_database_time_elapse(&self->ctx.database, frame_duration);
 
-    if (_2nd_skip > 0) ctx->cache.decoder = _2nd_skip;
+    if (audio_block->second_skip > 0)
+      ctx->cache.decoder = audio_block->second_skip;
 
     audio_block->padding += audio_block->second_padding;
     audio_block->second_padding = 0;
@@ -369,6 +378,13 @@ int iamf_decoder_priv_update_frame_info(iamf_decoder_t *self) {
           array_at(sub_mix->audio_element_configs, j));
       audio_element = iamf_database_get_audio_element(
           database, audio_element_config->element_id);
+      if (!audio_element || !audio_element->codec_config) {
+        warning(
+            "Audio element %u or its codec config not found in database, "
+            "skipping.",
+            audio_element_config->element_id);
+        continue;
+      }
       codec_config = audio_element->codec_config;
       if (!sample_rate) {
         sample_rate = codec_config->codec_param.sample_rate;
@@ -672,14 +688,13 @@ static iamf_parser_state_t iamf_decoder_priv_process_data_obus(
         iamf_audio_block_t *audio_block =
             iamf_element_reconstructor_process(self->reconstructor);
         if (audio_block) {
-          uint32_t _2nd_skip = audio_block->second_skip;
           fraction_t frame_duration = self->ctx.frame_duration;
 #if SR
           iamf_rec_stream_log(audio_block->id, audio_block->num_channels,
                               audio_block->data,
                               audio_block->capacity_per_channel);
 #endif
-          frame_duration.numerator -= _2nd_skip;
+          frame_duration.numerator -= audio_block->second_skip;
           ret = iamf_presentation_add_audio_block(presentation, audio_block);
           if (ret > 0) {
             state = ck_iamf_parser_state_stop;
@@ -849,7 +864,7 @@ int IAMF_decoder_decode(IAMF_DecoderHandle handle, const uint8_t *data,
   uint32_t read = 0;
   int ret = IAMF_OK;
 
-  if (!self) return IAMF_ERR_BAD_ARG;
+  if (!self || !pcm) return IAMF_ERR_BAD_ARG;
   trace("decode iamf decoder. data %p, size %d, statue %d", data, size,
         self->ctx.status);
   if (self->ctx.status != ck_iamf_decoder_status_parse_2)
@@ -900,6 +915,7 @@ int IAMF_decoder_set_mix_presentation_id(IAMF_DecoderHandle handle,
   iamf_decoder_t *self = (iamf_decoder_t *)handle;
   iamf_decoder_context_t *ctx;
   uint32_t id = def_lsb_32bits(id64);
+  int ret = IAMF_OK;
 
   if (!self || id64 > UINT32_MAX) return IAMF_ERR_BAD_ARG;
 
@@ -918,9 +934,9 @@ int IAMF_decoder_set_mix_presentation_id(IAMF_DecoderHandle handle,
   info("set new mix presentation id %" PRId64 ".", ctx->mix_presentation_id);
 
   if (ctx->status > ck_iamf_decoder_status_configure)
-    iamf_decoder_priv_configure(self, 0, 0, 0);
+    ret = iamf_decoder_priv_configure(self, 0, 0, 0);
 
-  return IAMF_OK;
+  return ret;
 }
 
 int64_t IAMF_decoder_get_mix_presentation_id(IAMF_DecoderHandle handle) {
@@ -943,30 +959,30 @@ int IAMF_layout_binaural_channels_count() { return 2; }
 
 char *IAMF_decoder_get_codec_capability() {
   char *ccs_str = def_mallocz(char, def_ccs_str_size);
-  char cc_str[def_cc_str_size];
+  int offset = 0;
 
   if (!ccs_str) return 0;
 
-  snprintf(cc_str, def_cc_str_size, "iamf.%.03d.%.03d.ipcm",
-           def_iamf_profile_default, def_iamf_profile_default);
-  strncat(ccs_str, cc_str, def_cc_str_size);
+  offset += snprintf(ccs_str + offset, def_ccs_str_size - offset,
+                     "iamf.%.03d.%.03d.ipcm", def_iamf_profile_default,
+                     def_iamf_profile_default);
 
 #ifdef CONFIG_OPUS_CODEC
-  snprintf(cc_str, def_cc_str_size, ";iamf.%.03d.%.03d.Opus",
-           def_iamf_profile_default, def_iamf_profile_default);
-  strncat(ccs_str, cc_str, def_cc_str_size);
+  offset += snprintf(ccs_str + offset, def_ccs_str_size - offset,
+                     ";iamf.%.03d.%.03d.Opus", def_iamf_profile_default,
+                     def_iamf_profile_default);
 #endif
 
 #ifdef CONFIG_AAC_CODEC
-  snprintf(cc_str, def_cc_str_size, ";iamf.%.03d.%.03d.mp4a.40.2",
-           def_iamf_profile_default, def_iamf_profile_default);
-  strncat(ccs_str, cc_str, def_cc_str_size);
+  offset += snprintf(ccs_str + offset, def_ccs_str_size - offset,
+                     ";iamf.%.03d.%.03d.mp4a.40.2", def_iamf_profile_default,
+                     def_iamf_profile_default);
 #endif
 
 #ifdef CONFIG_FLAC_CODEC
-  snprintf(cc_str, def_cc_str_size, ";iamf.%.03d.%.03d.fLaC",
-           def_iamf_profile_default, def_iamf_profile_default);
-  strncat(ccs_str, cc_str, def_cc_str_size);
+  offset += snprintf(ccs_str + offset, def_ccs_str_size - offset,
+                     ";iamf.%.03d.%.03d.fLaC", def_iamf_profile_default,
+                     def_iamf_profile_default);
 #endif
 
   return ccs_str;
@@ -1353,6 +1369,10 @@ IAMF_StreamInfo *IAMF_decoder_get_stream_info(IAMF_DecoderHandle handle) {
           }
         }
       }
+    } else {
+      error("Failed to allocate audio elements array (%u elements).",
+            info->iamf_stream_info.audio_element_count);
+      info->iamf_stream_info.audio_element_count = 0;
     }
   }
 
@@ -1391,69 +1411,76 @@ IAMF_StreamInfo *IAMF_decoder_get_stream_info(IAMF_DecoderHandle handle) {
             info->iamf_stream_info.mix_presentations[i].num_audio_elements =
                 total_audio_elements;
 
-            uint32_t element_idx = 0;
-            for (int sub_idx = 0; sub_idx < num_sub_mixes; ++sub_idx) {
-              obu_sub_mix_t *sub = def_value_wrap_optional_ptr(
-                  array_at(mpo->sub_mixes, sub_idx));
+            if (info->iamf_stream_info.mix_presentations[i].elements) {
+              uint32_t element_idx = 0;
+              for (int sub_idx = 0; sub_idx < num_sub_mixes; ++sub_idx) {
+                obu_sub_mix_t *sub = def_value_wrap_optional_ptr(
+                    array_at(mpo->sub_mixes, sub_idx));
 
-              if (sub) {
-                int num_audio_elements = array_size(sub->audio_element_configs);
+                if (sub) {
+                  int num_audio_elements =
+                      array_size(sub->audio_element_configs);
 
-                for (int elem_idx = 0; elem_idx < num_audio_elements;
-                     ++elem_idx) {
-                  audio_element_config = def_value_wrap_optional_ptr(
-                      array_at(sub->audio_element_configs, elem_idx));
+                  for (int elem_idx = 0; elem_idx < num_audio_elements;
+                       ++elem_idx) {
+                    audio_element_config = def_value_wrap_optional_ptr(
+                        array_at(sub->audio_element_configs, elem_idx));
 
-                  if (audio_element_config &&
-                      element_idx < total_audio_elements) {
-                    // Set element ID
-                    info->iamf_stream_info.mix_presentations[i]
-                        .elements[element_idx]
-                        .eid = audio_element_config->element_id;
-
-                    info->iamf_stream_info.mix_presentations[i]
-                        .elements[element_idx]
-                        .mode = audio_element_config->rendering_config
-                                    .headphones_rendering_mode;
-                    info->iamf_stream_info.mix_presentations[i]
-                        .elements[element_idx]
-                        .profile = audio_element_config->rendering_config
-                                       .binaural_filter_profile;
-
-                    // Check for gain offset range
-                    if ((audio_element_config->rendering_config.flags &
-                         def_rendering_config_flag_element_gain_offset) &&
-                        (audio_element_config->rendering_config
-                             .element_gain_offset_type ==
-                         ck_element_gain_offset_type_range)) {
+                    if (audio_element_config &&
+                        element_idx < total_audio_elements) {
+                      // Set element ID
                       info->iamf_stream_info.mix_presentations[i]
                           .elements[element_idx]
-                          .gain_offset_range =
-                          def_mallocz(iamf_element_gain_offset_range_t, 1);
-                      if (info->iamf_stream_info.mix_presentations[i]
+                          .eid = audio_element_config->element_id;
+
+                      info->iamf_stream_info.mix_presentations[i]
+                          .elements[element_idx]
+                          .mode = audio_element_config->rendering_config
+                                      .headphones_rendering_mode;
+                      info->iamf_stream_info.mix_presentations[i]
+                          .elements[element_idx]
+                          .profile = audio_element_config->rendering_config
+                                         .binaural_filter_profile;
+
+                      // Check for gain offset range
+                      if ((audio_element_config->rendering_config.flags &
+                           def_rendering_config_flag_element_gain_offset) &&
+                          (audio_element_config->rendering_config
+                               .element_gain_offset_type ==
+                           ck_element_gain_offset_type_range)) {
+                        info->iamf_stream_info.mix_presentations[i]
+                            .elements[element_idx]
+                            .gain_offset_range =
+                            def_mallocz(iamf_element_gain_offset_range_t, 1);
+                        if (info->iamf_stream_info.mix_presentations[i]
+                                .elements[element_idx]
+                                .gain_offset_range) {
+                          info->iamf_stream_info.mix_presentations[i]
                               .elements[element_idx]
-                              .gain_offset_range) {
+                              .gain_offset_range->min =
+                              audio_element_config->rendering_config
+                                  .element_gain_offset_db.min;
+                          info->iamf_stream_info.mix_presentations[i]
+                              .elements[element_idx]
+                              .gain_offset_range->max =
+                              audio_element_config->rendering_config
+                                  .element_gain_offset_db.max;
+                        }
+                      } else {
                         info->iamf_stream_info.mix_presentations[i]
                             .elements[element_idx]
-                            .gain_offset_range->min =
-                            audio_element_config->rendering_config
-                                .element_gain_offset_db.min;
-                        info->iamf_stream_info.mix_presentations[i]
-                            .elements[element_idx]
-                            .gain_offset_range->max =
-                            audio_element_config->rendering_config
-                                .element_gain_offset_db.max;
+                            .gain_offset_range = 0;
                       }
-                    } else {
-                      info->iamf_stream_info.mix_presentations[i]
-                          .elements[element_idx]
-                          .gain_offset_range = 0;
-                    }
 
-                    element_idx++;
+                      element_idx++;
+                    }
                   }
                 }
               }
+            } else {
+              error("Failed to allocate elements array for MP %u.", i);
+              info->iamf_stream_info.mix_presentations[i].num_audio_elements =
+                  0;
             }
           } else {
             info->iamf_stream_info.mix_presentations[i].elements = 0;
@@ -1461,6 +1488,10 @@ IAMF_StreamInfo *IAMF_decoder_get_stream_info(IAMF_DecoderHandle handle) {
           }
         }
       }
+    } else {
+      error("Failed to allocate mix presentations array (%u presentations).",
+            info->iamf_stream_info.mix_presentation_count);
+      info->iamf_stream_info.mix_presentation_count = 0;
     }
   }
 

@@ -20,7 +20,6 @@
 #include "temporal_delimiter_obu.h"
 
 #include "iamf_private_definitions.h"
-#include "iamf_string.h"
 
 #undef def_log_tag
 #define def_log_tag "OBU_TD"

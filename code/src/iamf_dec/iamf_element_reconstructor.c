@@ -241,7 +241,7 @@ static void _reconstructor_delete_all_audio_frame_obus(
 static int _get_new_channels(iamf_loudspeaker_layout_t last,
                              iamf_loudspeaker_layout_t cur,
                              iamf_channel_t* new_chs, uint32_t count) {
-  uint32_t chs = 0;
+  int chs = 0;
 
   /**
    * In ChannelGroup for Channel audio: The order conforms to following rules:
@@ -260,6 +260,7 @@ static int _get_new_channels(iamf_loudspeaker_layout_t last,
 
   if (last == ck_iamf_loudspeaker_layout_none) {
     chs = iamf_loudspeaker_layout_get_decoding_channels(cur, new_chs, count);
+    if (chs < 0) return chs;
   } else if (iamf_audio_layer_base_layout_check(last) &&
              iamf_audio_layer_base_layout_check(cur)) {
     const iamf_layout_info_t* info1 = iamf_loudspeaker_layout_get_info(last);
@@ -311,10 +312,10 @@ static int _get_new_channels(iamf_loudspeaker_layout_t last,
     }
   }
 
-  if (chs > count) {
+  if (chs > (int)count) {
     error("too much new channels %d, we only need less than %d channels", chs,
           count);
-    chs = IAMF_ERR_BUFFER_TOO_SMALL;
+    return IAMF_ERR_BUFFER_TOO_SMALL;
   }
   return chs;
 }
@@ -326,8 +327,10 @@ static int _get_target_layout_channels_order(channel_based_reconstructor_t* cbr,
 
   for (int i = 0; i <= cbr->target_layout_index; ++i) {
     if (i) type = cbr->group_infos[i - 1].layout;
-    chs += _get_new_channels(type, cbr->group_infos[i].layout, &order[chs],
-                             max - chs);
+    int ret = _get_new_channels(type, cbr->group_infos[i].layout, &order[chs],
+                                max - chs);
+    if (ret < 0) return ret;
+    chs += ret;
   }
   return chs;
 }
