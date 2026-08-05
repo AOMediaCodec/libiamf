@@ -510,6 +510,7 @@ int iamf_loudspeaker_layout_get_decoding_channels(
 int iamf_loudspeaker_layout_get_rendering_channels(
     iamf_loudspeaker_layout_t type, iamf_channel_t *channels, uint32_t count) {
   const iamf_layout_info_t *info = iamf_loudspeaker_layout_get_info(type);
+  if (!info) return IAMF_ERR_BAD_ARG;
   if (count < info->channels) return IAMF_ERR_BUFFER_TOO_SMALL;
   for (uint32_t i = 0; i < info->channels; ++i)
     channels[i] = info->channel_layout[i];

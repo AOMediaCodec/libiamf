@@ -627,9 +627,13 @@ static int _iadb_descriptors_mix_presentation_obu_check_profile(
             int idx = vector_find(descriptors->audio_element_obus,
                                   def_value_wrap_instance_u32(aec->element_id),
                                   _iadb_audio_element_obu_find, &v);
-            iamf_audio_element_obu_t *aeo = def_value_wrap_type_ptr(
-                iamf_audio_element_obu_t,
-                vector_at(descriptors->audio_element_obus, idx));
+            if (idx < 0) {
+              warning("Audio element %u not found for Mix Presentation %u.",
+                      aec->element_id, mpo->mix_presentation_id);
+              continue;
+            }
+            iamf_audio_element_obu_t *aeo =
+                def_value_wrap_type_ptr(iamf_audio_element_obu_t, &v);
             if (aeo->audio_element_type == ck_audio_element_type_object_based)
               element_flags |= 1;
             else

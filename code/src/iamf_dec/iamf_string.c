@@ -170,10 +170,9 @@ const char* iamf_expanded_loudspeaker_layout_string(
 }
 
 static const char* _g_channel_strings[] = {
-    "none",   "l7/l5/l", "r7/r5/r", "c",   "lfe", "sl7/sl", "sr7/sr",
-    "bl7/bl", "br7/br",  "hfl",     "hfr", "hbl", "hbr",    "mono",
-    "l2",     "r2",      "tl",      "tr",  "l3",  "r3",     "sl5",
-    "sr5",    "hl",      "hr",      "wl",  "wr",  "hsl",    "hsr"};
+    "none",   "l7/l5/l", "r7/r5/r", "c",   "lfe", "sl7/sl", "sr7/sr", "bl7/bl",
+    "br7/br", "hfl",     "hfr",     "hbl", "hbr", "mono",   "l2",     "r2",
+    "tl",     "tr",      "l3",      "r3",  "sl5", "sr5",    "hl",     "hr"};
 
 const char* iamf_channel_name(iamf_channel_t ch) {
   return ch > ck_iamf_channel_none && ch < ck_iamf_channel_count
