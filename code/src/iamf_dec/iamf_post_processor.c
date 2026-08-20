@@ -29,7 +29,6 @@
 
 #define def_default_speex_resampler_quality 4
 
-#define def_limiter_maximum_true_peak -1.0f
 #define def_limiter_attack_sec 0.001f
 #define def_limiter_release_sec 0.200f
 #define def_limiter_look_ahead_sec 0.005f
