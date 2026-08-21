@@ -321,6 +321,10 @@ int IAMF_decoder_peak_limiter_enable(IAMF_DecoderHandle handle,
 
 /**
  * @brief     Set peak threshold value of peak limiter.
+ *
+ * The peak limiter is enabled by default with a threshold of -1.0 dBFS. Use
+ * this function to override the default threshold value.
+ *
  * @param     [in] handle : iamf decoder handle.
  * @param     [in] db : peak threshold in dB.
  * @return    @ref IAErrCode.

@@ -765,7 +765,7 @@ IAMF_DecoderHandle IAMF_decoder_open(void) {
     ctx->sampling_rate = def_default_sampling_rate;
     ctx->mix_presentation_id = def_i64_id_none;
     ctx->normalized_loudness_lkfs = def_default_loudness_lkfs;
-    ctx->limiter_threshold_db = def_limiter_max_true_peak;
+    ctx->limiter_threshold_db = def_limiter_default_threshold;
     ctx->enable_limiter = 1;
 
     ctx->head_rotation = def_quaternion_instance(1.0, 0.0, 0.0, 0.0);
@@ -1047,7 +1047,7 @@ int IAMF_decoder_peak_limiter_set_threshold(IAMF_DecoderHandle handle,
 
 float IAMF_decoder_peak_limiter_get_threshold(IAMF_DecoderHandle handle) {
   iamf_decoder_t *self = (iamf_decoder_t *)handle;
-  if (!self) return def_limiter_max_true_peak;
+  if (!self) return def_limiter_default_threshold;
   return self->ctx.limiter_threshold_db;
 }
 
