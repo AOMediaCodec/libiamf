@@ -1,0 +1,62 @@
+name: Build
+
+on:
+  push
+
+env:
+  SOLUTION_FILE_PATH: win32/VS2015/iamf.sln
+  BUILD_CONFIGURATION: Release
+
+jobs:
+  Windows:
+    runs-on: windows-2019
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=CurrentDate::$(date +'%Y-%m-%d')"
+
+    - name: Get commit hash
+      id: vars
+      run: echo "::set-output name=CurrentShortHash::$(git rev-parse --short=7 HEAD)"
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Restore NuGet packages
+      run: |
+        cd code
+        nuget restore ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Install Windows 8.1 SDK
+      shell: powershell
+      run: |
+        Invoke-WebRequest -Method Get -Uri https://go.microsoft.com/fwlink/p/?LinkId=323507 -OutFile sdksetup.exe -UseBasicParsing
+        Start-Process -Wait sdksetup.exe -ArgumentList "/q", "/norestart", "/features", "OptionId.WindowsDesktopSoftwareDevelopmentKit", "OptionId.NetFxSoftwareDevelopmentKit"
+
+    - name: Build Win64
+      run: |
+        cd code
+        msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Collect binaries
+      run: |
+        mkdir "build/Release"
+        copy "code/win32/VS2015/x64/Release/*.exe" "build/Release/"
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: "AOM Immersive Audio Model and Formats (IAMF) Player [${{steps.date.outputs.CurrentDate}}]-${{steps.vars.outputs.CurrentShortHash}}"
+        path: "build/Release/"
+
+    - name: Release
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{secrets.GITHUB_TOKEN}}"
+        automatic_release_tag: "latest"
+        prerelease: false
+        title: "AOM Immersive Audio Model and Formats (IAMF) Player [${{steps.date.outputs.CurrentDate}}]-${{steps.vars.outputs.CurrentShortHash}}"
+        files: "build/Release/*"
