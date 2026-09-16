@@ -84,6 +84,7 @@ include_directories(
     ${DEP_EXTERNAL_DIR}/include
     ${DEP_EXTERNAL_DIR}/src/oar/include
     ${DEP_EXTERNAL_DIR}/src/oar/src/common
+    ${DEP_EXTERNAL_DIR}/src/oar/src/limiter
     ${PROJECT_SOURCE_DIR}/src/iamf_dec
     ${PROJECT_SOURCE_DIR}/src/iamf_dec/codec
     ${PROJECT_SOURCE_DIR}/src/iamf_dec/codec/opus

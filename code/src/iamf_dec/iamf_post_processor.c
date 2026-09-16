@@ -53,9 +53,10 @@ struct IamfPostProcessor {
 
   uint32_t delay_resampler;
   uint32_t delay_limiter;
+  uint32_t limiter_priming_remaining;
 
   iamf_resampler_t *resampler;
-  AudioEffectPeakLimiter *limiter;
+  audio_effect_peak_limiter_t *limiter;
 };
 
 static iamf_audio_block_t *iamf_post_processor_priv_resample(
@@ -126,8 +127,52 @@ static iamf_audio_block_t *iamf_post_processor_priv_resample(
   return out;
 }
 
+/**
+ * @brief Remove leading priming zeros from limiter output (emit-priming mode).
+ *
+ * In emit-priming mode, the limiter always returns frame_size samples.
+ * The first delay_limiter samples are zeros (priming) that must be
+ * removed to match drop-priming output behavior.
+ *
+ * This function tracks remaining priming count via
+ * self->limiter_priming_remaining and removes leading zeros using
+ * iamf_audio_block_trim(), which repacks planar data with correct stride and
+ * updates num_samples_per_channel.
+ *
+ * Three cases:
+ * 1. limiter_priming_remaining == 0: priming complete, return as-is.
+ * 2. limiter_priming_remaining >= num_samples: entire frame is priming.
+ *    Set skip = num_samples, trim removes all, return 0.
+ * 3. limiter_priming_remaining < num_samples: partial priming.
+ *    Set skip = priming count, trim removes leading zeros, return valid count.
+ *
+ * @param self          Post processor instance
+ * @param out           Audio block (data + num_samples_per_channel updated by
+ * trim)
+ * @param num_samples   Sample count returned by limiter (always frame_size)
+ * @return              Valid sample count after trimming
+ */
+static void iamf_post_processor_priv_trim_priming(iamf_post_processor_t *self,
+                                                  iamf_audio_block_t *out) {
+  if (self->limiter_priming_remaining == 0) return;
+
+  if (self->limiter_priming_remaining >= out->num_samples_per_channel) {
+    /* Entire frame is priming zeros — discard all */
+    self->limiter_priming_remaining -= out->num_samples_per_channel;
+    out->num_samples_per_channel = 0;
+    return;
+  }
+
+  /* Partial priming — set skip and trim to remove leading zeros */
+  out->skip = self->limiter_priming_remaining;
+  self->limiter_priming_remaining = 0;
+  iamf_audio_block_trim(out);
+}
+
 static iamf_audio_block_t *iamf_post_processor_priv_limit(
     iamf_post_processor_t *self, iamf_audio_block_t *audio_block) {
+  if (!self || !self->limiter) return 0;
+
   iamf_audio_block_t *out = 0;
   int num_samples = 0;
   if (audio_block) {
@@ -139,20 +184,21 @@ static iamf_audio_block_t *iamf_post_processor_priv_limit(
         self->limiter, audio_block->data, out->data,
         audio_block->num_samples_per_channel);
   } else {
-    float *in = def_mallocz(float, self->delay_limiter * self->channels);
-    if (!in) return 0;
     out = iamf_audio_block_new(0, self->delay_limiter, self->channels);
-    if (!out) {
-      def_free(in);
-      return 0;
-    }
+    if (!out) return 0;
 
-    num_samples = audio_effect_peak_limiter_process_block(
-        self->limiter, in, out->data, self->delay_limiter);
-    def_free(in);
+    num_samples = audio_effect_peak_limiter_flush(self->limiter, out->data);
+  }
+
+  if (num_samples < 0) {
+    warning("limiter process failed: %d", num_samples);
+    iamf_audio_block_delete(out);
+    return 0;
   }
 
   out->num_samples_per_channel = num_samples;
+
+  iamf_post_processor_priv_trim_priming(self, out);
 
   return out;
 }
@@ -187,6 +233,9 @@ int iamf_post_processor_init(iamf_post_processor_t *self, uint32_t sample_rate,
 
 int iamf_post_processor_enable_resampler(iamf_post_processor_t *self,
                                          uint32_t in_sample_rate) {
+  if (self->resampler && self->resampler->in_sample_rate == in_sample_rate)
+    return IAMF_OK;
+
   int err;
   iamf_resampler_t *resampler = def_mallocz(iamf_resampler_t, 1);
   if (!resampler) return IAMF_ERR_ALLOC_FAIL;
@@ -201,6 +250,8 @@ int iamf_post_processor_enable_resampler(iamf_post_processor_t *self,
   resampler->speex_resampler = speex_resampler;
   resampler->in_sample_rate = in_sample_rate;
   speex_resampler_skip_zeros(speex_resampler);
+
+  iamf_post_processor_disable_resampler(self);
 
   self->resampler = resampler;
   self->delay_resampler = speex_resampler_get_output_latency(speex_resampler);
@@ -224,12 +275,12 @@ int iamf_post_processor_disable_resampler(iamf_post_processor_t *self) {
 
 int iamf_post_processor_enable_limiter(iamf_post_processor_t *self,
                                        float threshold) {
-  self->limiter = audio_effect_peak_limiter_create();
+  self->limiter = audio_effect_peak_limiter_create(
+      threshold, self->sample_rate, self->channels, def_limiter_attack_sec,
+      def_limiter_release_sec, def_limiter_look_ahead_sec * self->sample_rate);
   if (!self->limiter) return IAMF_ERR_ALLOC_FAIL;
-  self->delay_limiter = def_limiter_look_ahead_sec * self->sample_rate;
-  audio_effect_peak_limiter_init(self->limiter, threshold, self->sample_rate,
-                                 self->channels, def_limiter_attack_sec,
-                                 def_limiter_release_sec, self->delay_limiter);
+  self->limiter_priming_remaining = self->delay_limiter =
+      audio_effect_peak_limiter_get_delay(self->limiter);
   return IAMF_OK;
 }
 
