@@ -148,6 +148,20 @@ def get_test_combination_metadata(user_metadata_proto, test_file_directory):
         golden_wav_path = os.path.join(
             test_file_directory, golden_wav_file_name
         )
+        # Some vectors store the binaural render under a layout-agnostic name
+        # (`<prefix>_rendered_binaural.wav`) instead of the
+        # `_rendered_id_..._layout_N.wav` convention. Fall back to it for
+        # binaural layouts so those vectors are not silently skipped.
+        if (
+            not os.path.exists(golden_wav_path)
+            and layout.loudness_layout.layout_type
+            == mix_presentation_pb2.LAYOUT_TYPE_BINAURAL
+        ):
+          alt_file_name = f'{file_name_prefix}_rendered_binaural.wav'
+          alt_path = os.path.join(test_file_directory, alt_file_name)
+          if os.path.exists(alt_path):
+            golden_wav_file_name = alt_file_name
+            golden_wav_path = alt_path
         bit_depth = 16
         sample_rate = 48000
         if os.path.exists(golden_wav_path):
