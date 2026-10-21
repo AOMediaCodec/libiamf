@@ -208,7 +208,7 @@ int opus_multistream2_decode(Opus_Ms2_Decoder_t *st, uint8_t *buffer[],
     return opus_multistream2_decoder_decode_native(
         st, buffer, (opus_int32 *)size, pcm, frame_size,
         opus_copy_channel_out_short_plane);
-  warning("flag is 0x%x, is not implemented.", st->flags);
+  warn("flag is 0x%x, is not implemented.", st->flags);
   return IAMF_ERR_UNIMPLEMENTED;
 }
 

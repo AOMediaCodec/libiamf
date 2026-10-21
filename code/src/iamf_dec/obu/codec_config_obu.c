@@ -114,8 +114,8 @@ static int _obu_cc_codec_id_check(uint32_t codec_id) {
 static int _obu_cc_decoder_config_check(uint32_t codec, buffer_wrap_t *buffer) {
   if (iamf_codec_type_get(codec) == ck_iamf_codec_type_opus) {
     if (buffer && buffer->data && buffer->data[0] > def_opus_version_max) {
-      warning("Opus config invalid: version %u should less than %u.",
-              buffer->data[0], def_opus_version_max);
+      warn("Opus config invalid: version %u should less than %u.",
+           buffer->data[0], def_opus_version_max);
       return def_error;
     }
   }
@@ -125,8 +125,8 @@ static int _obu_cc_decoder_config_check(uint32_t codec, buffer_wrap_t *buffer) {
 
 int _obu_cc_check(iamf_codec_config_obu_t *obu) {
   if (_obu_cc_codec_id_check(obu->codec_id) != def_pass) {
-    warning("Codec config id(%u), invalid codec(%.4s)", obu->codec_config_id,
-            (char *)&obu->codec_id);
+    warn("Codec config id(%u), invalid codec(%.4s)", obu->codec_config_id,
+         (char *)&obu->codec_id);
     return def_error;
   }
 
@@ -139,8 +139,8 @@ int _obu_cc_check(iamf_codec_config_obu_t *obu) {
 
   if (_obu_cc_decoder_config_check(obu->codec_id, obu->decoder_config) !=
       def_pass) {
-    warning("Codec config id(%u), codec(%.4s),  decoder config is invalid, ",
-            obu->codec_config_id, (char *)&obu->codec_id);
+    warn("Codec config id(%u), codec(%.4s),  decoder config is invalid, ",
+         obu->codec_config_id, (char *)&obu->codec_id);
     return def_error;
   }
 

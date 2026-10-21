@@ -199,10 +199,9 @@ static int iamf_decoder_priv_decode(iamf_decoder_t *self, const uint8_t *data,
       frame_duration.numerator -= audio_block->second_skip;
       frame_duration.numerator -= audio_block->second_padding;
     } else {
-      warning(
-          "Trimming values exceed frame size: skip=%u, padding=%u, frame=%u",
-          audio_block->second_skip, audio_block->second_padding,
-          frame_duration.numerator);
+      warn("Trimming values exceed frame size: skip=%u, padding=%u, frame=%u",
+           audio_block->second_skip, audio_block->second_padding,
+           frame_duration.numerator);
       frame_duration.numerator = 0;
     }
     iamf_database_time_elapse(&self->ctx.database, frame_duration);
@@ -379,7 +378,7 @@ int iamf_decoder_priv_update_frame_info(iamf_decoder_t *self) {
       audio_element = iamf_database_get_audio_element(
           database, audio_element_config->element_id);
       if (!audio_element || !audio_element->codec_config) {
-        warning(
+        warn(
             "Audio element %u or its codec config not found in database, "
             "skipping.",
             audio_element_config->element_id);
@@ -393,7 +392,7 @@ int iamf_decoder_priv_update_frame_info(iamf_decoder_t *self) {
       } else if (sample_rate != codec_config->codec_param.sample_rate ||
                  num_samples_per_frame !=
                      codec_config->codec_param.frame_size) {
-        warning("Different sample rate or frame size found.");
+        warn("Different sample rate or frame size found.");
         ret = IAMF_ERR_UNIMPLEMENTED;
       }
     }
@@ -457,8 +456,8 @@ int iamf_decoder_priv_configure(iamf_decoder_t *self, const uint8_t *data,
     if (ctx->configure_flags & def_iamf_decoder_config_mix_presentation) {
       if (!iamf_database_get_mix_presentation_obu(database,
                                                   ctx->mix_presentation_id)) {
-        warning("Invalid mix presentation id %" PRId64 ".",
-                ctx->mix_presentation_id);
+        warn("Invalid mix presentation id %" PRId64 ".",
+             ctx->mix_presentation_id);
         return IAMF_ERR_INTERNAL;
       }
     }
@@ -510,7 +509,7 @@ int iamf_decoder_priv_configure(iamf_decoder_t *self, const uint8_t *data,
                       "Applied gain offset %f to element %u in presentation %u",
                       gain_offset, element_id, mpo->mix_presentation_id);
                 } else {
-                  warning(
+                  warn(
                       "Failed to apply gain offset %f to element %u in "
                       "presentation %u: %d",
                       gain_offset, element_id, mpo->mix_presentation_id, ret);
@@ -549,10 +548,10 @@ int iamf_decoder_priv_configure(iamf_decoder_t *self, const uint8_t *data,
     } else {
       ret = IAMF_ERR_INTERNAL;
       if (ctx->mix_presentation_id != def_i64_id_none)
-        warning("Fail to find the mix presentation %u obu.",
-                ctx->mix_presentation_id);
+        warn("Fail to find the mix presentation %u obu.",
+             ctx->mix_presentation_id);
       else
-        warning("Fail to find the valid mix presentation obu, try again.");
+        warn("Fail to find the valid mix presentation obu, try again.");
     }
   }
 
@@ -702,7 +701,7 @@ static iamf_parser_state_t iamf_decoder_priv_process_data_obus(
             iamf_database_time_elapse(&self->ctx.database, frame_duration);
           }
         } else {
-          warning("No audio block available.");
+          warn("No audio block available.");
         }
       }
     } break;
@@ -730,7 +729,7 @@ static iamf_parser_state_t iamf_decoder_priv_process_obus(iamf_obu_t *obu,
   else if (ctx->status == ck_iamf_decoder_status_parse_2)
     return iamf_decoder_priv_process_data_obus(self, obu);
 
-  warning("Unexpected state %d of decoder.", ctx->status);
+  warn("Unexpected state %d of decoder.", ctx->status);
   return ck_iamf_parser_state_stop;
 }
 
@@ -1129,7 +1128,7 @@ int IAMF_decoder_set_head_rotation(IAMF_DecoderHandle handle, float w, float x,
   // Validate quaternion (should be approximately unit length)
   float quaternion_length = sqrtf(w * w + x * x + y * y + z * z);
   if (quaternion_length < 0.001f) {
-    warning("Head rotation quaternion is too close to zero, ignoring");
+    warn("Head rotation quaternion is too close to zero, ignoring");
     return IAMF_ERR_BAD_ARG;
   }
 

@@ -191,7 +191,7 @@ int iamf_mix_presentation_obu_check_profile(iamf_mix_presentation_obu_t *obu,
 
   n = array_size(obu->sub_mixes);
   if (n > info->max_sub_mixes) {
-    warning(
+    warn(
         "Too many sub mixes %u (should be <= %u) in mix presentation %u for "
         "%s(%u",
         n, info->max_sub_mixes, obu->mix_presentation_id,
@@ -206,7 +206,7 @@ int iamf_mix_presentation_obu_check_profile(iamf_mix_presentation_obu_t *obu,
     elements += num;
 
     if (elements > info->max_elements) {
-      warning(
+      warn(
           "Too many elements %u (should be <= %u) in mix presentation %u for "
           "%s(%u)",
           elements, info->max_elements, obu->mix_presentation_id,
@@ -220,14 +220,14 @@ int iamf_mix_presentation_obu_check_profile(iamf_mix_presentation_obu_t *obu,
       if (vector_find(audio_element_obus,
                       def_value_wrap_instance_u32(aelem_config->element_id),
                       _obu_mp_find_audio_element, &v) < 0) {
-        warning("Invalid element %u in mix presentation %u",
-                aelem_config->element_id, obu->mix_presentation_id);
+        warn("Invalid element %u in mix presentation %u",
+             aelem_config->element_id, obu->mix_presentation_id);
         return def_error;
       }
 
       if (aelem_config->rendering_config.headphones_rendering_mode >
           info->max_available_headphone_rendering_mode) {
-        warning(
+        warn(
             "Invalid headphones rendering mode %d in element %u of mix "
             "presentation %u for profile %s(%u).",
             aelem_config->rendering_config.headphones_rendering_mode,
@@ -262,8 +262,8 @@ int iamf_mix_presentation_obu_check_profile(iamf_mix_presentation_obu_t *obu,
       }
 
       if (channels > info->max_channels) {
-        warning("Id (%u) has %d channels, more than %u",
-                obu->mix_presentation_id, channels, info->max_channels);
+        warn("Id (%u) has %d channels, more than %u", obu->mix_presentation_id,
+             channels, info->max_channels);
         return def_error;
       }
     }
@@ -691,8 +691,8 @@ int _obu_mp_check(iamf_mix_presentation_obu_t *obu) {
   int num = array_size(obu->sub_mixes);
 
   if (num > def_max_sub_mixes) {
-    warning("id(%u): num_sub_mixes should be <= %d.", obu->mix_presentation_id,
-            def_max_sub_mixes);
+    warn("id(%u): num_sub_mixes should be <= %d.", obu->mix_presentation_id,
+         def_max_sub_mixes);
     return def_error;
   }
 
@@ -701,15 +701,15 @@ int _obu_mp_check(iamf_mix_presentation_obu_t *obu) {
     obu_sub_mix_t *sub =
         def_value_wrap_optional_ptr(array_at(obu->sub_mixes, i));
     if (!sub) {
-      warning("id(%u): sub mix (%d) should not be null.",
-              obu->mix_presentation_id, i);
+      warn("id(%u): sub mix (%d) should not be null.", obu->mix_presentation_id,
+           i);
       return def_error;
     }
 
     n = array_size(sub->audio_element_configs);
     if (!n) {
-      warning("id(%u): num_audio_elements should not be set to 0.",
-              obu->mix_presentation_id);
+      warn("id(%u): num_audio_elements should not be set to 0.",
+           obu->mix_presentation_id);
       return def_error;
     }
 
@@ -719,7 +719,7 @@ int _obu_mp_check(iamf_mix_presentation_obu_t *obu) {
 
       if (aelem_config->rendering_config.headphones_rendering_mode >
           HEADPHONES_RENDERING_MODE_HEAD_LOCKED) {
-        warning(
+        warn(
             "Invalid headphones rendering mode %d in element %u of mix "
             "presentation %u",
             aelem_config->rendering_config.headphones_rendering_mode,
@@ -734,8 +734,8 @@ int _obu_mp_check(iamf_mix_presentation_obu_t *obu) {
           def_value_wrap_optional_ptr(array_at(sub->loudness_layouts, j));
       if (layout->type == ck_iamf_layout_type_loudspeakers_ss_convention &&
           !iamf_sound_system_check(layout->sound_system)) {
-        warning("Find unsupported sound system %d in mix presentation %u.",
-                layout->sound_system, obu->mix_presentation_id);
+        warn("Find unsupported sound system %d in mix presentation %u.",
+             layout->sound_system, obu->mix_presentation_id);
       }
     }
   }
@@ -745,7 +745,7 @@ int _obu_mp_check(iamf_mix_presentation_obu_t *obu) {
     iamf_tag_t *tag =
         def_value_wrap_optional_ptr(array_at(obu->mix_presentation_tags, i));
     if (_obu_mp_tag_check(tag->name, tag->value) != def_pass)
-      warning("Invalid tag name %s or value %s.", tag->name, tag->value);
+      warn("Invalid tag name %s or value %s.", tag->name, tag->value);
   }
   return def_pass;
 }

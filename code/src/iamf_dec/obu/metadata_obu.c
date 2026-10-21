@@ -165,7 +165,7 @@ iamf_metadata_obu_t *iamf_metadata_obu_new(io_context_t *ior) {
     }
 
     default:
-      warning("Unsupport metadata type: %u", metadata_type);
+      warn("Unsupport metadata type: %u", metadata_type);
       return 0;
   }
 
