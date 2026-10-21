@@ -176,7 +176,7 @@ int iamf_audio_block_channels_concat(iamf_audio_block_t* dst,
   num_samples = src[0]->num_samples_per_channel;
 
   if (num_samples > dst->capacity_per_channel) {
-    warning("iamf_audio_block_channels_concat: capacity exceeded!");
+    warn("iamf_audio_block_channels_concat: capacity exceeded!");
     return -22;
   }
 
@@ -184,7 +184,7 @@ int iamf_audio_block_channels_concat(iamf_audio_block_t* dst,
     if (!src[i] || src[i]->num_samples_per_channel != num_samples
         // || dst->interleaved != src[i]->interleaved
     ) {
-      warning("iamf_audio_block_channels_concat error!");
+      warn("iamf_audio_block_channels_concat error!");
       return -22;
     }
   }

@@ -182,7 +182,7 @@ static uint32_t iamf_presentation_priv_generate_unique_gain_offset_id(
   }
 
   // If all offsets conflict, use id as fallback
-  warning("All offsets conflict, using pid as fallback: id=%u", self->id);
+  warn("All offsets conflict, using pid as fallback: id=%u", self->id);
   return self->id;
 }
 
@@ -323,14 +323,14 @@ static iamf_presentation_element_t* iamf_presentation_priv_make_element(
   debug("make presentation element %u", eid);
   aeo = iamf_database_get_audio_element_obu(self->database, eid);
   if (!aeo) {
-    warning("no audio element found for id %u", eid);
+    warn("no audio element found for id %u", eid);
     return 0;
   }
 
   cco =
       iamf_database_get_codec_config_obu(self->database, aeo->codec_config_id);
   if (!cco) {
-    warning("no codec config found for id %u", aeo->codec_config_id);
+    warn("no codec config found for id %u", aeo->codec_config_id);
     return 0;
   }
 
@@ -412,13 +412,13 @@ static iamf_presentation_element_t* iamf_presentation_priv_make_element(
     }
 
     if (element->in.position_id == def_i32_id_none) {
-      warning(
+      warn(
           "No position parameter found in rendering_config for object-based "
           "element %u",
           element->element_id);
     }
   } else {
-    warning("unknown scheme %d", element->scheme);
+    warn("unknown scheme %d", element->scheme);
   }
 
   return element;
@@ -449,9 +449,8 @@ static int iamf_presentation_priv_make_elements(iamf_presentation_t* self) {
                   hash_map_put(self->elements, element->element_id,
                                def_value_wrap_instance_ptr(element)) < 0) {
                 def_free(element);
-                warning(
-                    "Failed to insert element presentation for element_id: %u",
-                    audio_config->element_id);
+                warn("Failed to insert element presentation for element_id: %u",
+                     audio_config->element_id);
                 return IAMF_ERR_INTERNAL;
               }
             }
@@ -708,7 +707,7 @@ static int iamf_presentation_priv_sync_audio_blocks(iamf_presentation_t* self) {
         if (!element->block) {
           element->block = iamf_audio_block_default_new(element->element_id);
           if (!element->block)
-            warning(
+            warn(
                 "Failed to allocate memory for audio block for element (%u) "
                 "for synchronization.",
                 element->element_id);
@@ -790,7 +789,7 @@ static int iamf_presentation_priv_update_element_mix_gain(
 
   // Handle second skip if present
   if (element->block->second_skip > 0) {
-    animated_float32_t animated_gain = _create_step_animated_gain(1.0f);
+    animated_float32_t animated_gain = _create_step_animated_gain(0.0f);
     iamf_renderer_update_element_animated_gain(
         &self->renderer, element->element_id, element->mix_gain_id,
         animated_gain, element->block->second_skip);
@@ -833,8 +832,7 @@ static int iamf_presentation_priv_update_element_mix_gain(
     parameter_base_t* param_base =
         iamf_database_get_parameter_base(self->database, element->mix_gain_id);
     if (!param_base)
-      warning("Parameter base not found for mix gain id %u",
-              element->mix_gain_id);
+      warn("Parameter base not found for mix gain id %u", element->mix_gain_id);
     if (param_base && param_base->type == ck_iamf_parameter_type_mix_gain) {
       mix_gain_parameter_base_t* mix_gain_param =
           (mix_gain_parameter_base_t*)param_base;
@@ -849,7 +847,7 @@ static int iamf_presentation_priv_update_element_mix_gain(
   }
 
   if (element->block->second_padding > 0) {
-    animated_float32_t animated_gain = _create_step_animated_gain(1.0f);
+    animated_float32_t animated_gain = _create_step_animated_gain(0.0f);
     iamf_renderer_update_element_animated_gain(
         &self->renderer, element->element_id, element->mix_gain_id,
         animated_gain, element->block->second_padding);
@@ -880,9 +878,8 @@ static int iamf_presentation_priv_update_element_positions(
       iamf_database_get_parameter_base(self->database, element->in.position_id);
 
   if (!param_base || !iamf_parameter_type_is_coordinate(param_base->type)) {
-    warning(
-        "Invalid or non-coordinate position parameter %u for element_id: %u",
-        element->in.position_id, element->element_id);
+    warn("Invalid or non-coordinate position parameter %u for element_id: %u",
+         element->in.position_id, element->element_id);
     return IAMF_OK;
   }
 
@@ -1088,7 +1085,7 @@ static int iamf_presentation_priv_update_output_mix_gain(
 
     // Handle second skip if present
     if (block->second_skip > 0) {
-      animated_float32_t animated_gain = _create_step_animated_gain(1.0f);
+      animated_float32_t animated_gain = _create_step_animated_gain(0.0f);
       iamf_renderer_update_animated_gain(&self->renderer, pid, g, animated_gain,
                                          block->second_skip);
     }
@@ -1130,7 +1127,7 @@ static int iamf_presentation_priv_update_output_mix_gain(
     }
 
     if (block->second_padding > 0) {
-      animated_float32_t animated_gain = _create_step_animated_gain(1.0f);
+      animated_float32_t animated_gain = _create_step_animated_gain(0.0f);
       iamf_renderer_update_animated_gain(&self->renderer, pid, g, animated_gain,
                                          block->second_padding);
     }
@@ -1163,7 +1160,7 @@ static float _sub_mix_get_best_loudness(iamf_mix_presentation_obu_t* obj,
 
   sub = def_value_wrap_optional_ptr(array_at(obj->sub_mixes, sub_mix_index));
   if (!sub) {
-    warning("Sub_mix at index %d is NULL", sub_mix_index);
+    warn("Sub_mix at index %d is NULL", sub_mix_index);
     return loudness_lkfs;
   }
 
@@ -1394,7 +1391,7 @@ int iamf_presentation_set_element_gain_offset(iamf_presentation_t* self,
 
   // Check if gain offset is enabled for this element
   if (!element->enable_gain_offset) {
-    warning("Gain offset is not enabled for element ID %u", eid);
+    warn("Gain offset is not enabled for element ID %u", eid);
     return IAMF_ERR_BAD_ARG;
   }
 
@@ -1440,7 +1437,7 @@ int iamf_presentation_get_element_gain_offset(iamf_presentation_t* self,
 
   // Check if gain offset is enabled for this element
   if (!element->enable_gain_offset) {
-    warning("Gain offset is not enabled for element ID %u", eid);
+    warn("Gain offset is not enabled for element ID %u", eid);
     return IAMF_ERR_BAD_ARG;
   }
 
@@ -1535,7 +1532,7 @@ int iamf_presentation_add_audio_block(iamf_presentation_t* self,
 
   if (element->block) {
     ret = IAMF_ERR_INVALID_PACKET;
-    warning("Audio block already exists for element ID %u", eid);
+    warn("Audio block already exists for element ID %u", eid);
     iamf_presentation_priv_delete_all_audio_blocks(self);
   }
 
@@ -1560,7 +1557,7 @@ iamf_audio_block_t* iamf_presentation_process(iamf_presentation_t* self) {
 
   // Check if all audio blocks are present before starting processing.
   if (self->num_audio_blocks != hash_map_size(self->elements)) {
-    warning(
+    warn(
         "Not all audio blocks received for presentation %u. Received %u, "
         "expected %u.",
         self->id, self->num_audio_blocks, hash_map_size(self->elements));
@@ -1568,7 +1565,7 @@ iamf_audio_block_t* iamf_presentation_process(iamf_presentation_t* self) {
 
   ret = iamf_presentation_priv_sync_audio_blocks(self);
   if (ret != IAMF_OK)
-    warning("Failed to sync audio blocks for presentation %u", self->id);
+    warn("Failed to sync audio blocks for presentation %u", self->id);
 
   hash_map_iterator_t* iter = hash_map_iterator_new(self->elements);
   if (!iter) {
@@ -1648,7 +1645,7 @@ int iamf_presentation_set_head_rotation(iamf_presentation_t* self,
   if (!self || !quaternion) return IAMF_ERR_BAD_ARG;
 
   if (self->layout.type != ck_iamf_layout_type_binaural) {
-    warning(
+    warn(
         "Head rotation is only effective for binaural output layout. "
         "Current layout type: %d. Head rotation will be stored but not "
         "applied.",
@@ -1667,7 +1664,7 @@ int iamf_presentation_enable_head_tracking(iamf_presentation_t* self,
   if (!self) return IAMF_ERR_BAD_ARG;
 
   if (self->layout.type != ck_iamf_layout_type_binaural) {
-    warning(
+    warn(
         "Head tracking is only effective for binaural output layout. "
         "Current layout type: %d. Head tracking setting will be stored but not "
         "applied.",

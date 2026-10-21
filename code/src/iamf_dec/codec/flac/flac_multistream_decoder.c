@@ -172,7 +172,7 @@ static int flac_multistream_decode_native(flac_ms_decoder_t *st,
     }
 
     if (handle->fs != frame_size)
-      warning("Different frame size %d vs %d", frame_size, handle->fs);
+      warn("Different frame size %d vs %d", frame_size, handle->fs);
 
     ss = handle->fs * handle->stream_info.channels * 4;
     memcpy(out, handle->buffer, ss);

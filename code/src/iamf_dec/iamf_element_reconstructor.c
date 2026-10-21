@@ -1089,7 +1089,7 @@ int iamf_element_reconstructor_add_element(
       break;
     }
     default: {
-      warning("Unsupported audio element type %d.", aeo->audio_element_type);
+      warn("Unsupported audio element type %d.", aeo->audio_element_type);
       return IAMF_ERR_UNIMPLEMENTED;
     }
   }
@@ -1134,7 +1134,7 @@ int iamf_element_reconstructor_add_audio_frame_obu(
 
   val = hash_map_get(self->reconstructor_map, eid);
   if (!val) {
-    warning("Reconstructor not found for audio element ID %u.", eid);
+    warn("Reconstructor not found for audio element ID %u.", eid);
     iamf_audio_frame_obu_free(obu);
     return IAMF_ERR_INTERNAL;
   }
@@ -1142,16 +1142,16 @@ int iamf_element_reconstructor_add_audio_frame_obu(
 
   val = hash_map_get(recon->audio_frames_map, obu->audio_substream_id);
   if (!val) {
-    warning("Audio frame node not found for substream ID %u in self.",
-            obu->audio_substream_id);
+    warn("Audio frame node not found for substream ID %u in self.",
+         obu->audio_substream_id);
     iamf_audio_frame_obu_free(obu);
     return IAMF_ERR_INTERNAL;
   }
   afo = def_value_wrap_ptr(val);
 
   if (*afo) {
-    warning("Substream ID %u already has an audio frame OBU.",
-            obu->audio_substream_id);
+    warn("Substream ID %u already has an audio frame OBU.",
+         obu->audio_substream_id);
     iamf_element_reconstructor_priv_delete_all_audio_frame_obus(self);
     ret = IAMF_ERR_INVALID_PACKET;
   }

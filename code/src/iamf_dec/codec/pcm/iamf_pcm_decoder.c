@@ -155,8 +155,8 @@ static int iamf_pcm_decode(iamf_codec_context_t *ths, uint8_t *buf[],
         ths->streams, frame_size, samples);
 
   if (samples != frame_size)
-    warning("real samples and frame size are different: %d vs %d", samples,
-            frame_size);
+    warn("real samples and frame size are different: %d vs %d", samples,
+         frame_size);
 
   c = 0;
   for (; c < ths->coupled_streams; ++c) {

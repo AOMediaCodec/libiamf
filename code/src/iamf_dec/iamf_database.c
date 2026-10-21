@@ -485,7 +485,7 @@ static int _iadb_descriptors_codec_config_obu_check_profile(
       if ((n >= def_max_codec_configs) ||
           (n && !descriptors->num_lpcm_codec &&
            cco->codec_id != ck_iamf_codec_id_lpcm)) {
-        warning("Too many codec configs or no LPCM codec config.");
+        warn("Too many codec configs or no LPCM codec config.");
         ret = def_error;
       }
 
@@ -567,8 +567,8 @@ static int _iadb_descriptors_mix_presentation_obu_check_profile(
                             def_value_wrap_instance_u32(first_aec->element_id),
                             _iadb_audio_element_obu_find, &v);
             if (idx < 0) {
-              warning("Audio element %u not found for Mix Presentation %u.",
-                      first_aec->element_id, mpo->mix_presentation_id);
+              warn("Audio element %u not found for Mix Presentation %u.",
+                   first_aec->element_id, mpo->mix_presentation_id);
             } else {
               iamf_audio_element_obu_t *first_aeo =
                   def_value_wrap_type_ptr(iamf_audio_element_obu_t, &v);
@@ -583,8 +583,8 @@ static int _iadb_descriptors_mix_presentation_obu_check_profile(
                                   def_value_wrap_instance_u32(aec->element_id),
                                   _iadb_audio_element_obu_find, &v);
                 if (idx < 0) {
-                  warning("Audio element %u not found for Mix Presentation %u.",
-                          aec->element_id, mpo->mix_presentation_id);
+                  warn("Audio element %u not found for Mix Presentation %u.",
+                       aec->element_id, mpo->mix_presentation_id);
                   continue;
                 }
 
@@ -628,8 +628,8 @@ static int _iadb_descriptors_mix_presentation_obu_check_profile(
                                   def_value_wrap_instance_u32(aec->element_id),
                                   _iadb_audio_element_obu_find, &v);
             if (idx < 0) {
-              warning("Audio element %u not found for Mix Presentation %u.",
-                      aec->element_id, mpo->mix_presentation_id);
+              warn("Audio element %u not found for Mix Presentation %u.",
+                   aec->element_id, mpo->mix_presentation_id);
               continue;
             }
             iamf_audio_element_obu_t *aeo =
@@ -654,7 +654,7 @@ static int _iadb_descriptors_mix_presentation_obu_check_profile(
         }
 
         if (ret != def_pass)
-          warning(
+          warn(
               "Mix Presentation OBU %u, element flags 0x%x(b01-obj, "
               "b10-chn), mix count %u",
               mpo->mix_presentation_id, element_flags, m);
@@ -747,8 +747,8 @@ static int _iadb_audio_element_obu_add(iamf_database_t *database,
   if (vector_find(database->codec_configs,
                   def_value_wrap_instance_u32(obu->codec_config_id),
                   _iadb_codec_config_find, &v) < 0) {
-    warning("Can not find codec config with id %u for audio element %u",
-            obu->codec_config_id, obu->audio_element_id);
+    warn("Can not find codec config with id %u for audio element %u",
+         obu->codec_config_id, obu->audio_element_id);
     return IAMF_ERR_BAD_ARG;
   }
   cc = v.ptr;
@@ -958,7 +958,7 @@ int iamf_database_add_obu(iamf_database_t *database, iamf_obu_t *obu) {
         database->profile = sho->additional_profile;
 
       if (database->descriptors.ia_sequence_header_obu) {
-        warning("WARNING : Receive IAMF Sequence Header OBU again !!!");
+        warn("WARNING : Receive IAMF Sequence Header OBU again !!!");
         iamf_sequence_header_obu_free(
             database->descriptors.ia_sequence_header_obu);
       }
@@ -1287,8 +1287,7 @@ int iamf_database_get_subblocks(iamf_database_t *database, uint32_t pid,
 
   // for gaps in delay case.
   if (pbk->elapsed > 0 && pbk->elapsed + converted_count > pbk->duration) {
-    warning("required subblocks exceed the duration of parameter block %u.",
-            pid);
+    warn("required subblocks exceed the duration of parameter block %u.", pid);
     return IAMF_ERR_BUFFER_TOO_SMALL;
   }
 

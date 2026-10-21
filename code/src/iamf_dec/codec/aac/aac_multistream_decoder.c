@@ -121,8 +121,7 @@ static int aac_multistream_decode_native(
     if (info) {
       fs = info->frameSize;
       if (fs > def_max_aac_frame_size) {
-        warning("frame size %d , is larger than %u", fs,
-                def_max_aac_frame_size);
+        warn("frame size %d , is larger than %u", fs, def_max_aac_frame_size);
         fs = def_max_aac_frame_size;
       }
 
@@ -140,7 +139,7 @@ static int aac_multistream_decode_native(
       (*copy_channel_out)(out, st->buffer, fs, info->numChannels);
       out += (fs * info->numChannels);
     } else {
-      warning("Can not get stream info.");
+      warn("Can not get stream info.");
     }
   }
 

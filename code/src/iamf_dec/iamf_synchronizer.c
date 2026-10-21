@@ -105,7 +105,7 @@ static int audio_block_cache_required_data(audio_blocks_cache_t* cache,
     uint32_t _offset;
 
     if (!cblock) {
-      warning("Failed to get audio block from cache for ID %u", cache->id);
+      warn("Failed to get audio block from cache for ID %u", cache->id);
       ret = IAMF_ERR_INTERNAL;
       value_wrap_t v;
       queue_pop(cache->audio_blocks, &v);
@@ -339,7 +339,7 @@ int iamf_synchronizer_sync_audio_blocks(iamf_synchronizer_t* synchronizer,
     iamf_audio_block_samples_info_copy(&required_block, &default_block);
 
     if (audio_block_cache_required_data(cache, &required_block) != IAMF_OK) {
-      warning("Failed to get required data from cache for ID %u", block->id);
+      warn("Failed to get required data from cache for ID %u", block->id);
       def_free(required_block.data);
       continue;
     }

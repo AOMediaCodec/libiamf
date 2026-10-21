@@ -121,7 +121,7 @@ static iamf_audio_block_t *iamf_post_processor_priv_resample(
     iamf_audio_block_copy(out, resampler->buffer[1],
                           ck_sample_format_f32_planar);
   } else {
-    warning("no samples to resample.");
+    warn("no samples to resample.");
   }
 
   return out;
@@ -191,7 +191,7 @@ static iamf_audio_block_t *iamf_post_processor_priv_limit(
   }
 
   if (num_samples < 0) {
-    warning("limiter process failed: %d", num_samples);
+    warn("limiter process failed: %d", num_samples);
     iamf_audio_block_delete(out);
     return 0;
   }

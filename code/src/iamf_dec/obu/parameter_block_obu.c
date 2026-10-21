@@ -56,8 +56,8 @@ iamf_parameter_block_obu_t *iamf_parameter_block_obu_new(
   uint32_t num_subblocks = 0;
 
   if (!interfaces || !interfaces->get_parameter_base) {
-    warning("invalid input parameters: interfaces(%p), get base(%p)",
-            interfaces, interfaces ? interfaces->get_parameter_base : 0);
+    warn("invalid input parameters: interfaces(%p), get base(%p)", interfaces,
+         interfaces ? interfaces->get_parameter_base : 0);
     return 0;
   }
 
@@ -306,7 +306,7 @@ _obu_pb_recon_gain_info_parameter_subblock_new(
   int size = 0;
 
   if (!interfaces || !interfaces->get_recon_gain_present_flags) {
-    warning(
+    warn(
         "Invalid input parameters: interfaces(%p) or "
         "get_recon_gain_present_flags(%p)",
         interfaces, interfaces ? interfaces->get_recon_gain_present_flags : 0);

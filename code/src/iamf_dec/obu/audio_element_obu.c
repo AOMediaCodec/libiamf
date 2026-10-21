@@ -73,7 +73,7 @@ iamf_audio_element_obu_t *iamf_audio_element_obu_new(io_context_t *ior) {
     object_based_audio_element_obu_t *oae = _obu_ae_object_based_new(val, ior);
     if (oae) obu = def_audio_element_obu_ptr(oae);
   } else {
-    warning("Unsupported type %u of audio element %u", type, val);
+    warn("Unsupported type %u of audio element %u", type, val);
     return 0;
   }
 
@@ -104,7 +104,7 @@ void iamf_audio_element_obu_free(iamf_audio_element_obu_t *obu) {
   } else if (obu->audio_element_type == ck_audio_element_type_object_based) {
     _obu_ae_object_based_free(def_object_based_audio_element_obu_ptr(obu));
   } else {
-    warning("Unknown audio element type %u", obu->audio_element_type);
+    warn("Unknown audio element type %u", obu->audio_element_type);
     _obu_ae_common_clear(obu);
   }
 }
@@ -183,8 +183,8 @@ int _obu_ae_common_init(iamf_audio_element_obu_t *obu, uint32_t id,
     type = ior_leb128_u32(r);
     if (type != ck_iamf_parameter_type_demixing &&
         type != ck_iamf_parameter_type_recon_gain) {
-      warning("Don't support parameter type(%u) in Audio Element OBU(%u), ",
-              type, obu->audio_element_id);
+      warn("Don't support parameter type(%u) in Audio Element OBU(%u), ", type,
+           obu->audio_element_id);
       if (type >= (uint32_t)ck_iamf_parameter_type_count) {
         uint32_t size = ior_leb128_u32(r);
         ior_skip(r, size);
@@ -369,7 +369,7 @@ static int _obu_ae_scene_based_init(scene_based_audio_element_obu_t *sae,
         sae->substream_count + sae->coupled_substream_count, sae->mapping_size);
 
   } else {
-    warning("Invalid ambisonics mode(%u)", sae->ambisonics_mode);
+    warn("Invalid ambisonics mode(%u)", sae->ambisonics_mode);
     ret = IAMF_ERR_BAD_ARG;
   }
   return ret;
@@ -440,16 +440,16 @@ void _obu_ae_object_based_free(object_based_audio_element_obu_t *oae) {
 
 static int _obu_ae_channel_based_check(channel_based_audio_element_obu_t *cae) {
   if (array_size(cae->base.parameters) > 2)
-    warning("Channle based audio element(%u) has more than two parameters.",
-            cae->base.audio_element_id);
+    warn("Channel based audio element(%u) has more than two parameters.",
+         cae->base.audio_element_id);
 
   cae->max_valid_layers = 0;
   if (cae->channel_audio_layer_configs) {
     uint32_t channels = 0;
     int n = array_size(cae->channel_audio_layer_configs);
     if (!n) {
-      warning("Element (%u) doesn't have valid layer.",
-              cae->base.audio_element_id);
+      warn("Element (%u) doesn't have valid layer.",
+           cae->base.audio_element_id);
       return def_error;
     }
 
@@ -458,8 +458,8 @@ static int _obu_ae_channel_based_check(channel_based_audio_element_obu_t *cae) {
           array_at(cae->channel_audio_layer_configs, i));
 
       if (!layer_config) {
-        warning("Element (%u) Layer %d: layer config is NULL, skip.",
-                cae->base.audio_element_id, i);
+        warn("Element (%u) Layer %d: layer config is NULL, skip.",
+             cae->base.audio_element_id, i);
         continue;
       }
 
@@ -479,14 +479,13 @@ static int _obu_ae_channel_based_check(channel_based_audio_element_obu_t *cae) {
                   layer_config->expanded_loudspeaker_layout)) {
             cae->max_valid_layers = 1;
           } else {
-            warning("Layer[%d] info : invalid expanded layout %d", i,
-                    cae->max_valid_layers);
+            warn("Layer[%d] info : invalid expanded layout %d", i,
+                 cae->max_valid_layers);
           }
         } else if (i || layer_config->loudspeaker_layout !=
                             def_iamf_loudspeaker_layout_expanded) {
-          warning("Element (%u) Layer %d: Invalid loudspeaker layout %u",
-                  cae->base.audio_element_id, i,
-                  layer_config->loudspeaker_layout);
+          warn("Element (%u) Layer %d: Invalid loudspeaker layout %u",
+               cae->base.audio_element_id, i, layer_config->loudspeaker_layout);
           break;
         }
       }
@@ -505,9 +504,9 @@ int _obu_ae_channel_based_check_profile(channel_based_audio_element_obu_t *cae,
         def_value_wrap_optional_ptr(array_at(configs, 0));
     if (layer_config &&
         !iamf_audio_layer_base_layout_check(layer_config->loudspeaker_layout)) {
-      warning("Element (%u) doesn't support layout %u in profile %u.",
-              cae->base.audio_element_id, layer_config->loudspeaker_layout,
-              profile);
+      warn("Element (%u) doesn't support layout %u in profile %u.",
+           cae->base.audio_element_id, layer_config->loudspeaker_layout,
+           profile);
       return def_error;
     }
   }
@@ -518,12 +517,12 @@ static int _obu_ae_scene_based_check(scene_based_audio_element_obu_t *sae) {
   int channels = sae->substream_count + sae->coupled_substream_count;
 
   if (array_size(sae->base.parameters) > 0)
-    warning("Scene based audio element(%u) has parameter.",
-            sae->base.audio_element_id);
+    warn("Scene based audio element(%u) has parameter.",
+         sae->base.audio_element_id);
 
   if (iamf_ambisonics_get_order(sae->output_channel_count) < 0 ||
       sae->output_channel_count < channels) {
-    warning(
+    warn(
         "Invalid output channel count %d or invalid input channels %d in "
         "ambisonics mode",
         sae->output_channel_count, channels);
@@ -534,12 +533,12 @@ static int _obu_ae_scene_based_check(scene_based_audio_element_obu_t *sae) {
 
 static int _obu_ae_object_based_check(object_based_audio_element_obu_t *oae) {
   if (array_size(oae->base.parameters) > 0)
-    warning("Object based audio element(%u) has parameter.",
-            oae->base.audio_element_id);
+    warn("Object based audio element(%u) has parameter.",
+         oae->base.audio_element_id);
 
   if (oae->num_objects <= 0) {
-    warning("Object based audio element(%u) has no objects.",
-            oae->base.audio_element_id);
+    warn("Object based audio element(%u) has no objects.",
+         oae->base.audio_element_id);
     return def_error;
   }
   return def_pass;
@@ -550,8 +549,8 @@ int _obu_ae_scene_based_check_profile(scene_based_audio_element_obu_t *sae,
   int channels = sae->substream_count + sae->coupled_substream_count;
   const iamf_profile_info_t *info = iamf_profile_info_get(profile);
   if (channels > info->max_amb_channels) {
-    warning("Invalid channels %d in ambisonics mode, it should less than %d",
-            channels, info->max_amb_channels);
+    warn("Invalid channels %d in ambisonics mode, it should less than %d",
+         channels, info->max_amb_channels);
     return def_error;
   }
   return def_pass;

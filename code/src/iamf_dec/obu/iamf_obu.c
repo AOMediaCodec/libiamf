@@ -128,7 +128,7 @@ static int _iamf_obu_raw_parse_body(io_context_t *ior,
           header->obu_type <= ck_iamf_obu_audio_frame_id17) {
         *obu = (iamf_obu_t *)iamf_audio_frame_obu_new(ior, header);
       } else {
-        warning("Reserved OBU type %u", header->obu_type);
+        warn("Reserved OBU type %u", header->obu_type);
       }
       break;
   }
