@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Build
         uses: ./.github/actions/libiamf-builder
         with:
@@ -16,16 +16,16 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Build
         uses: ./.github/actions/libiamf-builder
         with:
           build-options: -DIAMF_TEST_TOOL=ON
   macos-amd64:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Build
         uses: ./.github/actions/libiamf-builder
         with:
